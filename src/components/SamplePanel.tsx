@@ -191,8 +191,9 @@ export function SamplePanel({
             <>
               <ObservablePlotFigure options={binaryOptions} />
               <p className="caption">
-                The bar chart counts the 0 and 1 outcomes in this one realised Bernoulli sample
-                {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}.
+                The bar chart shows the 0 and 1 outcomes in the latest Bernoulli sample
+                {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}. The sample proportion is the
+                proportion of 1s.
               </p>
             </>
           ) : null}

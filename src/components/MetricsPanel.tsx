@@ -54,11 +54,11 @@ export function MetricsPanel({
   const repeatedSamplingText =
     mode === "mean"
       ? `The histogram to the left is the sampling distribution of the ${estimatorLabel}. It is normal when the population is normal, and is often approximately normal for large enough samples.`
-      : `The histogram to the left is the sampling distribution of the ${estimatorLabel}. The individual outcomes are binary, but the sample proportion can still be approximately normal when the sample size is large enough and both outcomes occur often enough.`;
+      : `The histogram to the left is the sampling distribution of the ${estimatorLabel}. The individual outcomes are binary, so this distribution can only be approximately normal when the sample size is large enough and both outcomes occur often enough.`;
   const boundariesText =
     mode === "mean"
       ? `About 95% of ${rangeLabel} fall within ${parameterLabel} ± 1.96 × SE when this sampling distribution is normal or approximately normal.`
-      : `When this sampling distribution is approximately normal, about 95% of ${rangeLabel} fall within ${parameterLabel} ± 1.96 × SE.`;
+      : `Because this sampling distribution is only approximately normal, about 95% of ${rangeLabel} fall within ${parameterLabel} ± 1.96 × SE when the sample size is large enough and both outcomes occur often enough.`;
 
   return (
     <Panel

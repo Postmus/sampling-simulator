@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import * as Plot from "@observablehq/plot";
+import tDist from "@stdlib/stats-base-dists-t";
 import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
 
@@ -8,6 +9,7 @@ interface SamplingDistributionPanelProps {
   theoreticalValue: number | null;
   theoreticalSE: number | null;
   currentEstimate: number | null;
+  sampleSize: number;
   title: string;
   outcomeLabel: string;
   unitLabel: string;
@@ -18,6 +20,7 @@ export function SamplingDistributionPanel({
   theoreticalValue,
   theoreticalSE,
   currentEstimate,
+  sampleSize,
   title,
   outcomeLabel,
   unitLabel,
@@ -56,12 +59,24 @@ export function SamplingDistributionPanel({
     return [min - padding, max + padding];
   }, [currentEstimate, estimates, theoreticalSE, theoreticalValue]);
 
+  const criticalMultiplier = useMemo(() => {
+    if (theoreticalSE === null || theoreticalValue === null) {
+      return null;
+    }
+
+    if (title.toLowerCase().includes("mean")) {
+      return sampleSize > 1 ? tDist.quantile(0.975, sampleSize - 1) : 1.96;
+    }
+
+    return 1.96;
+  }, [sampleSize, theoreticalSE, theoreticalValue, title]);
+
   const referenceBand =
-    theoreticalValue !== null && theoreticalSE !== null
+    theoreticalValue !== null && theoreticalSE !== null && criticalMultiplier !== null
       ? {
-          lower: theoreticalValue - 1.96 * theoreticalSE,
-          offset: 1.96 * theoreticalSE,
-          upper: theoreticalValue + 1.96 * theoreticalSE,
+          lower: theoreticalValue - criticalMultiplier * theoreticalSE,
+          offset: criticalMultiplier * theoreticalSE,
+          upper: theoreticalValue + criticalMultiplier * theoreticalSE,
         }
       : null;
 
@@ -91,9 +106,9 @@ export function SamplingDistributionPanel({
       tickTop: y - 5,
       tickBottom: y + 5,
       labelX: (x1 + x2) / 2,
-      label: "1.96 × SE",
+      label: `${criticalMultiplier?.toFixed(2) ?? "1.96"} × SE`,
     };
-  }, [referenceBand, theoreticalValue, xDomain]);
+  }, [criticalMultiplier, referenceBand, theoreticalValue, xDomain]);
 
   const options = useMemo<Plot.PlotOptions>(() => ({
     width: 560,
@@ -267,7 +282,9 @@ export function SamplingDistributionPanel({
       )}
       <p className="caption">
         {referenceBand !== null
-          ? `${title}. The dashed boundaries show ${parameterLabel} ± 1.96 × SE, where about 95% of ${estimateLabel} fall when the sampling distribution is normal or approximately normal.`
+          ? title.toLowerCase().includes("proportion")
+            ? `${title}. The dashed boundaries show ${parameterLabel} ± 1.96 × SE, where about 95% of ${estimateLabel} fall when the sampling distribution is approximately normal.`
+            : `${title}. The dashed boundaries show ${parameterLabel} ± 1.96 × SE, where about 95% of ${estimateLabel} fall when the sampling distribution is normal or approximately normal.`
           : title}
       </p>
     </Panel>

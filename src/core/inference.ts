@@ -1,10 +1,5 @@
 import { standardDeviation } from "./statistics";
-
-const T_CRITICAL_975: number[] = [
-  12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228,
-  2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086,
-  2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045, 2.042,
-];
+import tDist from "@stdlib/stats-base-dists-t";
 
 export interface IntervalSummary {
   lower: number;
@@ -19,27 +14,7 @@ export function tCritical95(df: number): number {
     return Number.NaN;
   }
 
-  if (df <= T_CRITICAL_975.length) {
-    return T_CRITICAL_975[df - 1];
-  }
-
-  if (df <= 40) {
-    return 2.021;
-  }
-
-  if (df <= 60) {
-    return 2.0;
-  }
-
-  if (df <= 80) {
-    return 1.99;
-  }
-
-  if (df <= 120) {
-    return 1.98;
-  }
-
-  return 1.96;
+  return tDist.quantile(0.975, df);
 }
 
 export function theoreticalMeanInterval(

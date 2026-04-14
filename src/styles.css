@@ -125,29 +125,6 @@ select {
   letter-spacing: -0.03em;
 }
 
-.hero-note {
-  min-width: 240px;
-  padding: 1rem 1.2rem;
-  border-radius: 24px;
-  background: rgba(16, 43, 62, 0.88);
-  color: #eef7fb;
-  box-shadow: 0 18px 40px rgba(18, 52, 74, 0.16);
-}
-
-.hero-note span {
-  display: block;
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  opacity: 0.78;
-}
-
-.hero-note strong {
-  display: block;
-  margin-top: 0.45rem;
-  font-size: 1.15rem;
-}
-
 .mode-sidebar,
 .control-card,
 .panel,
@@ -274,15 +251,108 @@ select {
   gap: 0.9rem;
 }
 
+.population-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.population-row {
+  padding: 0.95rem;
+  border-radius: 18px;
+  background: rgba(238, 245, 248, 0.6);
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.population-row-grid {
+  margin-top: 0.8rem;
+}
+
+.population-row + .population-row {
+  margin-top: 0.2rem;
+}
+
+.row-label h3 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.row-label p {
+  margin: 0.25rem 0 0;
+  color: #537082;
+  font-size: 0.9rem;
+}
+
+.fixed-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.fixed-field span {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.fixed-field strong {
+  font-size: 1rem;
+  color: #173142;
+}
+
 .sampling-grid {
   grid-template-columns: minmax(0, 1fr) 140px;
   align-items: end;
+}
+
+.testing-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
 .control-field {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
+}
+
+.sample-size-field {
+  min-width: 0;
+}
+
+.sample-size-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.sample-size-row input[type="range"] {
+  min-width: 0;
+}
+
+.sample-size-input {
+  text-align: center;
+}
+
+.truth-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 18px;
+  background: rgba(238, 245, 248, 0.6);
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.truth-toggle > span {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #173142;
 }
 
 .control-field span {
@@ -324,6 +394,10 @@ select {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.panel-span-2 {
+  grid-column: 1 / -1;
 }
 
 .panel {
@@ -398,6 +472,62 @@ select {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.75rem;
+}
+
+.sample-summary-table {
+  width: 100%;
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+  border: 1px solid rgba(32, 68, 88, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(250, 252, 252, 0.94);
+}
+
+.sample-summary-table th,
+.sample-summary-table td {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid rgba(32, 68, 88, 0.08);
+  text-align: left;
+}
+
+.sample-summary-table tr:last-child th,
+.sample-summary-table tr:last-child td {
+  border-bottom: none;
+}
+
+.sample-summary-table th {
+  width: 42%;
+  font-size: 0.9rem;
+  color: #173142;
+  background: rgba(238, 245, 248, 0.86);
+}
+
+.sample-summary-table td {
+  color: #173142;
+  font-weight: 600;
+}
+
+.hypothesis-spec {
+  margin-top: 0.8rem;
+  padding: 1rem 1.05rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(238, 245, 248, 0.88), rgba(250, 252, 252, 0.96));
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.hypothesis-spec p {
+  margin: 0.45rem 0 0;
+  color: #486171;
+  font-size: 0.94rem;
+}
+
+.hypothesis-spec p:first-child {
+  margin-top: 0;
+}
+
+.hypothesis-spec strong {
+  color: #173142;
 }
 
 .value-card {
@@ -692,16 +822,29 @@ select {
     align-items: start;
   }
 
-  .hero-note {
-    width: 100%;
-  }
-
   .sampling-grid {
     grid-template-columns: 1fr;
   }
 
+  .testing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sample-size-row {
+    grid-template-columns: 1fr;
+  }
+
+  .truth-toggle {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .panel-grid {
     grid-template-columns: 1fr;
+  }
+
+  .panel-span-2 {
+    grid-column: auto;
   }
 
   .ci-grid {
