@@ -21,15 +21,6 @@ export function ModeSidebar({
 
   return (
     <aside className="mode-sidebar">
-      <div className="sidebar-brand">
-        <p className="eyebrow">Medical Statistics Teaching Tool</p>
-        <h1>Sampling Simulator</h1>
-        <p className="sidebar-copy">
-          Move from the model to one realised sample and then to the distribution of the
-          statistic you care about.
-        </p>
-      </div>
-
       <section className="sidebar-section">
         <h2>Study Design</h2>
         <div className="sidebar-stack">
@@ -38,9 +29,6 @@ export function ModeSidebar({
           </button>
           <button type="button" className="mode-pill" disabled>
             Two groups
-          </button>
-          <button type="button" className="mode-pill" disabled>
-            3+ groups
           </button>
         </div>
       </section>
@@ -60,7 +48,7 @@ export function ModeSidebar({
             className={`mode-pill ${workflowMode === "testing" ? "active" : ""}`}
             onClick={() => onWorkflowModeChange("testing")}
           >
-            Testing & Power
+            Hypothesis Testing
           </button>
         </div>
       </section>
@@ -91,10 +79,6 @@ export function ModeSidebar({
         </div>
       </section>
 
-      <div className="sidebar-note">
-        <span>Current scope</span>
-        <strong>{workflowMode === "estimation" ? "One-group estimation" : "One-group testing & power"}</strong>
-      </div>
     </aside>
   );
 }

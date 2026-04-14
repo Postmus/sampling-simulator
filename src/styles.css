@@ -78,6 +78,17 @@ select {
   padding: 2rem 1.2rem 3rem;
 }
 
+.app-header {
+  margin-bottom: 1rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: clamp(2.1rem, 3vw, 3.2rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
 .workspace-shell {
   display: flex;
   gap: 1.2rem;
@@ -97,34 +108,6 @@ select {
   color: #9a5a17;
 }
 
-.mode-sidebar h1 {
-  margin: 0;
-  font-size: clamp(2rem, 2.4vw, 3rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
-}
-
-.hero-copy {
-  max-width: 58ch;
-  margin: 0.75rem 0 0;
-  font-size: 0.98rem;
-}
-
-.workspace-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.workspace-header h2 {
-  margin: 0;
-  font-size: clamp(2rem, 2.8vw, 3.2rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
-}
-
 .mode-sidebar,
 .control-card,
 .panel,
@@ -141,16 +124,6 @@ select {
   border-radius: 28px;
   position: sticky;
   top: 1rem;
-}
-
-.sidebar-brand {
-  margin-bottom: 1.2rem;
-}
-
-.sidebar-copy {
-  margin: 0.7rem 0 0;
-  color: #486171;
-  font-size: 0.95rem;
 }
 
 .sidebar-section + .sidebar-section {
@@ -199,27 +172,6 @@ select {
 .segment-pill:hover:disabled {
   transform: none;
   background: rgba(225, 236, 242, 0.88);
-}
-
-.sidebar-note {
-  margin-top: 1.2rem;
-  padding: 0.9rem 1rem;
-  border-radius: 20px;
-  background: rgba(13, 92, 141, 0.08);
-}
-
-.sidebar-note span {
-  display: block;
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #537082;
-}
-
-.sidebar-note strong {
-  display: block;
-  margin-top: 0.25rem;
-  color: #0d476b;
 }
 
 .control-band {
@@ -817,11 +769,6 @@ select {
 }
 
 @media (max-width: 980px) {
-  .workspace-header {
-    flex-direction: column;
-    align-items: start;
-  }
-
   .sampling-grid {
     grid-template-columns: 1fr;
   }

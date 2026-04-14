@@ -457,6 +457,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <header className="app-header">
+        <p className="eyebrow">Medical Statistics Teaching Tool</p>
+        <h1>Sampling Simulator</h1>
+      </header>
+
       <div className="workspace-shell">
         <ModeSidebar
           workflowMode={workflowMode}
@@ -468,26 +473,6 @@ export default function App() {
         />
 
         <div className="workspace-main">
-          <header className="workspace-header">
-            <div>
-              <p className="eyebrow">Current mode</p>
-              <h2>
-                {workflowMode === "testing"
-                  ? "One-group testing and power"
-                  : mode === "mean"
-                    ? "One-group mean"
-                    : "One-group proportion"}
-              </h2>
-              <p className="hero-copy">
-                {workflowMode === "testing"
-                  ? testingKind === "mean"
-                    ? "Set up the null and alternative means, simulate the one-sample t statistic, and track how often the test rejects."
-                    : "Set up the null and alternative proportions, simulate the exact binomial test, and track how often the test rejects."
-                  : "Configure the population model, draw one sample, and build the sampling distribution from repeated samples of the same size."}
-              </p>
-            </div>
-          </header>
-
           {workflowMode === "testing" ? (
             <>
               <TestingControlBand
