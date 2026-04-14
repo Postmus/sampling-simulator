@@ -19,6 +19,8 @@ npm install
 npm run dev
 ```
 
+Open the local Vite URL that the command prints. Do not open `index.html` directly from disk.
+
 ## Architecture
 
 - `src/core`: pure statistical logic
@@ -26,4 +28,8 @@ npm run dev
 - `src/presets`: lecture-ready example scenarios
 - `src/App.tsx`: top-level teaching flow and state
 
-The app is frontend-only and suitable for local use during lectures or later deployment as a static site such as GitHub Pages.
+The app is frontend-only and suitable for local use during lectures or deployment as a static site such as GitHub Pages.
+
+## GitHub Pages
+
+This repository is set up to deploy the built `dist/` output with GitHub Actions. After pushing to the default branch, the workflow will build the app and publish it to GitHub Pages.
