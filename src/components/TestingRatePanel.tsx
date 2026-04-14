@@ -24,14 +24,20 @@ export function TestingRatePanel({
   empiricalRejectionRate,
   theoreticalRejectionRate,
 }: TestingRatePanelProps) {
-  const rateLabel = truth === "h1" ? "Empirical power" : "Type I error rate";
+  const isPowerView = truth === "h1";
+  const panelTitle = isPowerView ? "Power" : "Rejection rate";
+  const panelSubtitle = isPowerView
+    ? "This shows how often the test rejects when H1 is true."
+    : "This shows how often the test rejects when H0 is true.";
+  const rateLabel = isPowerView ? "Empirical power" : "Empirical Type I error rate";
+  const exactLabel = isPowerView ? "Exact expected power" : "Exact expected Type I error rate";
   const rateCaption =
     truth === "h1"
-      ? "Under H1, this is the estimated power of the test."
-      : "Under H0, this is the estimated false positive rate.";
+      ? "Power is the probability of rejecting H0 when H1 is true."
+      : "Type I error is the probability of rejecting H0 when H0 is true.";
 
   return (
-    <Panel title="Rejection rate" subtitle="This is the repeated-sampling result for the current setup.">
+    <Panel title={panelTitle} subtitle={panelSubtitle}>
       <div className="value-grid ci-values tight">
         <ValueCard label="Repeated tests" value={repetitions.toString()} />
         <ValueCard label="Rejections" value={rejectionCount.toString()} />
@@ -39,10 +45,7 @@ export function TestingRatePanel({
       </div>
 
       <div className="value-grid ci-values">
-        <ValueCard
-          label="Exact expected rejection rate"
-          value={formatPercent(theoreticalRejectionRate)}
-        />
+        <ValueCard label={exactLabel} value={formatPercent(theoreticalRejectionRate)} />
       </div>
 
       <p className="caption">{rateCaption}</p>

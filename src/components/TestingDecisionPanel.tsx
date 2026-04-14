@@ -16,7 +16,7 @@ function formatPercent(value: number | null) {
     return "-";
   }
 
-  return `${(value * 100).toFixed(3)}%`;
+  return value.toFixed(3);
 }
 
 export function TestingDecisionPanel({
@@ -42,6 +42,7 @@ export function TestingDecisionPanel({
           <>
             <ValueCard label="Observed t" value={statistic === null ? "-" : statistic.toFixed(3)} />
             <ValueCard label="Critical value" value={criticalValue === null ? "-" : criticalValue.toFixed(3)} />
+            <ValueCard label="Exact p-value" value={formatPercent(pValue)} />
             <ValueCard label="Decision" value={decisionText} />
           </>
         ) : (

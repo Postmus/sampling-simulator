@@ -41,9 +41,14 @@ export function TestingDistributionPanel({
         values.push(criticalValue, -criticalValue);
       }
     } else {
-      values.push(0, sampleSize);
+      if (criticalLower !== null) {
+        values.push(criticalLower + 0.5);
+      }
       if (criticalLower !== null) {
         values.push(criticalLower);
+      }
+      if (criticalUpper !== null) {
+        values.push(criticalUpper - 0.5);
       }
       if (criticalUpper !== null) {
         values.push(criticalUpper);
@@ -63,7 +68,7 @@ export function TestingDistributionPanel({
 
     const padding = (max - min) * 0.1;
     return isMean ? [min - padding, max + padding] : [Math.max(0, min - padding), max + padding];
-  }, [criticalLower, criticalUpper, criticalValue, currentStatistic, isMean, sampleSize, statistics]);
+  }, [criticalLower, criticalUpper, criticalValue, currentStatistic, isMean, statistics]);
 
   const options = useMemo<Plot.PlotOptions>(() => {
     if (isMean) {
@@ -136,8 +141,26 @@ export function TestingDistributionPanel({
     const counts = Array.from({ length: sampleSize + 1 }, (_, count) => ({
       count,
       frequency: statistics.filter((value) => value === count).length,
-      rejected: rejectionMask?.[count] ?? false,
     }));
+    const binRects = counts.map((entry) => ({
+      x1: entry.count - 0.4,
+      x2: entry.count + 0.4,
+      y1: 0,
+      y2: entry.frequency,
+    }));
+    const lineValues =
+      rejectionMask === null
+        ? [
+            ...(criticalLower !== null ? [criticalLower + 0.5] : []),
+            ...(criticalUpper !== null && criticalUpper !== criticalLower ? [criticalUpper - 0.5] : []),
+          ]
+        : rejectionMask
+            .map((isRejected, index) =>
+              index < rejectionMask.length - 1 && isRejected !== rejectionMask[index + 1]
+                ? index + 0.5
+                : null,
+            )
+            .filter((value): value is number => value !== null);
 
     return {
       width: 560,
@@ -153,7 +176,7 @@ export function TestingDistributionPanel({
       },
       x: {
         label: "Number of successes",
-        domain: [-0.5, sampleSize + 0.5],
+        domain: xDomain,
       },
       y: {
         label: "Count",
@@ -161,26 +184,21 @@ export function TestingDistributionPanel({
       },
       marks: [
         Plot.ruleY([0], { stroke: "rgba(19, 33, 45, 0.35)" }),
-        Plot.barY(
-          counts.filter((entry) => !entry.rejected),
-          {
-            x: "count",
-            y: "frequency",
-            fill: "#dc8e2c",
-            fillOpacity: 0.9,
-            inset: 0.3,
-          },
-        ),
-        Plot.barY(
-          counts.filter((entry) => entry.rejected),
-          {
-            x: "count",
-            y: "frequency",
-            fill: "#9a5a17",
-            fillOpacity: 0.9,
-            inset: 0.3,
-          },
-        ),
+        Plot.rectY(binRects, {
+          x1: "x1",
+          x2: "x2",
+          y1: "y1",
+          y2: "y2",
+          fill: "#dc8e2c",
+          fillOpacity: 0.9,
+          inset: 0,
+        }),
+        Plot.ruleX(lineValues, {
+          stroke: "#9a5a17",
+          strokeWidth: 1.5,
+          strokeOpacity: 0.75,
+          strokeDasharray: "5,4",
+        }),
         ...(currentStatistic !== null
           ? [
               Plot.ruleX([currentStatistic], {
@@ -198,7 +216,7 @@ export function TestingDistributionPanel({
       ? direction === "two-sided"
         ? "The dashed lines mark the rejection region for a two-sided test."
         : `The dashed line marks the rejection region for a ${direction === "greater" ? "right-tailed" : "left-tailed"} test.`
-      : "The shaded bars show the exact rejection region for the binomial test.";
+      : "The dashed lines mark the rejection boundaries for the exact binomial test.";
 
   return (
     <Panel

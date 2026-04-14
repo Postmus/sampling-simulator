@@ -156,7 +156,7 @@ export function ControlBand({
               <input
                 type="range"
                 min="2"
-                max="1000"
+                max="200"
                 step="1"
                 value={sampleSize}
                 onChange={(event) => onSampleSizeChange(Number(event.target.value))}

@@ -12,7 +12,6 @@ interface TestingControlBandProps {
   truth: TestTruth;
   sampleSize: number;
   repetitions: number;
-  onTestKindChange: (value: TestingKind) => void;
   onOutcomeLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
   onNullMeanChange: (value: number) => void;
@@ -38,7 +37,6 @@ export function TestingControlBand({
   truth,
   sampleSize,
   repetitions,
-  onTestKindChange,
   onOutcomeLabelChange,
   onUnitLabelChange,
   onNullMeanChange,
@@ -59,28 +57,8 @@ export function TestingControlBand({
     <section className="control-band">
       <section className="control-card">
         <div className="control-card-header">
-          <h2>Test type and outcome</h2>
-          <p>Choose the test type, then name the outcome and, for means, add an optional unit of measurement.</p>
-        </div>
-
-        <div className="truth-toggle">
-          <span>Test type</span>
-          <div className="sidebar-segment">
-            <button
-              type="button"
-              className={`segment-pill ${isMean ? "active" : ""}`}
-              onClick={() => onTestKindChange("mean")}
-            >
-              Mean
-            </button>
-            <button
-              type="button"
-              className={`segment-pill ${!isMean ? "active" : ""}`}
-              onClick={() => onTestKindChange("proportion")}
-            >
-              Proportion
-            </button>
-          </div>
+          <h2>Outcome</h2>
+          <p>Name the outcome and, for means, add an optional unit of measurement. Use the left sidebar to switch between mean and proportion.</p>
         </div>
 
         <div className="controls-grid population-row-grid">
@@ -183,7 +161,7 @@ export function TestingControlBand({
               <input
                 type="range"
                 min="2"
-                max="1000"
+                max="200"
                 step="1"
                 value={sampleSize}
                 onChange={(event) => onSampleSizeChange(Number(event.target.value))}

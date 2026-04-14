@@ -461,8 +461,10 @@ export default function App() {
         <ModeSidebar
           workflowMode={workflowMode}
           mode={mode}
+          testingKind={testingKind}
           onWorkflowModeChange={handleWorkflowModeChange}
           onModeChange={handleModeChange}
+          onTestingKindChange={handleTestingKindChange}
         />
 
         <div className="workspace-main">
@@ -500,7 +502,6 @@ export default function App() {
                 truth={truth}
                 sampleSize={testingSampleSize}
                 repetitions={testingStatistics.length}
-                onTestKindChange={handleTestingKindChange}
                 onOutcomeLabelChange={setTestingOutcomeLabel}
                 onUnitLabelChange={setTestingUnitLabel}
                 onNullMeanChange={handleTestingNullMeanChange}

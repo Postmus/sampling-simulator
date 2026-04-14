@@ -1,18 +1,24 @@
-import type { TeachingMode, WorkflowMode } from "../core/types";
+import type { TeachingMode, TestingKind, WorkflowMode } from "../core/types";
 
 interface ModeSidebarProps {
   workflowMode: WorkflowMode;
   mode: TeachingMode;
+  testingKind: TestingKind;
   onWorkflowModeChange: (mode: WorkflowMode) => void;
   onModeChange: (mode: TeachingMode) => void;
+  onTestingKindChange: (kind: TestingKind) => void;
 }
 
 export function ModeSidebar({
   workflowMode,
   mode,
+  testingKind,
   onWorkflowModeChange,
   onModeChange,
+  onTestingKindChange,
 }: ModeSidebarProps) {
+  const selectedMode = workflowMode === "estimation" ? mode : testingKind;
+
   return (
     <aside className="mode-sidebar">
       <div className="sidebar-brand">
@@ -59,39 +65,36 @@ export function ModeSidebar({
         </div>
       </section>
 
-      {workflowMode === "estimation" ? (
-        <>
-          <section className="sidebar-section">
-            <h2>Parameter</h2>
-            <div className="sidebar-segment">
-              <button
-                type="button"
-                className={`segment-pill ${mode === "mean" ? "active" : ""}`}
-                onClick={() => onModeChange("mean")}
-              >
-                Mean
-              </button>
-              <button
-                type="button"
-                className={`segment-pill ${mode === "proportion" ? "active" : ""}`}
-                onClick={() => onModeChange("proportion")}
-              >
-                Proportion
-              </button>
-            </div>
-          </section>
-
-          <div className="sidebar-note">
-            <span>Current scope</span>
-            <strong>One-group estimation</strong>
-          </div>
-        </>
-      ) : (
-        <div className="sidebar-note">
-          <span>Current scope</span>
-          <strong>One-group testing & power</strong>
+      <section className="sidebar-section">
+        <h2>Parameter</h2>
+        <div className="sidebar-segment">
+          <button
+            type="button"
+            className={`segment-pill ${selectedMode === "mean" ? "active" : ""}`}
+            onClick={() =>
+              workflowMode === "estimation" ? onModeChange("mean") : onTestingKindChange("mean")
+            }
+          >
+            Mean
+          </button>
+          <button
+            type="button"
+            className={`segment-pill ${selectedMode === "proportion" ? "active" : ""}`}
+            onClick={() =>
+              workflowMode === "estimation"
+                ? onModeChange("proportion")
+                : onTestingKindChange("proportion")
+            }
+          >
+            Proportion
+          </button>
         </div>
-      )}
+      </section>
+
+      <div className="sidebar-note">
+        <span>Current scope</span>
+        <strong>{workflowMode === "estimation" ? "One-group estimation" : "One-group testing & power"}</strong>
+      </div>
     </aside>
   );
 }
