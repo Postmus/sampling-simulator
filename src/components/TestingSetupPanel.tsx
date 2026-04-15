@@ -1,4 +1,5 @@
 import { Panel } from "./ChartPrimitives";
+import { formatContinuousValue } from "../core/format";
 import type { TestDirection, TestTruth, TestingKind } from "../core/types";
 
 interface TestingSetupPanelProps {
@@ -8,6 +9,7 @@ interface TestingSetupPanelProps {
   nullMean: number;
   alternativeMean: number;
   populationSD: number;
+  decimalPlaces: number;
   sampleSize: number;
   direction: TestDirection;
   alpha: number;
@@ -21,6 +23,7 @@ export function TestingSetupPanel({
   nullMean,
   alternativeMean,
   populationSD,
+  decimalPlaces,
   sampleSize,
   direction,
   alpha,
@@ -30,6 +33,7 @@ export function TestingSetupPanel({
     direction === "two-sided" ? "≠" : direction === "greater" ? ">" : "<";
   const simulatedValue = truth === "h0" ? nullMean : alternativeMean;
   const isMean = testKind === "mean";
+  const displayDigits = decimalPlaces;
 
   return (
     <Panel
@@ -42,14 +46,14 @@ export function TestingSetupPanel({
           {unitLabel.trim() ? ` (${unitLabel.trim()})` : ""}
         </p>
         <p>
-          <strong>H0:</strong> {isMean ? "μ" : "p"} = {nullMean.toFixed(2)}
+          <strong>H0:</strong> {isMean ? "μ" : "p"} = {isMean ? formatContinuousValue(nullMean, "", displayDigits) : nullMean.toFixed(2)}
         </p>
         <p>
-          <strong>H1:</strong> {isMean ? "μ" : "p"} {alternativeOperator} {nullMean.toFixed(2)}
+          <strong>H1:</strong> {isMean ? "μ" : "p"} {alternativeOperator} {isMean ? formatContinuousValue(alternativeMean, "", displayDigits) : alternativeMean.toFixed(2)}
         </p>
         {isMean ? (
           <p>
-            <strong>Population SD:</strong> {populationSD.toFixed(2)}
+            <strong>Population SD:</strong> {formatContinuousValue(populationSD, "", displayDigits)}
           </p>
         ) : null}
         <p>
@@ -63,7 +67,10 @@ export function TestingSetupPanel({
         </p>
         <p>
           <strong>Simulate under:</strong>{" "}
-          {truth.toUpperCase()} ({isMean ? "μ" : "p"} = {simulatedValue.toFixed(2)})
+          {truth.toUpperCase()} (
+          {isMean ? "μ" : "p"} ={" "}
+          {isMean ? formatContinuousValue(simulatedValue, "", displayDigits) : simulatedValue.toFixed(2)}
+          )
         </p>
       </div>
     </Panel>

@@ -1,7 +1,9 @@
 import { useMemo } from "react";
 import * as Plot from "@observablehq/plot";
-import { Panel, ValueCard } from "./ChartPrimitives";
+import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
+import { SampleBoxPlotFigure } from "./SampleBoxPlotFigure";
+import { formatContinuousValue } from "../core/format";
 import { standardDeviation } from "../core/statistics";
 import type { TeachingMode } from "../core/types";
 
@@ -11,15 +13,11 @@ interface SamplePanelProps {
   estimate: number | null;
   outcomeLabel: string;
   unitLabel: string;
+  decimalPlaces: number;
 }
 
-function appendUnit(value: number | null, unitLabel: string, digits = 3) {
-  if (value === null) {
-    return "-";
-  }
-
-  const unit = unitLabel.trim();
-  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+function formatXBarLabel() {
+  return "Sample mean (x̄)";
 }
 
 export function SamplePanel({
@@ -28,62 +26,17 @@ export function SamplePanel({
   estimate,
   outcomeLabel,
   unitLabel,
+  decimalPlaces,
 }: SamplePanelProps) {
+  const statDigits = decimalPlaces + 2;
   const sampleSD = useMemo(
     () => (mode === "mean" && sample.length > 1 ? standardDeviation(sample) : null),
     [mode, sample],
   );
-
-  const continuousOptions = useMemo<Plot.PlotOptions | null>(() => {
-    if (mode !== "mean" || sample.length === 0) {
-      return null;
-    }
-
-    return {
-      width: 560,
-      height: 260,
-      marginTop: 16,
-      marginRight: 18,
-      marginBottom: 48,
-      marginLeft: 48,
-      style: {
-        background: "transparent",
-        fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-        fontSize: "12px",
-      },
-      x: {
-        label: outcomeLabel.trim()
-          ? `${outcomeLabel}${unitLabel.trim() ? ` (${unitLabel.trim()})` : ""}`
-          : `Observed value${unitLabel.trim() ? ` (${unitLabel.trim()})` : ""}`,
-      },
-      y: {
-        axis: null,
-      },
-      marks: [
-        Plot.ruleX(estimate !== null ? [estimate] : [], {
-          stroke: "#0b7a6c",
-          strokeWidth: 2,
-        }),
-        Plot.boxX(sample, {
-          fill: "#dc8e2c",
-          fillOpacity: 0.24,
-          stroke: "#9a5a17",
-          strokeWidth: 2,
-        }),
-        Plot.dot(
-          sample,
-          Plot.dodgeY("middle", {
-            x: (value) => value,
-            r: 4.8,
-            fill: "#5f9fc7",
-            fillOpacity: 0.86,
-            stroke: "#0d5c8d",
-            strokeWidth: 1,
-          }),
-        ),
-      ],
-    };
-  }, [estimate, mode, outcomeLabel, sample, unitLabel]);
+  const estimatedSE = useMemo(
+    () => (mode === "mean" && sample.length > 0 && sampleSD !== null ? sampleSD / Math.sqrt(sample.length) : null),
+    [mode, sample.length, sampleSD],
+  );
 
   const binaryCounts = useMemo(() => {
     if (mode !== "proportion") {
@@ -108,11 +61,10 @@ export function SamplePanel({
       marginTop: 16,
       marginRight: 18,
       marginBottom: 48,
-      marginLeft: 56,
+      marginLeft: 76,
       style: {
         background: "transparent",
         fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-        fontSize: "12px",
       },
       x: {
         type: "band",
@@ -129,8 +81,8 @@ export function SamplePanel({
           y1: 0,
           y2: "count",
           fill: "#5f9fc7",
-          insetLeft: 40,
-          insetRight: 40,
+          insetLeft: 24,
+          insetRight: 24,
         }),
       ],
     };
@@ -138,69 +90,89 @@ export function SamplePanel({
 
   return (
     <Panel
-      title="Latest Sample"
-      subtitle="This is the most recently generated sample. Its statistic is highlighted below and included in the sampling distribution."
+      title={mode === "mean" ? "Latest Estimate" : "Latest Sample"}
+      subtitle={
+        mode === "mean"
+          ? "This is the most recently generated sample. Its estimate is highlighted below and included in the sampling distribution."
+          : "This is the most recently generated sample. Its statistic is highlighted below and included in the sampling distribution."
+      }
+      className="sample-panel"
     >
-      <div className="value-grid">
-        <ValueCard label="Sample size" value={sample.length.toString()} />
-        <ValueCard
-          label={
-            mode === "mean"
-              ? `${outcomeLabel.trim() || "Sample"} mean`
-              : `Sample proportion${outcomeLabel.trim() ? ` of ${outcomeLabel}` : ""}`
-          }
-          value={mode === "mean" ? appendUnit(estimate, unitLabel) : estimate === null ? "-" : estimate.toFixed(3)}
-        />
-        {mode === "mean" ? (
-          <ValueCard
-            label="Sample SD (s)"
-            value={appendUnit(sampleSD, unitLabel)}
-          />
-        ) : null}
-        {mode === "proportion" ? (
-          <ValueCard
-            label={outcomeLabel.trim() ? `${outcomeLabel} count` : "Successes"}
-            value={sample.reduce((sum, value) => sum + value, 0).toString()}
-          />
-        ) : null}
-      </div>
+      {mode === "mean" || mode === "proportion" ? (
+        <div className="sample-mean-layout">
+          <table className="sample-summary-table">
+            <thead>
+              <tr>
+                <th scope="col">Statistic</th>
+                <th scope="col">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Sample size</th>
+                <td>{sample.length.toString()}</td>
+              </tr>
+              {mode === "mean" ? (
+                <>
+                  <tr>
+                    <th scope="row">{formatXBarLabel()}</th>
+                    <td>{formatContinuousValue(estimate, unitLabel, statDigits)}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sample SD (s)</th>
+                    <td>{formatContinuousValue(sampleSD, unitLabel, statDigits)}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Estimated SE</th>
+                    <td>{formatContinuousValue(estimatedSE, unitLabel, statDigits)}</td>
+                  </tr>
+                </>
+              ) : (
+                <>
+                  <tr>
+                    <th scope="row">Sample proportion</th>
+                    <td>{estimate === null ? "-" : estimate.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">{outcomeLabel.trim() ? `${outcomeLabel} count` : "Successes"}</th>
+                    <td>{sample.reduce((sum, value) => sum + value, 0).toString()}</td>
+                  </tr>
+                </>
+              )}
+            </tbody>
+          </table>
 
-      {sample.length > 0 ? (
-        <>
-          {mode === "mean" && continuousOptions ? (
-            <>
-              <ObservablePlotFigure options={continuousOptions} />
-              <div className="inline-legend">
-                <span className="legend-item">
-                  <span className="legend-swatch current" />
-                  {outcomeLabel.trim() ? `${outcomeLabel} mean` : "Sample mean"}
-                </span>
-                <span className="legend-item">
-                  <span className="legend-swatch points" />
-                  Individual observations
-                </span>
-              </div>
-              <p className="caption">
-                The points show the realised observations; the boxplot summarises the median and
-                interquartile range for this one sample{unitLabel.trim() ? ` in ${unitLabel.trim()}` : ""}.
-              </p>
-            </>
-          ) : null}
-
-          {mode === "proportion" && binaryOptions ? (
-            <>
+          <div className="sample-mean-plot">
+            {mode === "mean" ? (
+              sample.length > 0 ? (
+                <SampleBoxPlotFigure
+                  sample={sample}
+                  outcomeLabel={outcomeLabel}
+                  unitLabel={unitLabel}
+                />
+              ) : (
+                <div className="sample-boxplot-empty">
+                  Add samples to display the latest sample boxplot.
+                </div>
+              )
+            ) : sample.length > 0 && binaryOptions ? (
               <ObservablePlotFigure options={binaryOptions} />
-              <p className="caption">
-                The bar chart shows the 0 and 1 outcomes in the latest Bernoulli sample
-                {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}. The sample proportion is the
-                proportion of 1s.
-              </p>
-            </>
-          ) : null}
-        </>
-      ) : (
-        <p className="placeholder">Add samples to see the most recently generated sample here.</p>
-      )}
+            ) : (
+              <div className="sample-boxplot-empty">
+                Add samples to display the latest sample bar chart.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {mode === "proportion" && sample.length > 0 && binaryOptions ? (
+        <p className="caption">
+          The bar chart shows the 0 and 1 outcomes in the latest Bernoulli sample
+          {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}. The sample proportion is the
+          proportion of 1s.
+        </p>
+      ) : null}
     </Panel>
   );
 }

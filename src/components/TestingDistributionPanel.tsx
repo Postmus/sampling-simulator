@@ -78,11 +78,10 @@ export function TestingDistributionPanel({
         marginTop: 16,
         marginRight: 18,
         marginBottom: 52,
-        marginLeft: 56,
+        marginLeft: 76,
         style: {
           background: "transparent",
           fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-          fontSize: "12px",
         },
         x: {
           label: "t statistic",
@@ -168,11 +167,10 @@ export function TestingDistributionPanel({
       marginTop: 16,
       marginRight: 18,
       marginBottom: 52,
-      marginLeft: 56,
+      marginLeft: 76,
       style: {
         background: "transparent",
         fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-        fontSize: "12px",
       },
       x: {
         label: "Number of successes",

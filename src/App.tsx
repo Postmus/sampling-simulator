@@ -156,6 +156,7 @@ export default function App() {
   const [sampleSize, setSampleSize] = useState(initial.sampleSize);
   const [outcomeLabel, setOutcomeLabel] = useState(initial.outcomeLabel);
   const [unitLabel, setUnitLabel] = useState(initial.unitLabel);
+  const [decimalPlaces, setDecimalPlaces] = useState(0);
   const [currentSample, setCurrentSample] = useState<number[]>([]);
   const [currentEstimate, setCurrentEstimate] = useState<number | null>(null);
   const [estimates, setEstimates] = useState<number[]>([]);
@@ -479,6 +480,7 @@ export default function App() {
                 testKind={testingKind}
                 outcomeLabel={testingOutcomeLabel}
                 unitLabel={testingUnitLabel}
+                decimalPlaces={decimalPlaces}
                 nullMean={nullMean}
                 alternativeMean={alternativeMean}
                 populationSD={populationSD}
@@ -489,6 +491,7 @@ export default function App() {
                 repetitions={testingStatistics.length}
                 onOutcomeLabelChange={setTestingOutcomeLabel}
                 onUnitLabelChange={setTestingUnitLabel}
+                onDecimalPlacesChange={setDecimalPlaces}
                 onNullMeanChange={handleTestingNullMeanChange}
                 onAlternativeMeanChange={handleTestingAlternativeMeanChange}
                 onPopulationSDChange={handleTestingSDChange}
@@ -505,6 +508,7 @@ export default function App() {
                   testKind={testingKind}
                   outcomeLabel={testingOutcomeLabel}
                   unitLabel={testingUnitLabel}
+                  decimalPlaces={decimalPlaces}
                   nullMean={nullMean}
                   alternativeMean={alternativeMean}
                   populationSD={populationSD}
@@ -519,6 +523,7 @@ export default function App() {
                   nullMean={nullMean}
                   unitLabel={testingUnitLabel}
                   outcomeLabel={testingOutcomeLabel}
+                  decimalPlaces={decimalPlaces}
                   truth={truth}
                 />
                 <TestingDistributionPanel
@@ -561,12 +566,14 @@ export default function App() {
                 repetitions={estimates.length}
                 outcomeLabel={outcomeLabel}
                 unitLabel={unitLabel}
+                decimalPlaces={decimalPlaces}
                 onPopulationKindChange={handlePopulationKindChange}
                 onMeanChange={handleMeanChange}
                 onSDChange={handleSDChange}
                 onPChange={handlePChange}
                 onOutcomeLabelChange={setOutcomeLabel}
                 onUnitLabelChange={setUnitLabel}
+                onDecimalPlacesChange={setDecimalPlaces}
                 onSampleSizeChange={handleSampleSizeChange}
                 onAddSamples={handleAddSamples}
                 onReset={() => resetSimulation()}
@@ -578,6 +585,7 @@ export default function App() {
                   population={population}
                   outcomeLabel={outcomeLabel}
                   unitLabel={unitLabel}
+                  decimalPlaces={decimalPlaces}
                 />
                 <SamplePanel
                   mode={mode}
@@ -585,6 +593,7 @@ export default function App() {
                   estimate={currentEstimate}
                   outcomeLabel={outcomeLabel}
                   unitLabel={unitLabel}
+                  decimalPlaces={decimalPlaces}
                 />
                 <SamplingDistributionPanel
                   estimates={estimates}
@@ -598,12 +607,11 @@ export default function App() {
                 />
                 <MetricsPanel
                   mode={mode}
-                  empiricalMean={summary.empiricalMean}
+                  sample={currentSample}
                   empiricalSE={summary.empiricalSE}
-                  theoreticalMean={summary.theoreticalMean}
                   theoreticalSE={summary.theoreticalSE}
-                  outcomeLabel={outcomeLabel}
                   unitLabel={unitLabel}
+                  decimalPlaces={decimalPlaces}
                 />
               </main>
 
@@ -615,6 +623,7 @@ export default function App() {
                 unitLabel={unitLabel}
                 practicalCoverageCount={summary.practicalCoverageCount}
                 repeatedSamples={estimates.length}
+                decimalPlaces={decimalPlaces}
               />
             </>
           )}

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import * as Plot from "@observablehq/plot";
 import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
+import { formatContinuousValue } from "../core/format";
 import { getMeanPopulationRange, populationCurve } from "../core/populations";
 import type { PopulationConfig, TeachingMode } from "../core/types";
 
@@ -24,44 +25,49 @@ function quantityLabel(outcomeLabel: string, unitLabel: string) {
   return "Outcome";
 }
 
-function parameterSummary(
+function populationRows(
   mode: TeachingMode,
   population: PopulationConfig,
-  outcomeLabel: string,
+  decimalPlaces: number,
   unitLabel: string,
 ) {
-  const trimmedOutcome = outcomeLabel.trim();
-  const trimmedUnit = unitLabel.trim();
-
   if (mode === "mean" && population.kind !== "bernoulli") {
-    const label = trimmedOutcome ? `${trimmedOutcome} mean` : "population mean";
-    const unit = trimmedUnit ? ` ${trimmedUnit}` : "";
-    return `Parameter of interest: ${label} = ${population.params.mean.toFixed(2)}${unit}`;
+    return [
+      {
+        label: "Population mean",
+        value: formatContinuousValue(population.params.mean, unitLabel, decimalPlaces),
+      },
+      {
+        label: "Population SD",
+        value: formatContinuousValue(population.params.sd, unitLabel, decimalPlaces),
+      },
+    ];
   }
 
-  if (mode === "proportion" && population.kind === "bernoulli") {
-    const label = trimmedOutcome ? `proportion of ${trimmedOutcome}` : "population proportion";
-    return `Parameter of interest: ${label} = ${population.params.p.toFixed(2)}`;
+  if (population.kind === "bernoulli") {
+    return [{ label: "Population proportion", value: population.params.p.toFixed(2) }];
   }
 
-  return "";
+  return [];
 }
 
 export function PopulationPanel({
   mode,
   population,
   outcomeLabel,
+  decimalPlaces,
   unitLabel,
 }: {
   mode: TeachingMode;
   population: PopulationConfig;
   outcomeLabel: string;
+  decimalPlaces: number;
   unitLabel: string;
 }) {
   const curve = useMemo(() => populationCurve(population), [population]);
-  const summary = useMemo(
-    () => parameterSummary(mode, population, outcomeLabel, unitLabel),
-    [mode, outcomeLabel, population, unitLabel],
+  const rows = useMemo(
+    () => populationRows(mode, population, decimalPlaces, unitLabel),
+    [decimalPlaces, mode, population, unitLabel],
   );
   const options = useMemo<Plot.PlotOptions>(() => {
     if (population.kind === "bernoulli") {
@@ -72,15 +78,14 @@ export function PopulationPanel({
 
       return {
         width: 560,
-        height: 260,
+        height: 220,
         marginTop: 16,
         marginRight: 18,
-        marginBottom: 48,
-        marginLeft: 56,
+        marginBottom: 40,
+        marginLeft: 76,
         style: {
           background: "transparent",
           fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-          fontSize: "12px",
         },
         x: {
           label: outcomeLabel.trim() || "Outcome",
@@ -112,15 +117,14 @@ export function PopulationPanel({
 
     return {
       width: 560,
-      height: 260,
+      height: 220,
       marginTop: 16,
       marginRight: 18,
-      marginBottom: 48,
-      marginLeft: 56,
+      marginBottom: 40,
+      marginLeft: 76,
       style: {
         background: "transparent",
         fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-        fontSize: "12px",
       },
       x: {
         label: quantityLabel(outcomeLabel, unitLabel),
@@ -153,7 +157,16 @@ export function PopulationPanel({
       subtitle="This panel shows the individual-level outcome distribution before any sample is drawn."
     >
       <ObservablePlotFigure options={options} />
-      <p className="population-summary">{summary}</p>
+      <table className="sample-summary-table population-summary-table">
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <th>{row.label}</th>
+              <td>{row.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Panel>
   );
 }

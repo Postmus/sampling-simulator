@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Panel, ValueCard } from "./ChartPrimitives";
+import { formatContinuousValue } from "../core/format";
 import { practicalMeanInterval, practicalProportionInterval } from "../core/inference";
 
 interface ConfidenceIntervalSectionProps {
@@ -10,15 +11,7 @@ interface ConfidenceIntervalSectionProps {
   unitLabel: string;
   practicalCoverageCount: number;
   repeatedSamples: number;
-}
-
-function formatValue(value: number | null, unitLabel: string, digits = 3) {
-  if (value === null || Number.isNaN(value)) {
-    return "-";
-  }
-
-  const unit = unitLabel.trim();
-  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+  decimalPlaces: number;
 }
 
 function formatPercent(value: number | null) {
@@ -39,6 +32,7 @@ interface IntervalRulerProps {
   interval: IntervalLike | null;
   unitLabel: string;
   intervalLabel: string;
+  digits: number;
 }
 
 function IntervalRuler({
@@ -47,6 +41,7 @@ function IntervalRuler({
   interval,
   unitLabel,
   intervalLabel,
+  digits,
 }: IntervalRulerProps) {
   const geometry = useMemo(() => {
     const candidates = [estimate, trueValue, interval?.lower, interval?.upper].filter(
@@ -116,7 +111,7 @@ function IntervalRuler({
               className="ci-tick"
             />
             <text x={tick.x} y={geometry.axisY + 24} textAnchor="middle" className="ci-tick-label">
-              {formatValue(tick.value, unitLabel, 2)}
+              {formatContinuousValue(tick.value, unitLabel, digits)}
             </text>
           </g>
         ))}
@@ -146,7 +141,9 @@ export function ConfidenceIntervalSection({
   unitLabel,
   practicalCoverageCount,
   repeatedSamples,
+  decimalPlaces,
 }: ConfidenceIntervalSectionProps) {
+  const displayDigits = decimalPlaces + 2;
   const practicalInterval = useMemo(
     () => (mode === "mean" ? practicalMeanInterval(sample) : null),
     [mode, sample],
@@ -175,13 +172,16 @@ export function ConfidenceIntervalSection({
           subtitle="The latest 95% confidence interval, shown against the true value."
         >
           <div className="value-grid ci-values">
-            <ValueCard label={sampleLabel} value={formatValue(estimate, unitLabel)} />
+            <ValueCard
+              label={sampleLabel}
+              value={formatContinuousValue(estimate, unitLabel, displayDigits)}
+            />
             <ValueCard
               label={intervalLabel}
               value={
                 interval === null
                   ? "-"
-                  : `${formatValue(interval.lower, unitLabel)} to ${formatValue(interval.upper, unitLabel)}`
+                  : `${formatContinuousValue(interval.lower, unitLabel, displayDigits)} to ${formatContinuousValue(interval.upper, unitLabel, displayDigits)}`
               }
             />
             <ValueCard label="Contains true value" value={trueInInterval ? "Yes" : "No"} />
@@ -193,6 +193,7 @@ export function ConfidenceIntervalSection({
             interval={interval}
             unitLabel={unitLabel}
             intervalLabel={intervalLabel}
+            digits={displayDigits}
           />
 
           <p className="caption">

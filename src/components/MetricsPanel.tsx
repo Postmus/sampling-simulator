@@ -1,97 +1,78 @@
+import { useMemo } from "react";
 import { Panel } from "./ChartPrimitives";
+import { formatContinuousValue } from "../core/format";
+import { standardDeviation } from "../core/statistics";
 
 interface MetricsPanelProps {
   mode: "mean" | "proportion";
-  empiricalMean: number | null;
+  sample: number[];
   empiricalSE: number | null;
-  theoreticalMean: number | null;
   theoreticalSE: number | null;
-  outcomeLabel: string;
   unitLabel: string;
-}
-
-function formatNumber(value: number | null, unitLabel = "", digits = 3) {
-  if (value === null) {
-    return "-";
-  }
-
-  const unit = unitLabel.trim();
-  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ""}`;
+  decimalPlaces: number;
 }
 
 export function MetricsPanel({
   mode,
-  empiricalMean,
+  sample,
   empiricalSE,
-  theoreticalMean,
   theoreticalSE,
-  outcomeLabel,
   unitLabel,
+  decimalPlaces,
 }: MetricsPanelProps) {
-  const labelStem =
-    mode === "mean"
-      ? `${outcomeLabel.trim() || "Mean"}`
-      : `${outcomeLabel.trim() ? `Proportion of ${outcomeLabel}` : "Proportion"}`;
+  const displayDigits = decimalPlaces + 2;
+  const estimatedSE = useMemo(() => {
+    if (sample.length === 0) {
+      return null;
+    }
+
+    if (mode === "mean") {
+      const s = standardDeviation(sample);
+      return sample.length > 0 ? s / Math.sqrt(sample.length) : null;
+    }
+
+    const pHat = sample.reduce((sum, value) => sum + value, 0) / sample.length;
+    return Math.sqrt((pHat * (1 - pHat)) / sample.length);
+  }, [mode, sample]);
+
   const unit = mode === "mean" ? unitLabel.trim() : "";
-  const estimatorLabel =
+  const note =
     mode === "mean"
-      ? "sample mean"
-      : outcomeLabel.trim()
-        ? `sample proportion of ${outcomeLabel}`
-        : "sample proportion";
-  const parameterLabel =
-    mode === "mean"
-      ? "true mean"
-      : outcomeLabel.trim()
-        ? `true proportion of ${outcomeLabel}`
-        : "true proportion";
-  const rangeLabel =
-    mode === "mean"
-      ? "sample means"
-      : outcomeLabel.trim()
-        ? `sample proportions of ${outcomeLabel}`
-        : "sample proportions";
-  const repeatedSamplingText =
-    mode === "mean"
-      ? `The histogram to the left is the sampling distribution of the ${estimatorLabel}. It is normal when the population is normal, and is often approximately normal for large enough samples.`
-      : `The histogram to the left is the sampling distribution of the ${estimatorLabel}. The individual outcomes are binary, so this distribution can only be approximately normal when the sample size is large enough and both outcomes occur often enough.`;
-  const boundariesText =
-    mode === "mean"
-      ? `About 95% of ${rangeLabel} fall within ${parameterLabel} ± 1.96 × SE when this sampling distribution is normal or approximately normal.`
-      : `Because this sampling distribution is only approximately normal, about 95% of ${rangeLabel} fall within ${parameterLabel} ± 1.96 × SE when the sample size is large enough and both outcomes occur often enough.`;
+      ? "The theoretical SE uses the true population SD. The empirical SE comes from the repeated-sampling simulation. The estimated SE uses the sample SD from the latest sample."
+      : "The theoretical SE uses the true population proportion. The empirical SE comes from the repeated-sampling simulation. The estimated SE uses the sample proportion from the latest sample.";
 
   return (
     <Panel
-      title="Metrics"
-      subtitle="These summaries help connect the simulated sampling distribution to the underlying theory."
+      title="Standard Error"
+      subtitle="How much the estimate varies from sample to sample."
     >
-      <div className="metrics-grid">
-        <div className="metrics-cell metrics-head" />
-        <div className="metrics-cell metrics-head">Empirical</div>
-        <div className="metrics-cell metrics-head">Theoretical</div>
-
-        <div className="metrics-cell metrics-row-label">{labelStem}</div>
-        <div className="metrics-cell">{formatNumber(empiricalMean, unit)}</div>
-        <div className="metrics-cell">{formatNumber(theoreticalMean, unit)}</div>
-
-        <div className="metrics-cell metrics-row-label">SE</div>
-        <div className="metrics-cell">{formatNumber(empiricalSE, unit)}</div>
-        <div className="metrics-cell">{formatNumber(theoreticalSE, unit)}</div>
+      <div className="metrics-table-wrap">
+        <table className="metrics-table">
+          <thead>
+            <tr>
+              <th scope="col" />
+              <th scope="col">SE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Theoretical</th>
+              <td>{formatContinuousValue(theoreticalSE, unit, displayDigits)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Empirical</th>
+              <td>{formatContinuousValue(empiricalSE, unit, displayDigits)}</td>
+            </tr>
+            <tr>
+              <th scope="row">Estimated</th>
+              <td>{formatContinuousValue(estimatedSE, unit, displayDigits)}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div className="theory-block">
-        <h3>Theory</h3>
-        <p>
-          <strong>SE:</strong> The standard error is the standard deviation of the sampling
-          distribution of the {estimatorLabel}. It describes how much the estimate changes from
-          sample to sample.
-        </p>
-        <p>
-          <strong>Repeated sampling:</strong> {repeatedSamplingText}
-        </p>
-        <p>
-          <strong>95% boundaries:</strong> {boundariesText}
-        </p>
-      </div>
+      <p className="metrics-note">
+        {note}
+      </p>
     </Panel>
   );
 }

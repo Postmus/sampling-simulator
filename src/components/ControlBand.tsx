@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import type { MeanPopulationKind, PopulationConfig, TeachingMode } from "../core/types";
+import { getDecimalStep } from "../core/format";
 
 interface ControlBandProps {
   mode: TeachingMode;
@@ -7,12 +9,14 @@ interface ControlBandProps {
   repetitions: number;
   outcomeLabel: string;
   unitLabel: string;
+  decimalPlaces: number;
   onPopulationKindChange: (kind: MeanPopulationKind) => void;
   onMeanChange: (value: number) => void;
   onSDChange: (value: number) => void;
   onPChange: (value: number) => void;
   onOutcomeLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
+  onDecimalPlacesChange: (value: number) => void;
   onSampleSizeChange: (value: number) => void;
   onAddSamples: (count: number) => void;
   onReset: () => void;
@@ -25,16 +29,42 @@ export function ControlBand({
   repetitions,
   outcomeLabel,
   unitLabel,
+  decimalPlaces,
   onPopulationKindChange,
   onMeanChange,
   onSDChange,
   onPChange,
   onOutcomeLabelChange,
   onUnitLabelChange,
+  onDecimalPlacesChange,
   onSampleSizeChange,
   onAddSamples,
   onReset,
 }: ControlBandProps) {
+  const [decimalPlacesInput, setDecimalPlacesInput] = useState(String(decimalPlaces));
+  const [meanInput, setMeanInput] = useState(
+    population.kind !== "bernoulli" ? String(population.params.mean) : "",
+  );
+  const [sdInput, setSdInput] = useState(
+    population.kind !== "bernoulli" ? String(population.params.sd) : "",
+  );
+  const [sampleSizeInput, setSampleSizeInput] = useState(String(sampleSize));
+
+  useEffect(() => {
+    setDecimalPlacesInput(String(decimalPlaces));
+  }, [decimalPlaces]);
+
+  useEffect(() => {
+    if (population.kind !== "bernoulli") {
+      setMeanInput(String(population.params.mean));
+      setSdInput(String(population.params.sd));
+    }
+  }, [population]);
+
+  useEffect(() => {
+    setSampleSizeInput(String(sampleSize));
+  }, [sampleSize]);
+
   return (
     <section className="control-band">
       <section className="control-card">
@@ -47,7 +77,7 @@ export function ControlBand({
           <div className="population-row">
             <div className="row-label">
               <h3>Outcome</h3>
-              <p>Name the variable first, then add an optional unit of measurement if you are working with a mean.</p>
+              <p>Name the variable first, then add an optional unit of measurement and decimal places if you are working with a mean.</p>
             </div>
             <div className="controls-grid population-row-grid">
               <label className="control-field">
@@ -68,6 +98,33 @@ export function ControlBand({
                     value={unitLabel}
                     placeholder="mmHg"
                     onChange={(event) => onUnitLabelChange(event.target.value)}
+                  />
+                </label>
+              ) : null}
+
+              {mode === "mean" ? (
+                <label className="control-field">
+                  <span>Decimal places</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={decimalPlacesInput}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setDecimalPlacesInput(nextValue);
+
+                      if (nextValue === "") {
+                        return;
+                      }
+
+                      const parsed = Number(nextValue);
+                      if (Number.isNaN(parsed)) {
+                        return;
+                      }
+                      onDecimalPlacesChange(Math.max(0, Math.round(parsed)));
+                    }}
+                    onBlur={() => setDecimalPlacesInput(String(decimalPlaces))}
                   />
                 </label>
               ) : null}
@@ -99,9 +156,24 @@ export function ControlBand({
                   <span>True mean</span>
                   <input
                     type="number"
-                    value={population.params.mean}
-                    step="0.5"
-                    onChange={(event) => onMeanChange(Number(event.target.value))}
+                    value={meanInput}
+                    step={getDecimalStep(decimalPlaces)}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setMeanInput(nextValue);
+
+                      if (nextValue === "") {
+                        return;
+                      }
+
+                      const parsed = Number(nextValue);
+                      if (Number.isNaN(parsed)) {
+                        return;
+                      }
+
+                      onMeanChange(parsed);
+                    }}
+                    onBlur={() => setMeanInput(String(population.params.mean))}
                   />
                 </label>
 
@@ -109,10 +181,25 @@ export function ControlBand({
                   <span>Population SD</span>
                   <input
                     type="number"
-                    min="0.1"
-                    value={population.params.sd}
-                    step="0.5"
-                    onChange={(event) => onSDChange(Number(event.target.value))}
+                    min="0"
+                    value={sdInput}
+                    step={getDecimalStep(decimalPlaces)}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setSdInput(nextValue);
+
+                      if (nextValue === "") {
+                        return;
+                      }
+
+                      const parsed = Number(nextValue);
+                      if (Number.isNaN(parsed)) {
+                        return;
+                      }
+
+                      onSDChange(parsed);
+                    }}
+                    onBlur={() => setSdInput(String(population.params.sd))}
                   />
                 </label>
               </div>
@@ -126,7 +213,7 @@ export function ControlBand({
                 </div>
 
                 <label className="control-field">
-                  <span>True proportion p</span>
+                  <span>True proportion</span>
                   <input
                     type="range"
                     min="0.05"
@@ -166,14 +253,23 @@ export function ControlBand({
                 type="number"
                 min="2"
                 step="1"
-                value={sampleSize}
+                value={sampleSizeInput}
                 onChange={(event) => {
-                  const nextValue = event.target.valueAsNumber;
-                  if (Number.isNaN(nextValue)) {
+                  const nextValue = event.target.value;
+                  setSampleSizeInput(nextValue);
+
+                  if (nextValue === "") {
                     return;
                   }
-                  onSampleSizeChange(nextValue);
+
+                  const parsed = Number(nextValue);
+                  if (Number.isNaN(parsed)) {
+                    return;
+                  }
+
+                  onSampleSizeChange(parsed);
                 }}
+                onBlur={() => setSampleSizeInput(String(sampleSize))}
               />
             </div>
             <strong className="slider-value">{sampleSize}</strong>

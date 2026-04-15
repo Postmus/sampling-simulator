@@ -411,15 +411,6 @@ select {
   font-weight: 600;
 }
 
-.population-summary {
-  margin: 0.8rem 0 0;
-  padding-top: 0.8rem;
-  border-top: 1px solid rgba(32, 68, 88, 0.08);
-  color: #315062;
-  font-size: 0.94rem;
-  font-weight: 600;
-}
-
 .value-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -434,6 +425,90 @@ select {
   border-radius: 16px;
   overflow: hidden;
   background: rgba(250, 252, 252, 0.94);
+}
+
+.population-summary-table {
+  width: fit-content;
+  max-width: 100%;
+  table-layout: auto;
+}
+
+.population-summary-table th {
+  width: auto;
+  white-space: nowrap;
+}
+
+.sample-mean-layout {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.84fr) minmax(0, 1.16fr);
+  gap: 0.75rem;
+  align-items: stretch;
+  margin-top: 0.75rem;
+}
+
+.sample-mean-layout .sample-summary-table {
+  margin-top: 0;
+  width: 100%;
+  align-self: start;
+}
+
+.sample-mean-plot {
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  width: 100%;
+}
+
+.sample-boxplot-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 0;
+  margin-top: 0;
+  height: 100%;
+}
+
+.sample-boxplot-heading {
+  color: #173142;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.sample-boxplot-host {
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+}
+
+.sample-boxplot-empty {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.25rem;
+  border-radius: 18px;
+  border: 1px dashed rgba(32, 68, 88, 0.22);
+  background: rgba(238, 245, 248, 0.5);
+  color: #537082;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.plot-host.sample-boxplot-host {
+  flex: 1;
+  height: 100%;
+  margin-top: 0;
+}
+
+.plot-host.sample-boxplot-host :where(svg) {
+  height: 100%;
 }
 
 .sample-summary-table th,
@@ -508,11 +583,17 @@ select {
   font-size: 0.88rem;
 }
 
+.caption,
+.placeholder {
+  margin: 0.9rem 0 0;
+  font-size: 0.92rem;
+}
+
 .inline-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
-  margin-top: 0.55rem;
+  margin-top: 0.6rem;
 }
 
 .legend-item {
@@ -520,7 +601,7 @@ select {
   align-items: center;
   gap: 0.45rem;
   color: #486171;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .legend-item.emphasis {
@@ -556,38 +637,32 @@ select {
   border: 1px solid rgba(154, 90, 23, 0.55);
 }
 
-.caption,
-.placeholder {
-  margin: 0.9rem 0 0;
-  font-size: 0.92rem;
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr);
-  margin-top: 0.7rem;
+.metrics-table-wrap {
+  margin-top: 0.75rem;
   border: 1px solid rgba(32, 68, 88, 0.08);
   border-radius: 18px;
   overflow: hidden;
+  background: rgba(250, 252, 252, 0.94);
 }
 
-.metrics-cell {
-  padding: 0.9rem 1rem;
-  background: rgba(250, 252, 252, 0.92);
-  border-right: 1px solid rgba(32, 68, 88, 0.08);
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.metrics-table th,
+.metrics-table td {
+  padding: 0.85rem 1rem;
   border-bottom: 1px solid rgba(32, 68, 88, 0.08);
-  color: #173142;
+  text-align: left;
 }
 
-.metrics-cell:nth-child(3n) {
-  border-right: none;
-}
-
-.metrics-grid > .metrics-cell:nth-last-child(-n + 3) {
+.metrics-table tr:last-child th,
+.metrics-table tr:last-child td {
   border-bottom: none;
 }
 
-.metrics-head {
+.metrics-table thead th {
   background: rgba(238, 245, 248, 0.96);
   font-size: 0.84rem;
   font-weight: 700;
@@ -596,40 +671,22 @@ select {
   color: #537082;
 }
 
-.metrics-row-label {
+.metrics-table tbody th {
+  font-weight: 600;
+  color: #173142;
+  width: 38%;
+  background: rgba(238, 245, 248, 0.86);
+}
+
+.metrics-table tbody td {
+  color: #173142;
   font-weight: 600;
 }
 
-.theory-block {
-  margin-top: 0.9rem;
-  padding: 1rem 1.1rem;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(238, 245, 248, 0.88), rgba(250, 252, 252, 0.96));
-  border: 1px solid rgba(32, 68, 88, 0.08);
-}
-
-.theory-block h3 {
-  margin: 0 0 0.6rem;
-  font-size: 0.98rem;
-  color: #173142;
-}
-
-.theory-block p {
-  margin: 0.55rem 0 0;
+.metrics-note {
+  margin: 0.9rem 0 0;
   color: #486171;
   font-size: 0.92rem;
-}
-
-.theory-block p:first-of-type {
-  margin-top: 0;
-}
-
-.theory-block strong {
-  color: #173142;
-}
-
-.theory-block.compact {
-  margin-top: 0.7rem;
 }
 
 .ci-section {
@@ -794,23 +851,15 @@ select {
     grid-column: auto;
   }
 
+  .sample-mean-layout {
+    grid-template-columns: 1fr;
+  }
+
   .ci-grid {
     grid-template-columns: 1fr;
   }
 
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .metrics-cell {
-    border-right: none;
-  }
-
-  .metrics-grid > .metrics-cell:nth-last-child(-n + 3) {
-    border-bottom: 1px solid rgba(32, 68, 88, 0.08);
-  }
-
-  .metrics-grid > .metrics-cell:last-child {
-    border-bottom: none;
+  .metrics-table tbody th {
+    width: 44%;
   }
 }

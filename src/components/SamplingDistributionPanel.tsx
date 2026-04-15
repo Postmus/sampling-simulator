@@ -75,7 +75,6 @@ export function SamplingDistributionPanel({
     theoreticalValue !== null && theoreticalSE !== null && criticalMultiplier !== null
       ? {
           lower: theoreticalValue - criticalMultiplier * theoreticalSE,
-          offset: criticalMultiplier * theoreticalSE,
           upper: theoreticalValue + criticalMultiplier * theoreticalSE,
         }
       : null;
@@ -87,7 +86,7 @@ export function SamplingDistributionPanel({
 
     const width = 560;
     const height = 280;
-    const marginLeft = 56;
+    const marginLeft = 76;
     const marginRight = 18;
     const innerWidth = width - marginLeft - marginRight;
     const scaleX = (value: number) =>
@@ -116,11 +115,10 @@ export function SamplingDistributionPanel({
     marginTop: 16,
     marginRight: 18,
     marginBottom: 52,
-    marginLeft: 56,
+    marginLeft: 76,
     style: {
       background: "transparent",
       fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
-      fontSize: "12px",
     },
     x: {
       label:
@@ -137,22 +135,6 @@ export function SamplingDistributionPanel({
       Plot.ruleY([0], { stroke: "rgba(19, 33, 45, 0.35)" }),
       ...(referenceBand !== null
         ? [
-            Plot.rect([
-              {
-                x1: referenceBand.lower,
-                x2: referenceBand.upper,
-                y1: 0,
-                y2: 1,
-              },
-            ], {
-              x1: "x1",
-              x2: "x2",
-              y1: "y1",
-              y2: "y2",
-              fill: "#9a5a17",
-              fillOpacity: 0.08,
-              inset: 0,
-            }),
             Plot.ruleX([referenceBand.lower, referenceBand.upper], {
               stroke: "#9a5a17",
               strokeWidth: 1.5,
@@ -259,12 +241,6 @@ export function SamplingDistributionPanel({
             <span className="legend-item emphasis">
               Repeated samples: {estimates.length}
             </span>
-            {referenceBand !== null ? (
-              <span className="legend-item">
-                <span className="legend-swatch band" />
-                About 95% of {estimateLabel}
-              </span>
-            ) : null}
             {theoreticalValue !== null ? (
               <span className="legend-item">
                 <span className="legend-swatch theory" />
@@ -274,7 +250,7 @@ export function SamplingDistributionPanel({
             {currentEstimate !== null ? (
               <span className="legend-item">
                 <span className="legend-swatch current" />
-                Current sample
+                Latest estimate
               </span>
             ) : null}
           </div>

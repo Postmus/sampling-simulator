@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import type { TestDirection, TestTruth, TestingKind } from "../core/types";
+import { getDecimalStep } from "../core/format";
 
 interface TestingControlBandProps {
   testKind: TestingKind;
   outcomeLabel: string;
   unitLabel: string;
+  decimalPlaces: number;
   nullMean: number;
   alternativeMean: number;
   populationSD: number;
@@ -14,6 +17,7 @@ interface TestingControlBandProps {
   repetitions: number;
   onOutcomeLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
+  onDecimalPlacesChange: (value: number) => void;
   onNullMeanChange: (value: number) => void;
   onAlternativeMeanChange: (value: number) => void;
   onPopulationSDChange: (value: number) => void;
@@ -29,6 +33,7 @@ export function TestingControlBand({
   testKind,
   outcomeLabel,
   unitLabel,
+  decimalPlaces,
   nullMean,
   alternativeMean,
   populationSD,
@@ -39,6 +44,7 @@ export function TestingControlBand({
   repetitions,
   onOutcomeLabelChange,
   onUnitLabelChange,
+  onDecimalPlacesChange,
   onNullMeanChange,
   onAlternativeMeanChange,
   onPopulationSDChange,
@@ -49,16 +55,42 @@ export function TestingControlBand({
   onAddSamples,
   onReset,
 }: TestingControlBandProps) {
+  const [decimalPlacesInput, setDecimalPlacesInput] = useState(String(decimalPlaces));
+  const [nullMeanInput, setNullMeanInput] = useState(String(nullMean));
+  const [alternativeMeanInput, setAlternativeMeanInput] = useState(String(alternativeMean));
+  const [populationSdInput, setPopulationSdInput] = useState(String(populationSD));
+  const [sampleSizeInput, setSampleSizeInput] = useState(String(sampleSize));
+
+  useEffect(() => {
+    setDecimalPlacesInput(String(decimalPlaces));
+  }, [decimalPlaces]);
+
+  useEffect(() => {
+    setNullMeanInput(String(nullMean));
+  }, [nullMean]);
+
+  useEffect(() => {
+    setAlternativeMeanInput(String(alternativeMean));
+  }, [alternativeMean]);
+
+  useEffect(() => {
+    setPopulationSdInput(String(populationSD));
+  }, [populationSD]);
+
+  useEffect(() => {
+    setSampleSizeInput(String(sampleSize));
+  }, [sampleSize]);
+
   const isMean = testKind === "mean";
   const nullLabel = isMean ? "H0 mean" : "H0 proportion";
   const alternativeLabel = isMean ? "H1 mean" : "H1 proportion";
-  const hypothesisStep = isMean ? "0.5" : "0.01";
+  const hypothesisStep = isMean ? getDecimalStep(decimalPlaces) : "0.01";
   return (
     <section className="control-band">
       <section className="control-card">
         <div className="control-card-header">
           <h2>Outcome</h2>
-          <p>Name the outcome and, for means, add an optional unit of measurement. Use the left sidebar to switch between mean and proportion.</p>
+          <p>Name the outcome and, for means, add an optional unit of measurement and decimal places. Use the left sidebar to switch between mean and proportion.</p>
         </div>
 
         <div className="controls-grid population-row-grid">
@@ -73,15 +105,41 @@ export function TestingControlBand({
           </label>
 
           {isMean ? (
-            <label className="control-field">
-              <span>Unit of measurement</span>
-              <input
-                type="text"
-                value={unitLabel}
-                placeholder="mmHg"
-                onChange={(event) => onUnitLabelChange(event.target.value)}
-              />
-            </label>
+            <>
+              <label className="control-field">
+                <span>Unit of measurement</span>
+                <input
+                  type="text"
+                  value={unitLabel}
+                  placeholder="mmHg"
+                  onChange={(event) => onUnitLabelChange(event.target.value)}
+                />
+              </label>
+              <label className="control-field">
+                <span>Decimal places</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={decimalPlacesInput}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setDecimalPlacesInput(nextValue);
+
+                    if (nextValue === "") {
+                      return;
+                    }
+
+                    const parsed = Number(nextValue);
+                    if (Number.isNaN(parsed)) {
+                      return;
+                    }
+                    onDecimalPlacesChange(Math.max(0, Math.round(parsed)));
+                  }}
+                  onBlur={() => setDecimalPlacesInput(String(decimalPlaces))}
+                />
+              </label>
+            </>
           ) : null}
         </div>
       </section>
@@ -100,8 +158,23 @@ export function TestingControlBand({
             <input
               type="number"
               step={hypothesisStep}
-              value={nullMean}
-              onChange={(event) => onNullMeanChange(Number(event.target.value))}
+              value={nullMeanInput}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setNullMeanInput(nextValue);
+
+                if (nextValue === "") {
+                  return;
+                }
+
+                const parsed = Number(nextValue);
+                if (Number.isNaN(parsed)) {
+                  return;
+                }
+
+                onNullMeanChange(parsed);
+              }}
+              onBlur={() => setNullMeanInput(String(nullMean))}
             />
           </label>
 
@@ -110,8 +183,23 @@ export function TestingControlBand({
             <input
               type="number"
               step={hypothesisStep}
-              value={alternativeMean}
-              onChange={(event) => onAlternativeMeanChange(Number(event.target.value))}
+              value={alternativeMeanInput}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                setAlternativeMeanInput(nextValue);
+
+                if (nextValue === "") {
+                  return;
+                }
+
+                const parsed = Number(nextValue);
+                if (Number.isNaN(parsed)) {
+                  return;
+                }
+
+                onAlternativeMeanChange(parsed);
+              }}
+              onBlur={() => setAlternativeMeanInput(String(alternativeMean))}
             />
           </label>
 
@@ -120,10 +208,25 @@ export function TestingControlBand({
               <span>Population SD</span>
               <input
                 type="number"
-                min="0.1"
-                step="0.5"
-                value={populationSD}
-                onChange={(event) => onPopulationSDChange(Number(event.target.value))}
+                min="0"
+                step={getDecimalStep(decimalPlaces)}
+                value={populationSdInput}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  setPopulationSdInput(nextValue);
+
+                  if (nextValue === "") {
+                    return;
+                  }
+
+                  const parsed = Number(nextValue);
+                  if (Number.isNaN(parsed)) {
+                    return;
+                  }
+
+                  onPopulationSDChange(parsed);
+                }}
+                onBlur={() => setPopulationSdInput(String(populationSD))}
               />
             </label>
           ) : null}
@@ -171,14 +274,23 @@ export function TestingControlBand({
                 type="number"
                 min="2"
                 step="1"
-                value={sampleSize}
+                value={sampleSizeInput}
                 onChange={(event) => {
-                  const nextValue = event.target.valueAsNumber;
-                  if (Number.isNaN(nextValue)) {
+                  const nextValue = event.target.value;
+                  setSampleSizeInput(nextValue);
+
+                  if (nextValue === "") {
                     return;
                   }
-                  onSampleSizeChange(nextValue);
+
+                  const parsed = Number(nextValue);
+                  if (Number.isNaN(parsed)) {
+                    return;
+                  }
+
+                  onSampleSizeChange(parsed);
                 }}
+                onBlur={() => setSampleSizeInput(String(sampleSize))}
               />
             </div>
             <strong className="slider-value">{sampleSize}</strong>
