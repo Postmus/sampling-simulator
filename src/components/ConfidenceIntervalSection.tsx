@@ -12,6 +12,7 @@ interface ConfidenceIntervalSectionProps {
   practicalCoverageCount: number;
   repeatedSamples: number;
   decimalPlaces: number;
+  isLoading?: boolean;
 }
 
 function formatPercent(value: number | null) {
@@ -142,6 +143,7 @@ export function ConfidenceIntervalSection({
   practicalCoverageCount,
   repeatedSamples,
   decimalPlaces,
+  isLoading = false,
 }: ConfidenceIntervalSectionProps) {
   const displayDigits = decimalPlaces + 2;
   const practicalInterval = useMemo(
@@ -171,67 +173,85 @@ export function ConfidenceIntervalSection({
           title="95% confidence interval coverage"
           subtitle="This tracks repeated-sampling coverage of the 95% confidence interval procedure."
         >
-          <div className="value-grid ci-values tight">
-            <ValueCard label="Repeated samples" value={repeatedSamples.toString()} />
-            <ValueCard
-              label="Intervals containing true value"
-              value={practicalCoverageCount.toString()}
-            />
-            <ValueCard label="Empirical coverage" value={formatPercent(practicalCoverage)} />
-          </div>
-
-          <div className="coverage-meter">
-            <div className="coverage-track">
-              <div
-                className="coverage-fill"
-                style={{ width: `${Math.max(0, Math.min(100, (practicalCoverage ?? 0) * 100))}%` }}
-              />
-              <div className="coverage-target" style={{ left: "95%" }} />
+          {isLoading ? (
+            <div className="loading-panel" role="status" aria-live="polite" aria-busy="true">
+              <div className="loading-spinner" aria-hidden="true" />
+              <p>Calculating coverage summary...</p>
             </div>
-            <div className="coverage-scale">
-              <span>0%</span>
-              <span>95%</span>
-              <span>100%</span>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="value-grid ci-values tight">
+                <ValueCard label="Repeated samples" value={repeatedSamples.toString()} />
+                <ValueCard
+                  label="Intervals containing true value"
+                  value={practicalCoverageCount.toString()}
+                />
+                <ValueCard label="Empirical coverage" value={formatPercent(practicalCoverage)} />
+              </div>
 
-          <p className="caption">
-            The meter shows how often the 95% confidence interval has contained the true value so far.
-          </p>
+              <div className="coverage-meter">
+                <div className="coverage-track">
+                  <div
+                    className="coverage-fill"
+                    style={{ width: `${Math.max(0, Math.min(100, (practicalCoverage ?? 0) * 100))}%` }}
+                  />
+                  <div className="coverage-target" style={{ left: "95%" }} />
+                </div>
+                <div className="coverage-scale">
+                  <span>0%</span>
+                  <span>95%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+
+              <p className="caption">
+                The meter shows how often the 95% confidence interval has contained the true value so far.
+              </p>
+            </>
+          )}
         </Panel>
 
         <Panel
           title="Latest 95% confidence interval"
           subtitle="The latest 95% confidence interval, shown against the true value."
         >
-          <div className="value-grid ci-values">
-            <ValueCard
-              label={sampleLabel}
-              value={formatContinuousValue(estimate, unitLabel, displayDigits)}
-            />
-            <ValueCard
-              label={intervalLabel}
-              value={
-                interval === null
-                  ? "-"
-                  : `${formatContinuousValue(interval.lower, unitLabel, displayDigits)} to ${formatContinuousValue(interval.upper, unitLabel, displayDigits)}`
-              }
-            />
-            <ValueCard label="Contains true value" value={trueInInterval ? "Yes" : "No"} />
-          </div>
+          {isLoading ? (
+            <div className="loading-panel" role="status" aria-live="polite" aria-busy="true">
+              <div className="loading-spinner" aria-hidden="true" />
+              <p>Calculating latest interval...</p>
+            </div>
+          ) : (
+            <>
+              <div className="value-grid ci-values">
+                <ValueCard
+                  label={sampleLabel}
+                  value={formatContinuousValue(estimate, unitLabel, displayDigits)}
+                />
+                <ValueCard
+                  label={intervalLabel}
+                  value={
+                    interval === null
+                      ? "-"
+                      : `${formatContinuousValue(interval.lower, unitLabel, displayDigits)} to ${formatContinuousValue(interval.upper, unitLabel, displayDigits)}`
+                  }
+                />
+                <ValueCard label="Contains true value" value={trueInInterval ? "Yes" : "No"} />
+              </div>
 
-          <IntervalRuler
-            estimate={estimate}
-            trueValue={theoreticalMean}
-            interval={interval}
-            unitLabel={unitLabel}
-            intervalLabel={intervalLabel}
-            digits={displayDigits}
-          />
+              <IntervalRuler
+                estimate={estimate}
+                trueValue={theoreticalMean}
+                interval={interval}
+                unitLabel={unitLabel}
+                intervalLabel={intervalLabel}
+                digits={displayDigits}
+              />
 
-          <p className="caption">
-            This is the latest 95% confidence interval for the sample.
-          </p>
+              <p className="caption">
+                This is the latest 95% confidence interval for the sample.
+              </p>
+            </>
+          )}
         </Panel>
       </div>
     </section>

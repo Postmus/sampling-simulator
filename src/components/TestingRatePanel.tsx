@@ -7,6 +7,7 @@ interface TestingRatePanelProps {
   h1RejectionCount: number;
   h1EmpiricalRejectionRate: number | null;
   h1TheoreticalRejectionRate: number | null;
+  isLoading?: boolean;
 }
 
 function formatPercent(value: number | null) {
@@ -23,6 +24,7 @@ export function TestingRatePanel({
   h1RejectionCount,
   h1EmpiricalRejectionRate,
   h1TheoreticalRejectionRate,
+  isLoading = false,
 }: TestingRatePanelProps) {
   const isMean = testKind === "mean";
   const panelTitle = "Power";
@@ -32,19 +34,28 @@ export function TestingRatePanel({
 
   return (
     <Panel title={panelTitle} subtitle={panelSubtitle}>
-      <div className="value-grid ci-values tight">
-        <ValueCard label="H1 tests" value={h1Repetitions.toString()} />
-        <ValueCard label="H1 rejections" value={h1RejectionCount.toString()} />
-        <ValueCard label="Empirical power" value={formatPercent(h1EmpiricalRejectionRate)} />
-      </div>
+      {isLoading ? (
+        <div className="loading-panel" role="status" aria-live="polite" aria-busy="true">
+          <div className="loading-spinner" aria-hidden="true" />
+          <p>Calculating power summary...</p>
+        </div>
+      ) : (
+        <>
+          <div className="value-grid ci-values tight">
+            <ValueCard label="H1 tests" value={h1Repetitions.toString()} />
+            <ValueCard label="H1 rejections" value={h1RejectionCount.toString()} />
+            <ValueCard label="Empirical power" value={formatPercent(h1EmpiricalRejectionRate)} />
+          </div>
 
-      <div className="value-grid ci-values">
-        <ValueCard label="Exact power" value={formatPercent(h1TheoreticalRejectionRate)} />
-      </div>
+          <div className="value-grid ci-values">
+            <ValueCard label="Exact power" value={formatPercent(h1TheoreticalRejectionRate)} />
+          </div>
 
-      <p className="caption">
-        Power is the rejection rate when the specified true population is the alternative scenario.
-      </p>
+          <p className="caption">
+            Power is the rejection rate when the specified true population is the alternative scenario.
+          </p>
+        </>
+      )}
     </Panel>
   );
 }

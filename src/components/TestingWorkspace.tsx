@@ -26,6 +26,7 @@ interface TestingWorkspaceProps {
   testingSummary: TestingRunResult;
   testingSummaryH0: TestingRunResult;
   testingSummaryH1: TestingRunResult;
+  testingSummaryLoading: boolean;
   onTestingOutcomeLabelChange: (value: string) => void;
   onTestingUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
@@ -58,6 +59,7 @@ export function TestingWorkspace({
   testingSummary,
   testingSummaryH0,
   testingSummaryH1,
+  testingSummaryLoading,
   onTestingOutcomeLabelChange,
   onTestingUnitLabelChange,
   onDecimalPlacesChange,
@@ -157,6 +159,7 @@ export function TestingWorkspace({
           h1RejectionCount={testingSummaryH1.rejectionCount}
           h1EmpiricalRejectionRate={testingSummaryH1.empiricalRejectionRate}
           h1TheoreticalRejectionRate={testingSummaryH1.theoreticalRejectionRate}
+          isLoading={testingSummaryLoading}
         />
         <TestingDecisionPanel
           testKind={testingKind}

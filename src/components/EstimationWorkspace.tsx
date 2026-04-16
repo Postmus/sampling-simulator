@@ -27,6 +27,7 @@ interface EstimationWorkspaceProps {
   unitLabel: string;
   decimalPlaces: number;
   summary: EstimationSummary;
+  summaryLoading: boolean;
   teachingTitle: string;
   onPopulationKindChange: (kind: MeanPopulationKind) => void;
   onMeanChange: (value: number) => void;
@@ -51,6 +52,7 @@ export function EstimationWorkspace({
   unitLabel,
   decimalPlaces,
   summary,
+  summaryLoading,
   teachingTitle,
   onPopulationKindChange,
   onMeanChange,
@@ -129,6 +131,7 @@ export function EstimationWorkspace({
         practicalCoverageCount={summary.practicalCoverageCount}
         repeatedSamples={estimates.length}
         decimalPlaces={decimalPlaces}
+        isLoading={summaryLoading}
       />
     </>
   );

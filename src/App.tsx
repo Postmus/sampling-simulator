@@ -154,6 +154,7 @@ export default function App() {
   const [summary, setSummary] = useState(() =>
     buildSummary(initial.mode, initial.population, initial.sampleSize),
   );
+  const [summaryLoading, setSummaryLoading] = useState(false);
 
   const [testingOutcomeLabel, setTestingOutcomeLabel] = useState(testingInitial.outcomeLabel);
   const [testingUnitLabel, setTestingUnitLabel] = useState(testingInitial.unitLabel);
@@ -168,6 +169,7 @@ export default function App() {
   const [testingStatistic, setTestingStatistic] = useState<number | null>(null);
   const [testingPValue, setTestingPValue] = useState<number | null>(null);
   const [testingReject, setTestingReject] = useState<boolean | null>(null);
+  const [testingSummaryLoading, setTestingSummaryLoading] = useState(false);
   const [testingSummary, setTestingSummary] = useState<TestingRunResult>(() =>
     buildTestingSummary(
       testingKind,
@@ -204,6 +206,10 @@ export default function App() {
       testingInitial.direction,
     ),
   );
+  const summaryFrameRef = useRef<number | null>(null);
+  const testingFrameRef = useRef<number | null>(null);
+  const summaryWorkIdRef = useRef(0);
+  const testingWorkIdRef = useRef(0);
 
   const rngRef = useRef(createRng(randomSeed()));
 
@@ -211,12 +217,54 @@ export default function App() {
     rngRef.current = createRng(randomSeed());
   }
 
+  function scheduleSummaryUpdate(work: () => void) {
+    summaryWorkIdRef.current += 1;
+    const workId = summaryWorkIdRef.current;
+    setSummaryLoading(true);
+
+    if (summaryFrameRef.current !== null) {
+      window.cancelAnimationFrame(summaryFrameRef.current);
+    }
+
+    summaryFrameRef.current = window.requestAnimationFrame(() => {
+      if (summaryWorkIdRef.current !== workId) {
+        return;
+      }
+
+      work();
+      setSummaryLoading(false);
+      summaryFrameRef.current = null;
+    });
+  }
+
+  function scheduleTestingUpdate(work: () => void) {
+    testingWorkIdRef.current += 1;
+    const workId = testingWorkIdRef.current;
+    setTestingSummaryLoading(true);
+
+    if (testingFrameRef.current !== null) {
+      window.cancelAnimationFrame(testingFrameRef.current);
+    }
+
+    testingFrameRef.current = window.requestAnimationFrame(() => {
+      if (testingWorkIdRef.current !== workId) {
+        return;
+      }
+
+      work();
+      setTestingSummaryLoading(false);
+      testingFrameRef.current = null;
+    });
+  }
+
   function resetSimulation(nextPopulation = population, nextMode = mode, nextSampleSize = sampleSize) {
     reseed();
-    setCurrentSample([]);
-    setCurrentEstimate(null);
-    setEstimates([]);
-    setSummary(buildSummary(nextMode, nextPopulation, nextSampleSize));
+    scheduleSummaryUpdate(() => {
+      setCurrentSample([]);
+      setCurrentEstimate(null);
+      setEstimates([]);
+      setSummary(buildSummary(nextMode, nextPopulation, nextSampleSize));
+    });
   }
 
   function resetTestingSimulation(
@@ -231,28 +279,16 @@ export default function App() {
     resetDistributions = true,
   ) {
     reseed();
-    setTestingSample([]);
-    setTestingStatistic(null);
-    setTestingPValue(null);
-    setTestingReject(null);
-    const truthMean = nextTruth === "h0" ? nextNullMean : nextAlternativeMean;
-    setTestingSummary(
-      buildTestingSummary(
-        nextTestingKind,
-        truthMean,
-        nextNullMean,
-        nextAlternativeMean,
-        nextPopulationSD,
-        nextSampleSize,
-        nextAlpha,
-        nextDirection,
-      ),
-    );
-    if (resetDistributions) {
-      setTestingSummaryH0(
+    scheduleTestingUpdate(() => {
+      setTestingSample([]);
+      setTestingStatistic(null);
+      setTestingPValue(null);
+      setTestingReject(null);
+      const truthMean = nextTruth === "h0" ? nextNullMean : nextAlternativeMean;
+      setTestingSummary(
         buildTestingSummary(
           nextTestingKind,
-          nextNullMean,
+          truthMean,
           nextNullMean,
           nextAlternativeMean,
           nextPopulationSD,
@@ -261,19 +297,33 @@ export default function App() {
           nextDirection,
         ),
       );
-      setTestingSummaryH1(
-        buildTestingSummary(
-          nextTestingKind,
-          nextAlternativeMean,
-          nextNullMean,
-          nextAlternativeMean,
-          nextPopulationSD,
-          nextSampleSize,
-          nextAlpha,
-          nextDirection,
-        ),
-      );
-    }
+      if (resetDistributions) {
+        setTestingSummaryH0(
+          buildTestingSummary(
+            nextTestingKind,
+            nextNullMean,
+            nextNullMean,
+            nextAlternativeMean,
+            nextPopulationSD,
+            nextSampleSize,
+            nextAlpha,
+            nextDirection,
+          ),
+        );
+        setTestingSummaryH1(
+          buildTestingSummary(
+            nextTestingKind,
+            nextAlternativeMean,
+            nextNullMean,
+            nextAlternativeMean,
+            nextPopulationSD,
+            nextSampleSize,
+            nextAlpha,
+            nextDirection,
+          ),
+        );
+      }
+    });
   }
 
   function handleTestingKindChange(nextTestingKind: TestingKind) {
@@ -392,26 +442,28 @@ export default function App() {
   }
 
   function handleAddSamples(count: number) {
-    const result = runSamplingBatch(
-      mode,
-      population,
-      sampleSize,
-      count,
-      estimates,
-      summary.practicalCoverageCount,
-      rngRef.current,
-    );
-    setEstimates(result.estimates);
-    if (result.latestSample !== null) {
-      setCurrentSample(result.latestSample);
-      setCurrentEstimate(result.latestEstimate);
-    }
-    setSummary({
-      empiricalMean: result.empiricalMean,
-      empiricalSE: result.empiricalSE,
-      theoreticalMean: result.theoreticalMean,
-      theoreticalSE: result.theoreticalSE,
-      practicalCoverageCount: result.practicalCoverageCount,
+    scheduleSummaryUpdate(() => {
+      const result = runSamplingBatch(
+        mode,
+        population,
+        sampleSize,
+        count,
+        estimates,
+        summary.practicalCoverageCount,
+        rngRef.current,
+      );
+      setEstimates(result.estimates);
+      if (result.latestSample !== null) {
+        setCurrentSample(result.latestSample);
+        setCurrentEstimate(result.latestEstimate);
+      }
+      setSummary({
+        empiricalMean: result.empiricalMean,
+        empiricalSE: result.empiricalSE,
+        theoreticalMean: result.theoreticalMean,
+        theoreticalSE: result.theoreticalSE,
+        practicalCoverageCount: result.practicalCoverageCount,
+      });
     });
   }
 
@@ -474,45 +526,47 @@ export default function App() {
   }
 
   function handleTestingAddSamples(count: number) {
-    const h0Result = runTestingBatch(
-      testingKind,
-      nullMean,
-      nullMean,
-      alternativeMean,
-      populationSD,
-      testingSampleSize,
-      count,
-      testingSummaryH0.statistics,
-      testingSummaryH0.rejectionCount,
-      alpha,
-      direction,
-      rngRef.current,
-    );
+    scheduleTestingUpdate(() => {
+      const h0Result = runTestingBatch(
+        testingKind,
+        nullMean,
+        nullMean,
+        alternativeMean,
+        populationSD,
+        testingSampleSize,
+        count,
+        testingSummaryH0.statistics,
+        testingSummaryH0.rejectionCount,
+        alpha,
+        direction,
+        rngRef.current,
+      );
 
-    const h1Result = runTestingBatch(
-      testingKind,
-      alternativeMean,
-      nullMean,
-      alternativeMean,
-      populationSD,
-      testingSampleSize,
-      count,
-      testingSummaryH1.statistics,
-      testingSummaryH1.rejectionCount,
-      alpha,
-      direction,
-      rngRef.current,
-    );
+      const h1Result = runTestingBatch(
+        testingKind,
+        alternativeMean,
+        nullMean,
+        alternativeMean,
+        populationSD,
+        testingSampleSize,
+        count,
+        testingSummaryH1.statistics,
+        testingSummaryH1.rejectionCount,
+        alpha,
+        direction,
+        rngRef.current,
+      );
 
-    const activeResult = truth === "h0" ? h0Result : h1Result;
+      const activeResult = truth === "h0" ? h0Result : h1Result;
 
-    setTestingSummaryH0(h0Result);
-    setTestingSummaryH1(h1Result);
-    setTestingSample(activeResult.latestSample ?? []);
-    setTestingStatistic(activeResult.latestStatistic);
-    setTestingPValue(activeResult.latestPValue);
-    setTestingReject(activeResult.latestReject);
-    setTestingSummary(activeResult);
+      setTestingSummaryH0(h0Result);
+      setTestingSummaryH1(h1Result);
+      setTestingSample(activeResult.latestSample ?? []);
+      setTestingStatistic(activeResult.latestStatistic);
+      setTestingPValue(activeResult.latestPValue);
+      setTestingReject(activeResult.latestReject);
+      setTestingSummary(activeResult);
+    });
   }
 
   const teachingTitle =
@@ -559,6 +613,7 @@ export default function App() {
                 testingSummary={testingSummary}
                 testingSummaryH0={testingSummaryH0}
                 testingSummaryH1={testingSummaryH1}
+                testingSummaryLoading={testingSummaryLoading}
                 onTestingOutcomeLabelChange={setTestingOutcomeLabel}
                 onTestingUnitLabelChange={setTestingUnitLabel}
                 onDecimalPlacesChange={setDecimalPlaces}
@@ -583,6 +638,7 @@ export default function App() {
                 unitLabel={unitLabel}
                 decimalPlaces={decimalPlaces}
                 summary={summary}
+                summaryLoading={summaryLoading}
                 teachingTitle={teachingTitle}
                 onPopulationKindChange={handlePopulationKindChange}
                 onMeanChange={handleMeanChange}
