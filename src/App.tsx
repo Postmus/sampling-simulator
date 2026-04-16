@@ -1,4 +1,4 @@
-import { Suspense, lazy, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { ModeSidebar } from "./components/ModeSidebar";
 import { createRng, randomSeed } from "./core/rng";
 import { runSamplingBatch, simulateAdditionalEstimates } from "./core/simulate";
@@ -137,6 +137,23 @@ function buildTestingSummary(
   );
 }
 
+function createEmptyTestingSummary(): TestingRunResult {
+  return {
+    statistics: [],
+    empiricalRejectionRate: null,
+    theoreticalRejectionRate: null,
+    criticalValue: null,
+    criticalLower: null,
+    criticalUpper: null,
+    rejectionMask: null,
+    rejectionCount: 0,
+    latestSample: null,
+    latestStatistic: null,
+    latestPValue: null,
+    latestReject: null,
+  };
+}
+
 export default function App() {
   const initial = getInitialState();
   const [testingKind, setTestingKind] = useState<TestingKind>("mean");
@@ -170,44 +187,11 @@ export default function App() {
   const [testingPValue, setTestingPValue] = useState<number | null>(null);
   const [testingReject, setTestingReject] = useState<boolean | null>(null);
   const [testingSummaryLoading, setTestingSummaryLoading] = useState(false);
-  const [testingSummary, setTestingSummary] = useState<TestingRunResult>(() =>
-    buildTestingSummary(
-      testingKind,
-      testingInitial.alternativeMean,
-      testingInitial.nullMean,
-      testingInitial.alternativeMean,
-      testingInitial.populationSD,
-      testingInitial.sampleSize,
-      testingInitial.alpha,
-      testingInitial.direction,
-    ),
-  );
-  const [testingSummaryH0, setTestingSummaryH0] = useState<TestingRunResult>(() =>
-    buildTestingSummary(
-      testingKind,
-      testingInitial.nullMean,
-      testingInitial.nullMean,
-      testingInitial.alternativeMean,
-      testingInitial.populationSD,
-      testingInitial.sampleSize,
-      testingInitial.alpha,
-      testingInitial.direction,
-    ),
-  );
-  const [testingSummaryH1, setTestingSummaryH1] = useState<TestingRunResult>(() =>
-    buildTestingSummary(
-      testingKind,
-      testingInitial.alternativeMean,
-      testingInitial.nullMean,
-      testingInitial.alternativeMean,
-      testingInitial.populationSD,
-      testingInitial.sampleSize,
-      testingInitial.alpha,
-      testingInitial.direction,
-    ),
-  );
-  const summaryFrameRef = useRef<number | null>(null);
-  const testingFrameRef = useRef<number | null>(null);
+  const [testingSummary, setTestingSummary] = useState<TestingRunResult>(() => createEmptyTestingSummary());
+  const [testingSummaryH0, setTestingSummaryH0] = useState<TestingRunResult>(() => createEmptyTestingSummary());
+  const [testingSummaryH1, setTestingSummaryH1] = useState<TestingRunResult>(() => createEmptyTestingSummary());
+  const summaryTimeoutRef = useRef<number | null>(null);
+  const testingTimeoutRef = useRef<number | null>(null);
   const summaryWorkIdRef = useRef(0);
   const testingWorkIdRef = useRef(0);
 
@@ -217,24 +201,39 @@ export default function App() {
     rngRef.current = createRng(randomSeed());
   }
 
+  useEffect(() => {
+    setSummary(buildSummary(initial.mode, initial.population, initial.sampleSize));
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (summaryTimeoutRef.current !== null) {
+        window.clearTimeout(summaryTimeoutRef.current);
+      }
+      if (testingTimeoutRef.current !== null) {
+        window.clearTimeout(testingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   function scheduleSummaryUpdate(work: () => void) {
     summaryWorkIdRef.current += 1;
     const workId = summaryWorkIdRef.current;
     setSummaryLoading(true);
 
-    if (summaryFrameRef.current !== null) {
-      window.cancelAnimationFrame(summaryFrameRef.current);
+    if (summaryTimeoutRef.current !== null) {
+      window.clearTimeout(summaryTimeoutRef.current);
     }
 
-    summaryFrameRef.current = window.requestAnimationFrame(() => {
+    summaryTimeoutRef.current = window.setTimeout(() => {
       if (summaryWorkIdRef.current !== workId) {
         return;
       }
 
       work();
       setSummaryLoading(false);
-      summaryFrameRef.current = null;
-    });
+      summaryTimeoutRef.current = null;
+    }, 0);
   }
 
   function scheduleTestingUpdate(work: () => void) {
@@ -242,19 +241,19 @@ export default function App() {
     const workId = testingWorkIdRef.current;
     setTestingSummaryLoading(true);
 
-    if (testingFrameRef.current !== null) {
-      window.cancelAnimationFrame(testingFrameRef.current);
+    if (testingTimeoutRef.current !== null) {
+      window.clearTimeout(testingTimeoutRef.current);
     }
 
-    testingFrameRef.current = window.requestAnimationFrame(() => {
+    testingTimeoutRef.current = window.setTimeout(() => {
       if (testingWorkIdRef.current !== workId) {
         return;
       }
 
       work();
       setTestingSummaryLoading(false);
-      testingFrameRef.current = null;
-    });
+      testingTimeoutRef.current = null;
+    }, 0);
   }
 
   function resetSimulation(nextPopulation = population, nextMode = mode, nextSampleSize = sampleSize) {
