@@ -213,7 +213,7 @@ export function ControlBand({
                 </div>
 
                 <label className="control-field">
-                  <span>True proportion</span>
+                  <span>True proportion (π)</span>
                   <input
                     type="range"
                     min="0.05"

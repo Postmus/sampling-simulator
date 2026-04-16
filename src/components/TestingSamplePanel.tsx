@@ -136,17 +136,17 @@ export function TestingSamplePanel({
                 </tr>
               </>
             ) : (
-              <>
-                <tr>
-                  <th>Observed successes</th>
-                  <td>{successes?.toString() ?? "-"}</td>
-                </tr>
-                <tr>
-                  <th>Sample proportion</th>
-                  <td>{formatPercent(sampleProportion)}</td>
-                </tr>
-              </>
-            )}
+                <>
+                  <tr>
+                    <th>Observed successes</th>
+                    <td>{successes?.toString() ?? "-"}</td>
+                  </tr>
+                  <tr>
+                    <th>Sample proportion (p)</th>
+                    <td>{formatPercent(sampleProportion)}</td>
+                  </tr>
+                </>
+              )}
           </tbody>
         </table>
 
@@ -177,7 +177,7 @@ export function TestingSamplePanel({
         <p className="caption">
           {isMean
             ? "The dashed line marks the null mean. The t statistic compares the sample mean to that null value in estimated SE units."
-            : "The bars show the number of failures and successes in one sample. The exact binomial test uses the count of successes."}
+            : "The bars show the number of failures and successes in one sample. The exact binomial test uses the count of successes and the sample proportion p."}
         </p>
       ) : null}
     </Panel>

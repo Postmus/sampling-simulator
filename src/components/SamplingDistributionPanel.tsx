@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import * as Plot from "@observablehq/plot";
-import tDist from "@stdlib/stats-base-dists-t";
 import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
 
@@ -9,7 +8,6 @@ interface SamplingDistributionPanelProps {
   theoreticalValue: number | null;
   theoreticalSE: number | null;
   currentEstimate: number | null;
-  sampleSize: number;
   title: string;
   outcomeLabel: string;
   unitLabel: string;
@@ -20,15 +18,14 @@ export function SamplingDistributionPanel({
   theoreticalValue,
   theoreticalSE,
   currentEstimate,
-  sampleSize,
   title,
   outcomeLabel,
   unitLabel,
 }: SamplingDistributionPanelProps) {
   const estimateLabel =
-    title.toLowerCase().includes("proportion") ? "sample proportions" : "sample means";
+    title.toLowerCase().includes("proportion") ? "sample proportions (p)" : "sample means";
   const parameterLabel =
-    title.toLowerCase().includes("proportion") ? "true proportion" : "true mean";
+    title.toLowerCase().includes("proportion") ? "true proportion (π)" : "true mean";
   const xDomain = useMemo<[number, number] | undefined>(() => {
     const values = [...estimates];
 
@@ -64,12 +61,8 @@ export function SamplingDistributionPanel({
       return null;
     }
 
-    if (title.toLowerCase().includes("mean")) {
-      return sampleSize > 1 ? tDist.quantile(0.975, sampleSize - 1) : 1.96;
-    }
-
     return 1.96;
-  }, [sampleSize, theoreticalSE, theoreticalValue, title]);
+  }, [theoreticalSE, theoreticalValue]);
 
   const referenceBand =
     theoreticalValue !== null && theoreticalSE !== null && criticalMultiplier !== null
@@ -244,13 +237,13 @@ export function SamplingDistributionPanel({
             {theoreticalValue !== null ? (
               <span className="legend-item">
                 <span className="legend-swatch theory" />
-                True value
+                {title.toLowerCase().includes("proportion") ? "True proportion (π)" : "True value"}
               </span>
             ) : null}
             {currentEstimate !== null ? (
               <span className="legend-item">
                 <span className="legend-swatch current" />
-                Latest estimate
+                {title.toLowerCase().includes("proportion") ? "Latest sample proportion (p)" : "Latest estimate"}
               </span>
             ) : null}
           </div>

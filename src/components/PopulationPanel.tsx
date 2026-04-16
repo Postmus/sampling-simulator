@@ -34,18 +34,18 @@ function populationRows(
   if (mode === "mean" && population.kind !== "bernoulli") {
     return [
       {
-        label: "Population mean",
+        label: "Population mean (μ)",
         value: formatContinuousValue(population.params.mean, unitLabel, decimalPlaces),
       },
       {
-        label: "Population SD",
+        label: "Population SD (σ)",
         value: formatContinuousValue(population.params.sd, unitLabel, decimalPlaces),
       },
     ];
   }
 
   if (population.kind === "bernoulli") {
-    return [{ label: "Population proportion", value: population.params.p.toFixed(2) }];
+    return [{ label: "Population proportion (π)", value: population.params.p.toFixed(2) }];
   }
 
   return [];

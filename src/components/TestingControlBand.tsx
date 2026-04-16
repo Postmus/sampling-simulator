@@ -82,8 +82,8 @@ export function TestingControlBand({
   }, [sampleSize]);
 
   const isMean = testKind === "mean";
-  const nullLabel = isMean ? "H0 mean" : "H0 proportion";
-  const alternativeLabel = isMean ? "H1 mean" : "H1 proportion";
+  const nullLabel = isMean ? "H0 mean" : "H0 proportion (π)";
+  const alternativeLabel = isMean ? "H1 mean" : "H1 proportion (π)";
   const hypothesisStep = isMean ? getDecimalStep(decimalPlaces) : "0.01";
   return (
     <section className="control-band">

@@ -39,7 +39,11 @@ export function MetricsPanel({
   const note =
     mode === "mean"
       ? "The theoretical SE uses the true population SD. The empirical SE comes from the repeated-sampling simulation. The estimated SE uses the sample SD from the latest sample."
-      : "The theoretical SE uses the true population proportion. The empirical SE comes from the repeated-sampling simulation. The estimated SE uses the sample proportion from the latest sample.";
+      : "The theoretical SE uses the true population proportion π. The empirical SE comes from the repeated-sampling simulation. The estimated SE uses the sample proportion p from the latest sample.";
+  const theoreticalFormula =
+    mode === "mean" ? "σ / √n" : "√[π(1 - π) / n]";
+  const estimatedFormula =
+    mode === "mean" ? "s / √n" : "√[p(1 - p) / n]";
 
   return (
     <Panel
@@ -69,6 +73,16 @@ export function MetricsPanel({
             </tr>
           </tbody>
         </table>
+      </div>
+      <div className="metrics-formulas">
+        <div className="formula-block">
+          <div className="formula-label">Theoretical SE</div>
+          <div className="formula-value">{theoreticalFormula}</div>
+        </div>
+        <div className="formula-block">
+          <div className="formula-label">Estimated SE</div>
+          <div className="formula-value">{estimatedFormula}</div>
+        </div>
       </div>
       <p className="metrics-note">
         {note}

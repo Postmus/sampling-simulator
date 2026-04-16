@@ -76,3 +76,5 @@ export function SampleBoxPlotFigure({
     </div>
   );
 }
+
+export default SampleBoxPlotFigure;

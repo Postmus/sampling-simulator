@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import * as Plot from "@observablehq/plot";
 import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
-import { SampleBoxPlotFigure } from "./SampleBoxPlotFigure";
 import { formatContinuousValue } from "../core/format";
 import { standardDeviation } from "../core/statistics";
 import type { TeachingMode } from "../core/types";
+
+const SampleBoxPlotFigure = lazy(() => import("./SampleBoxPlotFigure"));
 
 interface SamplePanelProps {
   mode: TeachingMode;
@@ -90,7 +91,7 @@ export function SamplePanel({
 
   return (
     <Panel
-      title={mode === "mean" ? "Latest Estimate" : "Latest Sample"}
+      title="Latest Sample"
       subtitle={
         mode === "mean"
           ? "This is the most recently generated sample. Its estimate is highlighted below and included in the sampling distribution."
@@ -109,7 +110,7 @@ export function SamplePanel({
             </thead>
             <tbody>
               <tr>
-                <th scope="row">Sample size</th>
+                <th scope="row">Sample size (n)</th>
                 <td>{sample.length.toString()}</td>
               </tr>
               {mode === "mean" ? (
@@ -130,12 +131,12 @@ export function SamplePanel({
               ) : (
                 <>
                   <tr>
-                    <th scope="row">Sample proportion</th>
-                    <td>{estimate === null ? "-" : estimate.toFixed(2)}</td>
-                  </tr>
-                  <tr>
                     <th scope="row">{outcomeLabel.trim() ? `${outcomeLabel} count` : "Successes"}</th>
                     <td>{sample.reduce((sum, value) => sum + value, 0).toString()}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sample proportion (p)</th>
+                    <td>{estimate === null ? "-" : estimate.toFixed(2)}</td>
                   </tr>
                 </>
               )}
@@ -145,11 +146,19 @@ export function SamplePanel({
           <div className="sample-mean-plot">
             {mode === "mean" ? (
               sample.length > 0 ? (
-                <SampleBoxPlotFigure
-                  sample={sample}
-                  outcomeLabel={outcomeLabel}
-                  unitLabel={unitLabel}
-                />
+                <Suspense
+                  fallback={
+                    <div className="sample-boxplot-empty">
+                      Add samples to display the latest sample boxplot.
+                    </div>
+                  }
+                >
+                  <SampleBoxPlotFigure
+                    sample={sample}
+                    outcomeLabel={outcomeLabel}
+                    unitLabel={unitLabel}
+                  />
+                </Suspense>
               ) : (
                 <div className="sample-boxplot-empty">
                   Add samples to display the latest sample boxplot.
@@ -169,7 +178,7 @@ export function SamplePanel({
       {mode === "proportion" && sample.length > 0 && binaryOptions ? (
         <p className="caption">
           The bar chart shows the 0 and 1 outcomes in the latest Bernoulli sample
-          {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}. The sample proportion is the
+          {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}. The sample proportion p is the
           proportion of 1s.
         </p>
       ) : null}

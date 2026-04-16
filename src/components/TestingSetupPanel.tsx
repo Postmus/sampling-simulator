@@ -34,6 +34,7 @@ export function TestingSetupPanel({
   const simulatedValue = truth === "h0" ? nullMean : alternativeMean;
   const isMean = testKind === "mean";
   const displayDigits = decimalPlaces;
+  const parameterSymbol = isMean ? "μ" : "π";
 
   return (
     <Panel
@@ -46,10 +47,10 @@ export function TestingSetupPanel({
           {unitLabel.trim() ? ` (${unitLabel.trim()})` : ""}
         </p>
         <p>
-          <strong>H0:</strong> {isMean ? "μ" : "p"} = {isMean ? formatContinuousValue(nullMean, "", displayDigits) : nullMean.toFixed(2)}
+          <strong>H0:</strong> {parameterSymbol} = {isMean ? formatContinuousValue(nullMean, "", displayDigits) : nullMean.toFixed(2)}
         </p>
         <p>
-          <strong>H1:</strong> {isMean ? "μ" : "p"} {alternativeOperator} {isMean ? formatContinuousValue(alternativeMean, "", displayDigits) : alternativeMean.toFixed(2)}
+          <strong>H1:</strong> {parameterSymbol} {alternativeOperator} {isMean ? formatContinuousValue(alternativeMean, "", displayDigits) : alternativeMean.toFixed(2)}
         </p>
         {isMean ? (
           <p>
@@ -68,7 +69,7 @@ export function TestingSetupPanel({
         <p>
           <strong>Simulate under:</strong>{" "}
           {truth.toUpperCase()} (
-          {isMean ? "μ" : "p"} ={" "}
+          {parameterSymbol} ={" "}
           {isMean ? formatContinuousValue(simulatedValue, "", displayDigits) : simulatedValue.toFixed(2)}
           )
         </p>

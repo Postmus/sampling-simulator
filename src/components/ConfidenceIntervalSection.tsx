@@ -168,6 +168,39 @@ export function ConfidenceIntervalSection({
     <section className="ci-section">
       <div className="ci-grid">
         <Panel
+          title="95% confidence interval coverage"
+          subtitle="This tracks repeated-sampling coverage of the 95% confidence interval procedure."
+        >
+          <div className="value-grid ci-values tight">
+            <ValueCard label="Repeated samples" value={repeatedSamples.toString()} />
+            <ValueCard
+              label="Intervals containing true value"
+              value={practicalCoverageCount.toString()}
+            />
+            <ValueCard label="Empirical coverage" value={formatPercent(practicalCoverage)} />
+          </div>
+
+          <div className="coverage-meter">
+            <div className="coverage-track">
+              <div
+                className="coverage-fill"
+                style={{ width: `${Math.max(0, Math.min(100, (practicalCoverage ?? 0) * 100))}%` }}
+              />
+              <div className="coverage-target" style={{ left: "95%" }} />
+            </div>
+            <div className="coverage-scale">
+              <span>0%</span>
+              <span>95%</span>
+              <span>100%</span>
+            </div>
+          </div>
+
+          <p className="caption">
+            The meter shows how often the 95% confidence interval has contained the true value so far.
+          </p>
+        </Panel>
+
+        <Panel
           title="Latest 95% confidence interval"
           subtitle="The latest 95% confidence interval, shown against the true value."
         >
@@ -198,39 +231,6 @@ export function ConfidenceIntervalSection({
 
           <p className="caption">
             This is the latest 95% confidence interval for the sample.
-          </p>
-        </Panel>
-
-        <Panel
-          title="95% confidence interval coverage"
-          subtitle="This tracks repeated-sampling coverage of the 95% confidence interval procedure."
-        >
-          <div className="value-grid ci-values tight">
-            <ValueCard label="Repeated samples" value={repeatedSamples.toString()} />
-            <ValueCard
-              label="Intervals containing true value"
-              value={practicalCoverageCount.toString()}
-            />
-            <ValueCard label="Empirical coverage" value={formatPercent(practicalCoverage)} />
-          </div>
-
-          <div className="coverage-meter">
-            <div className="coverage-track">
-              <div
-                className="coverage-fill"
-                style={{ width: `${Math.max(0, Math.min(100, (practicalCoverage ?? 0) * 100))}%` }}
-              />
-              <div className="coverage-target" style={{ left: "95%" }} />
-            </div>
-            <div className="coverage-scale">
-              <span>0%</span>
-              <span>95%</span>
-              <span>100%</span>
-            </div>
-          </div>
-
-          <p className="caption">
-            The meter shows how often the 95% confidence interval has contained the true value so far.
           </p>
         </Panel>
       </div>

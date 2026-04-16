@@ -1,17 +1,5 @@
-import { useRef, useState } from "react";
-import { ControlBand } from "./components/ControlBand";
-import { ConfidenceIntervalSection } from "./components/ConfidenceIntervalSection";
-import { MetricsPanel } from "./components/MetricsPanel";
+import { Suspense, lazy, useRef, useState } from "react";
 import { ModeSidebar } from "./components/ModeSidebar";
-import { PopulationPanel } from "./components/PopulationPanel";
-import { SamplePanel } from "./components/SamplePanel";
-import { TestingControlBand } from "./components/TestingControlBand";
-import { TestingDecisionPanel } from "./components/TestingDecisionPanel";
-import { TestingDistributionPanel } from "./components/TestingDistributionPanel";
-import { TestingRatePanel } from "./components/TestingRatePanel";
-import { TestingSamplePanel } from "./components/TestingSamplePanel";
-import { TestingSetupPanel } from "./components/TestingSetupPanel";
-import { SamplingDistributionPanel } from "./components/SamplingDistributionPanel";
 import { createRng, randomSeed } from "./core/rng";
 import { runSamplingBatch, simulateAdditionalEstimates } from "./core/simulate";
 import { runTestingBatch } from "./core/testing";
@@ -25,6 +13,9 @@ import type {
   TestTruth,
   WorkflowMode,
 } from "./core/types";
+
+const EstimationWorkspace = lazy(() => import("./components/EstimationWorkspace"));
+const TestingWorkspace = lazy(() => import("./components/TestingWorkspace"));
 
 function getDefaultPopulation(mode: TeachingMode): PopulationConfig {
   if (mode === "mean") {
@@ -46,7 +37,7 @@ function getDefaultPopulation(mode: TeachingMode): PopulationConfig {
 }
 
 function getDefaultSampleSize(mode: TeachingMode) {
-  return mode === "mean" ? 12 : 20;
+  return 60;
 }
 
 function getDefaultOutcomeLabel(mode: TeachingMode) {
@@ -474,12 +465,12 @@ export default function App() {
         />
 
         <div className="workspace-main">
-          {workflowMode === "testing" ? (
-            <>
-              <TestingControlBand
-                testKind={testingKind}
-                outcomeLabel={testingOutcomeLabel}
-                unitLabel={testingUnitLabel}
+          <Suspense fallback={<div className="panel-grid">Loading workspace...</div>}>
+            {workflowMode === "testing" ? (
+              <TestingWorkspace
+                testingKind={testingKind}
+                testingOutcomeLabel={testingOutcomeLabel}
+                testingUnitLabel={testingUnitLabel}
                 decimalPlaces={decimalPlaces}
                 nullMean={nullMean}
                 alternativeMean={alternativeMean}
@@ -487,86 +478,40 @@ export default function App() {
                 direction={direction}
                 alpha={alpha}
                 truth={truth}
-                sampleSize={testingSampleSize}
-                repetitions={testingStatistics.length}
-                onOutcomeLabelChange={setTestingOutcomeLabel}
-                onUnitLabelChange={setTestingUnitLabel}
+                testingSampleSize={testingSampleSize}
+                testingSample={testingSample}
+                testingStatistic={testingStatistic}
+                testingPValue={testingPValue}
+                testingReject={testingReject}
+                testingStatistics={testingStatistics}
+                testingRejectionCount={testingRejectionCount}
+                testingSummary={testingSummary}
+                onTestingOutcomeLabelChange={setTestingOutcomeLabel}
+                onTestingUnitLabelChange={setTestingUnitLabel}
                 onDecimalPlacesChange={setDecimalPlaces}
-                onNullMeanChange={handleTestingNullMeanChange}
-                onAlternativeMeanChange={handleTestingAlternativeMeanChange}
-                onPopulationSDChange={handleTestingSDChange}
-                onDirectionChange={handleTestingDirectionChange}
-                onAlphaChange={handleTestingAlphaChange}
-                onTruthChange={handleTestingTruthChange}
-                onSampleSizeChange={handleTestingSampleSizeChange}
-                onAddSamples={handleTestingAddSamples}
+                onTestingNullMeanChange={handleTestingNullMeanChange}
+                onTestingAlternativeMeanChange={handleTestingAlternativeMeanChange}
+                onTestingSDChange={handleTestingSDChange}
+                onTestingDirectionChange={handleTestingDirectionChange}
+                onTestingAlphaChange={handleTestingAlphaChange}
+                onTestingTruthChange={handleTestingTruthChange}
+                onTestingSampleSizeChange={handleTestingSampleSizeChange}
+                onTestingAddSamples={handleTestingAddSamples}
                 onReset={() => resetTestingSimulation()}
               />
-
-              <main className="panel-grid">
-                <TestingSetupPanel
-                  testKind={testingKind}
-                  outcomeLabel={testingOutcomeLabel}
-                  unitLabel={testingUnitLabel}
-                  decimalPlaces={decimalPlaces}
-                  nullMean={nullMean}
-                  alternativeMean={alternativeMean}
-                  populationSD={populationSD}
-                  sampleSize={testingSampleSize}
-                  direction={direction}
-                  alpha={alpha}
-                  truth={truth}
-                />
-                <TestingSamplePanel
-                  testKind={testingKind}
-                  sample={testingSample}
-                  nullMean={nullMean}
-                  unitLabel={testingUnitLabel}
-                  outcomeLabel={testingOutcomeLabel}
-                  decimalPlaces={decimalPlaces}
-                  truth={truth}
-                />
-                <TestingDistributionPanel
-                  testKind={testingKind}
-                  statistics={testingStatistics}
-                  sampleSize={testingSampleSize}
-                  criticalValue={testingSummary.criticalValue}
-                  criticalLower={testingSummary.criticalLower}
-                  criticalUpper={testingSummary.criticalUpper}
-                  rejectionMask={testingSummary.rejectionMask}
-                  currentStatistic={testingStatistic}
-                  direction={direction}
-                />
-                <TestingDecisionPanel
-                  testKind={testingKind}
-                  statistic={testingStatistic}
-                  criticalValue={testingSummary.criticalValue}
-                  pValue={testingPValue}
-                  sampleSize={testingSampleSize}
-                  reject={testingReject}
-                  direction={direction}
-                />
-                <div className="panel-span-2">
-                  <TestingRatePanel
-                    truth={truth}
-                    repetitions={testingStatistics.length}
-                    rejectionCount={testingRejectionCount}
-                    empiricalRejectionRate={testingSummary.empiricalRejectionRate}
-                    theoreticalRejectionRate={testingSummary.theoreticalRejectionRate}
-                  />
-                </div>
-              </main>
-            </>
-          ) : (
-            <>
-              <ControlBand
+            ) : (
+              <EstimationWorkspace
                 mode={mode}
                 population={population}
                 sampleSize={sampleSize}
-                repetitions={estimates.length}
+                estimates={estimates}
+                currentSample={currentSample}
+                currentEstimate={currentEstimate}
                 outcomeLabel={outcomeLabel}
                 unitLabel={unitLabel}
                 decimalPlaces={decimalPlaces}
+                summary={summary}
+                teachingTitle={teachingTitle}
                 onPopulationKindChange={handlePopulationKindChange}
                 onMeanChange={handleMeanChange}
                 onSDChange={handleSDChange}
@@ -578,55 +523,8 @@ export default function App() {
                 onAddSamples={handleAddSamples}
                 onReset={() => resetSimulation()}
               />
-
-              <main className="panel-grid">
-                <PopulationPanel
-                  mode={mode}
-                  population={population}
-                  outcomeLabel={outcomeLabel}
-                  unitLabel={unitLabel}
-                  decimalPlaces={decimalPlaces}
-                />
-                <SamplePanel
-                  mode={mode}
-                  sample={currentSample}
-                  estimate={currentEstimate}
-                  outcomeLabel={outcomeLabel}
-                  unitLabel={unitLabel}
-                  decimalPlaces={decimalPlaces}
-                />
-                <SamplingDistributionPanel
-                  estimates={estimates}
-                  theoreticalValue={summary.theoreticalMean}
-                  theoreticalSE={summary.theoreticalSE}
-                  currentEstimate={currentEstimate}
-                  sampleSize={sampleSize}
-                  title={teachingTitle}
-                  outcomeLabel={outcomeLabel}
-                  unitLabel={unitLabel}
-                />
-                <MetricsPanel
-                  mode={mode}
-                  sample={currentSample}
-                  empiricalSE={summary.empiricalSE}
-                  theoreticalSE={summary.theoreticalSE}
-                  unitLabel={unitLabel}
-                  decimalPlaces={decimalPlaces}
-                />
-              </main>
-
-              <ConfidenceIntervalSection
-                mode={mode}
-                sample={currentSample}
-                estimate={currentEstimate}
-                theoreticalMean={summary.theoreticalMean}
-                unitLabel={unitLabel}
-                practicalCoverageCount={summary.practicalCoverageCount}
-                repeatedSamples={estimates.length}
-                decimalPlaces={decimalPlaces}
-              />
-            </>
-          )}
+            )}
+          </Suspense>
         </div>
       </div>
     </div>
