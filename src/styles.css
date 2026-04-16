@@ -536,11 +536,16 @@ select {
 }
 
 .hypothesis-spec {
-  margin-top: 0.8rem;
+  margin-top: 0.7rem;
   padding: 1rem 1.05rem;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(238, 245, 248, 0.88), rgba(250, 252, 252, 0.96));
   border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.hypothesis-spec.compact {
+  margin-top: 0.55rem;
+  padding: 0.9rem 1rem;
 }
 
 .hypothesis-spec p {
@@ -555,6 +560,24 @@ select {
 
 .hypothesis-spec strong {
   color: #173142;
+}
+
+.setup-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.setup-subcard {
+  padding: 0.95rem 1.05rem 1rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(238, 245, 248, 0.92), rgba(250, 252, 252, 0.98));
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.setup-subcard-text {
+  margin: 0.85rem 0 0;
+  color: #486171;
+  font-size: 0.94rem;
 }
 
 .value-card {
@@ -587,6 +610,10 @@ select {
 .placeholder {
   margin: 0.9rem 0 0;
   font-size: 0.92rem;
+}
+
+.distribution-subtitle-spacer {
+  height: 0.9rem;
 }
 
 .inline-legend {

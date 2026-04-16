@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { TestDirection, TestTruth, TestingKind } from "../core/types";
+import type { TestDirection, TestingKind } from "../core/types";
 import { getDecimalStep } from "../core/format";
 
 interface TestingControlBandProps {
@@ -12,7 +12,6 @@ interface TestingControlBandProps {
   populationSD: number;
   direction: TestDirection;
   alpha: number;
-  truth: TestTruth;
   sampleSize: number;
   repetitions: number;
   onOutcomeLabelChange: (value: string) => void;
@@ -23,7 +22,6 @@ interface TestingControlBandProps {
   onPopulationSDChange: (value: number) => void;
   onDirectionChange: (value: TestDirection) => void;
   onAlphaChange: (value: number) => void;
-  onTruthChange: (value: TestTruth) => void;
   onSampleSizeChange: (value: number) => void;
   onAddSamples: (count: number) => void;
   onReset: () => void;
@@ -39,7 +37,6 @@ export function TestingControlBand({
   populationSD,
   direction,
   alpha,
-  truth,
   sampleSize,
   repetitions,
   onOutcomeLabelChange,
@@ -50,7 +47,6 @@ export function TestingControlBand({
   onPopulationSDChange,
   onDirectionChange,
   onAlphaChange,
-  onTruthChange,
   onSampleSizeChange,
   onAddSamples,
   onReset,
@@ -83,48 +79,173 @@ export function TestingControlBand({
 
   const isMean = testKind === "mean";
   const nullLabel = isMean ? "H0 mean" : "H0 proportion (π)";
-  const alternativeLabel = isMean ? "H1 mean" : "H1 proportion (π)";
   const hypothesisStep = isMean ? getDecimalStep(decimalPlaces) : "0.01";
   return (
     <section className="control-band">
       <section className="control-card">
         <div className="control-card-header">
-          <h2>Outcome</h2>
-          <p>Name the outcome and, for means, add an optional unit of measurement and decimal places. Use the left sidebar to switch between mean and proportion.</p>
+          <h2>Population Model</h2>
+          <p>Specify the underlying data-generating process for the population.</p>
         </div>
 
-        <div className="controls-grid population-row-grid">
-          <label className="control-field">
-            <span>Outcome label</span>
-            <input
-              type="text"
-              value={outcomeLabel}
-              placeholder="Blood pressure"
-              onChange={(event) => onOutcomeLabelChange(event.target.value)}
-            />
-          </label>
-
-          {isMean ? (
-            <>
+        <div className="population-rows">
+          <div className="population-row">
+            <div className="row-label">
+              <h3>Outcome</h3>
+              <p>Name the variable first, then add an optional unit of measurement and decimal places if you are working with a mean.</p>
+            </div>
+            <div className="controls-grid population-row-grid">
               <label className="control-field">
-                <span>Unit of measurement</span>
+                <span>Outcome label</span>
                 <input
                   type="text"
-                  value={unitLabel}
-                  placeholder="mmHg"
-                  onChange={(event) => onUnitLabelChange(event.target.value)}
+                  value={outcomeLabel}
+                  placeholder="Blood pressure"
+                  onChange={(event) => onOutcomeLabelChange(event.target.value)}
                 />
               </label>
+
+              {isMean ? (
+                <>
+                  <label className="control-field">
+                    <span>Unit of measurement</span>
+                    <input
+                      type="text"
+                      value={unitLabel}
+                      placeholder="mmHg"
+                      onChange={(event) => onUnitLabelChange(event.target.value)}
+                    />
+                  </label>
+                  <label className="control-field">
+                    <span>Decimal places</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={decimalPlacesInput}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setDecimalPlacesInput(nextValue);
+
+                        if (nextValue === "") {
+                          return;
+                        }
+
+                        const parsed = Number(nextValue);
+                        if (Number.isNaN(parsed)) {
+                          return;
+                        }
+                        onDecimalPlacesChange(Math.max(0, Math.round(parsed)));
+                      }}
+                      onBlur={() => setDecimalPlacesInput(String(decimalPlaces))}
+                    />
+                  </label>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="setup-subcard">
+            <div className="row-label">
+              <h3>Population parameters</h3>
+              <p>Set the population shape and parameters for the testing simulation.</p>
+            </div>
+            <div className={`controls-grid population-row-grid ${isMean ? "" : "proportion-grid"}`}>
+              <div className="fixed-field">
+                <span>Population shape</span>
+                <strong>{isMean ? "Normal" : "Bernoulli"}</strong>
+              </div>
+
               <label className="control-field">
-                <span>Decimal places</span>
+                <span>{isMean ? "True mean" : "True proportion (π)"}</span>
+                {isMean ? (
+                  <input
+                    type="number"
+                    step={hypothesisStep}
+                    value={alternativeMeanInput}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setAlternativeMeanInput(nextValue);
+
+                      if (nextValue === "") {
+                        return;
+                      }
+
+                      const parsed = Number(nextValue);
+                      if (Number.isNaN(parsed)) {
+                        return;
+                      }
+
+                      onAlternativeMeanChange(parsed);
+                    }}
+                    onBlur={() => setAlternativeMeanInput(String(alternativeMean))}
+                  />
+                ) : (
+                  <>
+                    <input
+                      type="range"
+                      min="0.05"
+                      max="0.95"
+                      step="0.01"
+                      value={alternativeMean}
+                      onChange={(event) => onAlternativeMeanChange(Number(event.target.value))}
+                    />
+                    <strong className="slider-value">{alternativeMean.toFixed(2)}</strong>
+                  </>
+                )}
+              </label>
+
+              {isMean ? (
+                <label className="control-field">
+                  <span>Population SD</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step={getDecimalStep(decimalPlaces)}
+                    value={populationSdInput}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      setPopulationSdInput(nextValue);
+
+                      if (nextValue === "") {
+                        return;
+                      }
+
+                      const parsed = Number(nextValue);
+                      if (Number.isNaN(parsed)) {
+                        return;
+                      }
+
+                      onPopulationSDChange(parsed);
+                    }}
+                    onBlur={() => setPopulationSdInput(String(populationSD))}
+                  />
+                </label>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="control-card">
+        <div className="control-card-header">
+          <h2>Hypothesis setup</h2>
+          <p>Set the null hypothesis, then choose the test direction and significance level.</p>
+        </div>
+
+        <div className="setup-stack control-stack">
+          <div className="setup-subcard">
+            <div className="formula-label">Hypotheses</div>
+            <div className="controls-grid testing-grid compact-grid">
+              <label className="control-field">
+                <span>{nullLabel}</span>
                 <input
                   type="number"
-                  min="0"
-                  step="1"
-                  value={decimalPlacesInput}
+                  step={hypothesisStep}
+                  value={nullMeanInput}
                   onChange={(event) => {
                     const nextValue = event.target.value;
-                    setDecimalPlacesInput(nextValue);
+                    setNullMeanInput(nextValue);
 
                     if (nextValue === "") {
                       return;
@@ -134,127 +255,39 @@ export function TestingControlBand({
                     if (Number.isNaN(parsed)) {
                       return;
                     }
-                    onDecimalPlacesChange(Math.max(0, Math.round(parsed)));
+
+                    onNullMeanChange(parsed);
                   }}
-                  onBlur={() => setDecimalPlacesInput(String(decimalPlaces))}
+                  onBlur={() => setNullMeanInput(String(nullMean))}
                 />
               </label>
-            </>
-          ) : null}
-        </div>
-      </section>
 
-      <section className="control-card">
-        <div className="control-card-header">
-          <h2>Hypothesis setup</h2>
-          <p>
-            Set the null and alternative {isMean ? "means" : "proportions"}, then choose the test direction and significance level.
-          </p>
-        </div>
+              <label className="control-field">
+                <span>Direction</span>
+                <select value={direction} onChange={(event) => onDirectionChange(event.target.value as TestDirection)}>
+                  <option value="two-sided">Two-sided</option>
+                  <option value="greater">Greater than</option>
+                  <option value="less">Less than</option>
+                </select>
+              </label>
 
-        <div className="controls-grid testing-grid">
-          <label className="control-field">
-            <span>{nullLabel}</span>
-            <input
-              type="number"
-              step={hypothesisStep}
-              value={nullMeanInput}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                setNullMeanInput(nextValue);
-
-                if (nextValue === "") {
-                  return;
-                }
-
-                const parsed = Number(nextValue);
-                if (Number.isNaN(parsed)) {
-                  return;
-                }
-
-                onNullMeanChange(parsed);
-              }}
-              onBlur={() => setNullMeanInput(String(nullMean))}
-            />
-          </label>
-
-          <label className="control-field">
-            <span>{alternativeLabel}</span>
-            <input
-              type="number"
-              step={hypothesisStep}
-              value={alternativeMeanInput}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                setAlternativeMeanInput(nextValue);
-
-                if (nextValue === "") {
-                  return;
-                }
-
-                const parsed = Number(nextValue);
-                if (Number.isNaN(parsed)) {
-                  return;
-                }
-
-                onAlternativeMeanChange(parsed);
-              }}
-              onBlur={() => setAlternativeMeanInput(String(alternativeMean))}
-            />
-          </label>
-
-          {isMean ? (
-            <label className="control-field">
-              <span>Population SD</span>
-              <input
-                type="number"
-                min="0"
-                step={getDecimalStep(decimalPlaces)}
-                value={populationSdInput}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  setPopulationSdInput(nextValue);
-
-                  if (nextValue === "") {
-                    return;
-                  }
-
-                  const parsed = Number(nextValue);
-                  if (Number.isNaN(parsed)) {
-                    return;
-                  }
-
-                  onPopulationSDChange(parsed);
-                }}
-                onBlur={() => setPopulationSdInput(String(populationSD))}
-              />
-            </label>
-          ) : null}
-
-          <label className="control-field">
-            <span>Direction</span>
-            <select value={direction} onChange={(event) => onDirectionChange(event.target.value as TestDirection)}>
-              <option value="two-sided">Two-sided</option>
-              <option value="greater">Greater than</option>
-              <option value="less">Less than</option>
-            </select>
-          </label>
-
-          <label className="control-field">
-            <span>Significance level α</span>
-            <select value={alpha.toFixed(2)} onChange={(event) => onAlphaChange(Number(event.target.value))}>
-              <option value="0.10">0.10</option>
-              <option value="0.05">0.05</option>
-              <option value="0.01">0.01</option>
-            </select>
-          </label>
+              <label className="control-field">
+                <span>Significance level α</span>
+                <select value={alpha.toFixed(2)} onChange={(event) => onAlphaChange(Number(event.target.value))}>
+                  <option value="0.10">0.10</option>
+                  <option value="0.05">0.05</option>
+                  <option value="0.01">0.01</option>
+                </select>
+              </label>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="control-card">
         <div className="control-card-header">
           <h2>Sampling</h2>
-          <p>Choose the sample size and run repeated tests under either H0 or H1.</p>
+          <p>Choose the sample size and run repeated tests.</p>
         </div>
 
         <div className="controls-grid sampling-grid">
@@ -299,26 +332,6 @@ export function TestingControlBand({
           <div className="run-summary">
             <span>Repeated tests</span>
             <strong>{repetitions}</strong>
-          </div>
-        </div>
-
-        <div className="truth-toggle">
-          <span>Simulate under</span>
-          <div className="sidebar-segment">
-            <button
-              type="button"
-              className={`segment-pill ${truth === "h0" ? "active" : ""}`}
-              onClick={() => onTruthChange("h0")}
-            >
-              H0
-            </button>
-            <button
-              type="button"
-              className={`segment-pill ${truth === "h1" ? "active" : ""}`}
-              onClick={() => onTruthChange("h1")}
-            >
-              H1
-            </button>
           </div>
         </div>
 

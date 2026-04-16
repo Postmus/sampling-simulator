@@ -2,7 +2,7 @@ import { Suspense, lazy, useRef, useState } from "react";
 import { ModeSidebar } from "./components/ModeSidebar";
 import { createRng, randomSeed } from "./core/rng";
 import { runSamplingBatch, simulateAdditionalEstimates } from "./core/simulate";
-import { runTestingBatch } from "./core/testing";
+import { runTestingBatch, type TestingRunResult } from "./core/testing";
 import type {
   MeanPopulationConfig,
   MeanPopulationKind,
@@ -70,7 +70,7 @@ function getDefaultTestingState(testKind: TestingKind) {
       direction: "two-sided" as TestDirection,
       alpha: 0.05,
       truth: "h1" as TestTruth,
-      sampleSize: 12,
+      sampleSize: 60,
     };
   }
 
@@ -83,7 +83,7 @@ function getDefaultTestingState(testKind: TestingKind) {
     direction: "two-sided" as TestDirection,
     alpha: 0.05,
     truth: "h1" as TestTruth,
-    sampleSize: 20,
+    sampleSize: 60,
   };
 }
 
@@ -168,9 +168,31 @@ export default function App() {
   const [testingStatistic, setTestingStatistic] = useState<number | null>(null);
   const [testingPValue, setTestingPValue] = useState<number | null>(null);
   const [testingReject, setTestingReject] = useState<boolean | null>(null);
-  const [testingStatistics, setTestingStatistics] = useState<number[]>([]);
-  const [testingRejectionCount, setTestingRejectionCount] = useState(0);
-  const [testingSummary, setTestingSummary] = useState(() =>
+  const [testingSummary, setTestingSummary] = useState<TestingRunResult>(() =>
+    buildTestingSummary(
+      testingKind,
+      testingInitial.alternativeMean,
+      testingInitial.nullMean,
+      testingInitial.alternativeMean,
+      testingInitial.populationSD,
+      testingInitial.sampleSize,
+      testingInitial.alpha,
+      testingInitial.direction,
+    ),
+  );
+  const [testingSummaryH0, setTestingSummaryH0] = useState<TestingRunResult>(() =>
+    buildTestingSummary(
+      testingKind,
+      testingInitial.nullMean,
+      testingInitial.nullMean,
+      testingInitial.alternativeMean,
+      testingInitial.populationSD,
+      testingInitial.sampleSize,
+      testingInitial.alpha,
+      testingInitial.direction,
+    ),
+  );
+  const [testingSummaryH1, setTestingSummaryH1] = useState<TestingRunResult>(() =>
     buildTestingSummary(
       testingKind,
       testingInitial.alternativeMean,
@@ -206,14 +228,13 @@ export default function App() {
     nextSampleSize = testingSampleSize,
     nextAlpha = alpha,
     nextDirection = direction,
+    resetDistributions = true,
   ) {
     reseed();
     setTestingSample([]);
     setTestingStatistic(null);
     setTestingPValue(null);
     setTestingReject(null);
-    setTestingStatistics([]);
-    setTestingRejectionCount(0);
     const truthMean = nextTruth === "h0" ? nextNullMean : nextAlternativeMean;
     setTestingSummary(
       buildTestingSummary(
@@ -227,6 +248,32 @@ export default function App() {
         nextDirection,
       ),
     );
+    if (resetDistributions) {
+      setTestingSummaryH0(
+        buildTestingSummary(
+          nextTestingKind,
+          nextNullMean,
+          nextNullMean,
+          nextAlternativeMean,
+          nextPopulationSD,
+          nextSampleSize,
+          nextAlpha,
+          nextDirection,
+        ),
+      );
+      setTestingSummaryH1(
+        buildTestingSummary(
+          nextTestingKind,
+          nextAlternativeMean,
+          nextNullMean,
+          nextAlternativeMean,
+          nextPopulationSD,
+          nextSampleSize,
+          nextAlpha,
+          nextDirection,
+        ),
+      );
+    }
   }
 
   function handleTestingKindChange(nextTestingKind: TestingKind) {
@@ -413,33 +460,59 @@ export default function App() {
 
   function handleTestingTruthChange(nextTruth: TestTruth) {
     setTruth(nextTruth);
-    resetTestingSimulation(testingKind, nextTruth, nullMean, alternativeMean, populationSD, testingSampleSize, alpha, direction);
+    resetTestingSimulation(
+      testingKind,
+      nextTruth,
+      nullMean,
+      alternativeMean,
+      populationSD,
+      testingSampleSize,
+      alpha,
+      direction,
+      false,
+    );
   }
 
   function handleTestingAddSamples(count: number) {
-    const truthValue = truth === "h0" ? nullMean : alternativeMean;
-    const result = runTestingBatch(
+    const h0Result = runTestingBatch(
       testingKind,
-      truthValue,
+      nullMean,
       nullMean,
       alternativeMean,
       populationSD,
       testingSampleSize,
       count,
-      testingStatistics,
-      testingRejectionCount,
+      testingSummaryH0.statistics,
+      testingSummaryH0.rejectionCount,
       alpha,
       direction,
       rngRef.current,
     );
 
-    setTestingStatistics(result.statistics);
-    setTestingSample(result.latestSample ?? []);
-    setTestingStatistic(result.latestStatistic);
-    setTestingPValue(result.latestPValue);
-    setTestingReject(result.latestReject);
-    setTestingRejectionCount(result.rejectionCount);
-    setTestingSummary(result);
+    const h1Result = runTestingBatch(
+      testingKind,
+      alternativeMean,
+      nullMean,
+      alternativeMean,
+      populationSD,
+      testingSampleSize,
+      count,
+      testingSummaryH1.statistics,
+      testingSummaryH1.rejectionCount,
+      alpha,
+      direction,
+      rngRef.current,
+    );
+
+    const activeResult = truth === "h0" ? h0Result : h1Result;
+
+    setTestingSummaryH0(h0Result);
+    setTestingSummaryH1(h1Result);
+    setTestingSample(activeResult.latestSample ?? []);
+    setTestingStatistic(activeResult.latestStatistic);
+    setTestingPValue(activeResult.latestPValue);
+    setTestingReject(activeResult.latestReject);
+    setTestingSummary(activeResult);
   }
 
   const teachingTitle =
@@ -483,9 +556,9 @@ export default function App() {
                 testingStatistic={testingStatistic}
                 testingPValue={testingPValue}
                 testingReject={testingReject}
-                testingStatistics={testingStatistics}
-                testingRejectionCount={testingRejectionCount}
                 testingSummary={testingSummary}
+                testingSummaryH0={testingSummaryH0}
+                testingSummaryH1={testingSummaryH1}
                 onTestingOutcomeLabelChange={setTestingOutcomeLabel}
                 onTestingUnitLabelChange={setTestingUnitLabel}
                 onDecimalPlacesChange={setDecimalPlaces}
@@ -494,7 +567,6 @@ export default function App() {
                 onTestingSDChange={handleTestingSDChange}
                 onTestingDirectionChange={handleTestingDirectionChange}
                 onTestingAlphaChange={handleTestingAlphaChange}
-                onTestingTruthChange={handleTestingTruthChange}
                 onTestingSampleSizeChange={handleTestingSampleSizeChange}
                 onTestingAddSamples={handleTestingAddSamples}
                 onReset={() => resetTestingSimulation()}

@@ -4,7 +4,8 @@ import { TestingDistributionPanel } from "./TestingDistributionPanel";
 import { TestingRatePanel } from "./TestingRatePanel";
 import { TestingSamplePanel } from "./TestingSamplePanel";
 import { TestingSetupPanel } from "./TestingSetupPanel";
-import type { TestDirection, TestTruth, TestingKind, TestingSummary } from "../core/types";
+import type { TestDirection, TestTruth, TestingKind } from "../core/types";
+import type { TestingRunResult } from "../core/testing";
 
 interface TestingWorkspaceProps {
   testingKind: TestingKind;
@@ -22,9 +23,9 @@ interface TestingWorkspaceProps {
   testingStatistic: number | null;
   testingPValue: number | null;
   testingReject: boolean | null;
-  testingStatistics: number[];
-  testingRejectionCount: number;
-  testingSummary: TestingSummary;
+  testingSummary: TestingRunResult;
+  testingSummaryH0: TestingRunResult;
+  testingSummaryH1: TestingRunResult;
   onTestingOutcomeLabelChange: (value: string) => void;
   onTestingUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
@@ -33,7 +34,6 @@ interface TestingWorkspaceProps {
   onTestingSDChange: (value: number) => void;
   onTestingDirectionChange: (value: TestDirection) => void;
   onTestingAlphaChange: (value: number) => void;
-  onTestingTruthChange: (value: TestTruth) => void;
   onTestingSampleSizeChange: (value: number) => void;
   onTestingAddSamples: (count: number) => void;
   onReset: () => void;
@@ -55,9 +55,9 @@ export function TestingWorkspace({
   testingStatistic,
   testingPValue,
   testingReject,
-  testingStatistics,
-  testingRejectionCount,
   testingSummary,
+  testingSummaryH0,
+  testingSummaryH1,
   onTestingOutcomeLabelChange,
   onTestingUnitLabelChange,
   onDecimalPlacesChange,
@@ -66,7 +66,6 @@ export function TestingWorkspace({
   onTestingSDChange,
   onTestingDirectionChange,
   onTestingAlphaChange,
-  onTestingTruthChange,
   onTestingSampleSizeChange,
   onTestingAddSamples,
   onReset,
@@ -83,9 +82,8 @@ export function TestingWorkspace({
         populationSD={populationSD}
         direction={direction}
         alpha={alpha}
-        truth={truth}
         sampleSize={testingSampleSize}
-        repetitions={testingStatistics.length}
+        repetitions={testingSummary.statistics.length}
         onOutcomeLabelChange={onTestingOutcomeLabelChange}
         onUnitLabelChange={onTestingUnitLabelChange}
         onDecimalPlacesChange={onDecimalPlacesChange}
@@ -94,7 +92,6 @@ export function TestingWorkspace({
         onPopulationSDChange={onTestingSDChange}
         onDirectionChange={onTestingDirectionChange}
         onAlphaChange={onTestingAlphaChange}
-        onTruthChange={onTestingTruthChange}
         onSampleSizeChange={onTestingSampleSizeChange}
         onAddSamples={onTestingAddSamples}
         onReset={onReset}
@@ -103,36 +100,63 @@ export function TestingWorkspace({
       <main className="panel-grid">
         <TestingSetupPanel
           testKind={testingKind}
-          outcomeLabel={testingOutcomeLabel}
-          unitLabel={testingUnitLabel}
           decimalPlaces={decimalPlaces}
           nullMean={nullMean}
-          alternativeMean={alternativeMean}
-          populationSD={populationSD}
-          sampleSize={testingSampleSize}
           direction={direction}
-          alpha={alpha}
-          truth={truth}
         />
         <TestingSamplePanel
           testKind={testingKind}
           sample={testingSample}
-          nullMean={nullMean}
           unitLabel={testingUnitLabel}
           outcomeLabel={testingOutcomeLabel}
           decimalPlaces={decimalPlaces}
           truth={truth}
         />
         <TestingDistributionPanel
+          title={testingKind === "mean" ? "Theoretical sampling distribution under H0" : "Theoretical sampling distribution under H0"}
+          subtitle={
+            testingKind === "mean"
+              ? "Repeated tests from the null population."
+              : "Repeated tests from the null population."
+          }
+          subtitleSpacer
+          distributionType="theoretical"
           testKind={testingKind}
-          statistics={testingStatistics}
+          nullValue={nullMean}
+          statistics={testingSummaryH0.statistics}
           sampleSize={testingSampleSize}
-          criticalValue={testingSummary.criticalValue}
-          criticalLower={testingSummary.criticalLower}
-          criticalUpper={testingSummary.criticalUpper}
-          rejectionMask={testingSummary.rejectionMask}
-          currentStatistic={testingStatistic}
+          criticalValue={testingSummaryH0.criticalValue}
+          criticalLower={testingSummaryH0.criticalLower}
+          criticalUpper={testingSummaryH0.criticalUpper}
+          rejectionMask={testingSummaryH0.rejectionMask}
+          currentStatistic={testingSummaryH0.latestStatistic}
           direction={direction}
+        />
+        <TestingDistributionPanel
+          title={testingKind === "mean" ? "Empirical sampling distribution under H1" : "Empirical sampling distribution under H1"}
+          subtitle={
+            testingKind === "mean"
+              ? "Repeated tests from the specified true population under the alternative scenario."
+              : "Repeated tests from the specified true population under the alternative scenario."
+          }
+          distributionType="empirical"
+          testKind={testingKind}
+          nullValue={nullMean}
+          statistics={testingSummaryH1.statistics}
+          sampleSize={testingSampleSize}
+          criticalValue={testingSummaryH1.criticalValue}
+          criticalLower={testingSummaryH1.criticalLower}
+          criticalUpper={testingSummaryH1.criticalUpper}
+          rejectionMask={testingSummaryH1.rejectionMask}
+          currentStatistic={testingSummaryH1.latestStatistic}
+          direction={direction}
+        />
+        <TestingRatePanel
+          testKind={testingKind}
+          h1Repetitions={testingSummaryH1.statistics.length}
+          h1RejectionCount={testingSummaryH1.rejectionCount}
+          h1EmpiricalRejectionRate={testingSummaryH1.empiricalRejectionRate}
+          h1TheoreticalRejectionRate={testingSummaryH1.theoreticalRejectionRate}
         />
         <TestingDecisionPanel
           testKind={testingKind}
@@ -141,17 +165,7 @@ export function TestingWorkspace({
           pValue={testingPValue}
           sampleSize={testingSampleSize}
           reject={testingReject}
-          direction={direction}
         />
-        <div className="panel-span-2">
-          <TestingRatePanel
-            truth={truth}
-            repetitions={testingStatistics.length}
-            rejectionCount={testingRejectionCount}
-            empiricalRejectionRate={testingSummary.empiricalRejectionRate}
-            theoreticalRejectionRate={testingSummary.theoreticalRejectionRate}
-          />
-        </div>
       </main>
     </>
   );

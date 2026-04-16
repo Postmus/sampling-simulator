@@ -1,12 +1,12 @@
 import { Panel, ValueCard } from "./ChartPrimitives";
-import type { TestTruth } from "../core/types";
+import type { TestingKind } from "../core/types";
 
 interface TestingRatePanelProps {
-  truth: TestTruth;
-  repetitions: number;
-  rejectionCount: number;
-  empiricalRejectionRate: number | null;
-  theoreticalRejectionRate: number | null;
+  testKind: TestingKind;
+  h1Repetitions: number;
+  h1RejectionCount: number;
+  h1EmpiricalRejectionRate: number | null;
+  h1TheoreticalRejectionRate: number | null;
 }
 
 function formatPercent(value: number | null) {
@@ -18,37 +18,33 @@ function formatPercent(value: number | null) {
 }
 
 export function TestingRatePanel({
-  truth,
-  repetitions,
-  rejectionCount,
-  empiricalRejectionRate,
-  theoreticalRejectionRate,
+  testKind,
+  h1Repetitions,
+  h1RejectionCount,
+  h1EmpiricalRejectionRate,
+  h1TheoreticalRejectionRate,
 }: TestingRatePanelProps) {
-  const isPowerView = truth === "h1";
-  const panelTitle = isPowerView ? "Power" : "Rejection rate";
-  const panelSubtitle = isPowerView
-    ? "This shows how often the test rejects when H1 is true."
-    : "This shows how often the test rejects when H0 is true.";
-  const rateLabel = isPowerView ? "Empirical power" : "Empirical Type I error rate";
-  const exactLabel = isPowerView ? "Exact expected power" : "Exact expected Type I error rate";
-  const rateCaption =
-    truth === "h1"
-      ? "Power is the probability of rejecting H0 when H1 is true."
-      : "Type I error is the probability of rejecting H0 when H0 is true.";
+  const isMean = testKind === "mean";
+  const panelTitle = "Power";
+  const panelSubtitle = isMean
+    ? "This shows the power under the specified true population."
+    : "This shows the power under the specified true population for the exact binomial test.";
 
   return (
     <Panel title={panelTitle} subtitle={panelSubtitle}>
       <div className="value-grid ci-values tight">
-        <ValueCard label="Repeated tests" value={repetitions.toString()} />
-        <ValueCard label="Rejections" value={rejectionCount.toString()} />
-        <ValueCard label={rateLabel} value={formatPercent(empiricalRejectionRate)} />
+        <ValueCard label="H1 tests" value={h1Repetitions.toString()} />
+        <ValueCard label="H1 rejections" value={h1RejectionCount.toString()} />
+        <ValueCard label="Empirical power" value={formatPercent(h1EmpiricalRejectionRate)} />
       </div>
 
       <div className="value-grid ci-values">
-        <ValueCard label={exactLabel} value={formatPercent(theoreticalRejectionRate)} />
+        <ValueCard label="Exact power" value={formatPercent(h1TheoreticalRejectionRate)} />
       </div>
 
-      <p className="caption">{rateCaption}</p>
+      <p className="caption">
+        Power is the rejection rate when the specified true population is the alternative scenario.
+      </p>
     </Panel>
   );
 }

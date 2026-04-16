@@ -3,7 +3,7 @@ import * as Plot from "@observablehq/plot";
 import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
 import { SampleBoxPlotFigure } from "./SampleBoxPlotFigure";
-import { computeBinomialStatistic, computeTStatistic } from "../core/testing";
+import { computeBinomialStatistic } from "../core/testing";
 import { formatContinuousValue } from "../core/format";
 import { standardDeviation } from "../core/statistics";
 import type { TestTruth, TestingKind } from "../core/types";
@@ -11,7 +11,6 @@ import type { TestTruth, TestingKind } from "../core/types";
 interface TestingSamplePanelProps {
   testKind: TestingKind;
   sample: number[];
-  nullMean: number;
   unitLabel: string;
   outcomeLabel: string;
   decimalPlaces: number;
@@ -29,7 +28,6 @@ function formatPercent(value: number | null) {
 export function TestingSamplePanel({
   testKind,
   sample,
-  nullMean,
   unitLabel,
   outcomeLabel,
   decimalPlaces,
@@ -47,7 +45,6 @@ export function TestingSamplePanel({
     () => (sampleSD === null || sample.length === 0 ? null : sampleSD / Math.sqrt(sample.length)),
     [sample.length, sampleSD],
   );
-  const tStatistic = useMemo(() => (isMean ? computeTStatistic(sample, nullMean) : null), [isMean, nullMean, sample]);
   const successes = useMemo(() => (isMean ? null : computeBinomialStatistic(sample)), [isMean, sample]);
   const sampleProportion = useMemo(
     () => (successes === null || sample.length === 0 ? null : successes / sample.length),
@@ -98,54 +95,50 @@ export function TestingSamplePanel({
         }),
       ],
     };
-  }, [isMean, nullMean, outcomeLabel, sample, sample.length, successes, unitLabel]);
+  }, [isMean, outcomeLabel, sample, sample.length, successes, unitLabel]);
 
   return (
     <Panel
       title="Latest Sample"
       subtitle={
         isMean
-          ? `The latest sample is drawn under ${truth === "h0" ? "H0" : "H1"} and converted into a one-sample t statistic.`
-          : `The latest sample is drawn under ${truth === "h0" ? "H0" : "H1"} and summarized as an exact binomial count.`
+          ? "The latest sample is drawn from the specified true population and shown as raw values."
+          : "The latest sample is drawn from the specified true population and shown as counts."
       }
     >
       <div className="sample-mean-layout">
         <table className="sample-summary-table">
           <tbody>
             <tr>
-              <th>Sample size</th>
+              <th scope="row">Sample size (n)</th>
               <td>{sample.length.toString()}</td>
             </tr>
             {isMean ? (
               <>
                 <tr>
-                  <th>Sample mean</th>
+                  <th scope="row">Sample mean (x̄)</th>
                   <td>{formatContinuousValue(sampleMean, unitLabel, statDigits)}</td>
                 </tr>
                 <tr>
-                  <th>Sample SD (s)</th>
+                  <th scope="row">Sample SD (s)</th>
                   <td>{formatContinuousValue(sampleSD, unitLabel, statDigits)}</td>
                 </tr>
                 <tr>
-                  <th>Estimated SE</th>
+                  <th scope="row">Estimated SE</th>
                   <td>{formatContinuousValue(estimatedSE, unitLabel, statDigits)}</td>
-                </tr>
-                <tr>
-                  <th>t statistic</th>
-                  <td>{tStatistic === null ? "-" : tStatistic.toFixed(3)}</td>
                 </tr>
               </>
             ) : (
-                <>
-                  <tr>
-                    <th>Observed successes</th>
-                    <td>{successes?.toString() ?? "-"}</td>
-                  </tr>
-                  <tr>
-                    <th>Sample proportion (p)</th>
-                    <td>{formatPercent(sampleProportion)}</td>
-                  </tr>
-                </>
+              <>
+                <tr>
+                  <th scope="row">Observed successes (x)</th>
+                  <td>{successes?.toString() ?? "-"}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Sample proportion (p)</th>
+                  <td>{formatPercent(sampleProportion)}</td>
+                </tr>
+              </>
               )}
           </tbody>
         </table>
@@ -172,14 +165,6 @@ export function TestingSamplePanel({
           )}
         </div>
       </div>
-
-      {hasSample ? (
-        <p className="caption">
-          {isMean
-            ? "The dashed line marks the null mean. The t statistic compares the sample mean to that null value in estimated SE units."
-            : "The bars show the number of failures and successes in one sample. The exact binomial test uses the count of successes and the sample proportion p."}
-        </p>
-      ) : null}
     </Panel>
   );
 }

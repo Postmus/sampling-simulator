@@ -1,78 +1,57 @@
 import { Panel } from "./ChartPrimitives";
 import { formatContinuousValue } from "../core/format";
-import type { TestDirection, TestTruth, TestingKind } from "../core/types";
+import type { TestDirection, TestingKind } from "../core/types";
 
 interface TestingSetupPanelProps {
   testKind: TestingKind;
-  outcomeLabel: string;
-  unitLabel: string;
   nullMean: number;
-  alternativeMean: number;
-  populationSD: number;
   decimalPlaces: number;
-  sampleSize: number;
   direction: TestDirection;
-  alpha: number;
-  truth: TestTruth;
 }
 
 export function TestingSetupPanel({
   testKind,
-  outcomeLabel,
-  unitLabel,
   nullMean,
-  alternativeMean,
-  populationSD,
   decimalPlaces,
-  sampleSize,
   direction,
-  alpha,
-  truth,
 }: TestingSetupPanelProps) {
-  const alternativeOperator =
-    direction === "two-sided" ? "≠" : direction === "greater" ? ">" : "<";
-  const simulatedValue = truth === "h0" ? nullMean : alternativeMean;
   const isMean = testKind === "mean";
   const displayDigits = decimalPlaces;
   const parameterSymbol = isMean ? "μ" : "π";
+  const hypothesisValueText = isMean
+    ? formatContinuousValue(nullMean, "", displayDigits)
+    : nullMean.toFixed(2);
+  const alternativeOperator =
+    direction === "two-sided" ? "≠" : direction === "greater" ? ">" : "<";
 
   return (
-    <Panel
-      title="Population and hypotheses"
-      subtitle={`These are the model and hypothesis values used to simulate the ${isMean ? "t test" : "exact binomial test"}.`}
-    >
-      <div className="hypothesis-spec">
-        <p>
-          <strong>Outcome:</strong> {outcomeLabel.trim() || "Outcome"}
-          {unitLabel.trim() ? ` (${unitLabel.trim()})` : ""}
-        </p>
-        <p>
-          <strong>H0:</strong> {parameterSymbol} = {isMean ? formatContinuousValue(nullMean, "", displayDigits) : nullMean.toFixed(2)}
-        </p>
-        <p>
-          <strong>H1:</strong> {parameterSymbol} {alternativeOperator} {isMean ? formatContinuousValue(alternativeMean, "", displayDigits) : alternativeMean.toFixed(2)}
-        </p>
-        {isMean ? (
-          <p>
-            <strong>Population SD:</strong> {formatContinuousValue(populationSD, "", displayDigits)}
+    <Panel title="Hypotheses and test statistic" subtitle="">
+      <div className="setup-stack">
+        <div className="setup-subcard">
+          <div className="formula-label">Hypotheses</div>
+          <div className="hypothesis-spec compact">
+            <p>
+              <strong>H0:</strong> {parameterSymbol} = {hypothesisValueText}
+            </p>
+            <p>
+              <strong>H1:</strong> {parameterSymbol} {alternativeOperator} {hypothesisValueText}
+            </p>
+          </div>
+        </div>
+
+        <div className="setup-subcard">
+          <div className="formula-label">Test statistic</div>
+          <div className="formula-block compact">
+            <div className="formula-value">
+              {isMean ? "t = (x̄ - μ0) / (s / √n)" : "X = number of successes"}
+            </div>
+          </div>
+          <p className="setup-subcard-text">
+            {isMean
+              ? "This measures how far the sample mean is from the assumed null mean, in estimated SE units."
+              : "This compares the observed success count with the expected count under the null proportion."}
           </p>
-        ) : null}
-        <p>
-          <strong>Sample size:</strong> {sampleSize.toString()}
-        </p>
-        <p>
-          <strong>Direction:</strong> {direction}
-        </p>
-        <p>
-          <strong>Alpha:</strong> {alpha.toFixed(2)}
-        </p>
-        <p>
-          <strong>Simulate under:</strong>{" "}
-          {truth.toUpperCase()} (
-          {parameterSymbol} ={" "}
-          {isMean ? formatContinuousValue(simulatedValue, "", displayDigits) : simulatedValue.toFixed(2)}
-          )
-        </p>
+        </div>
       </div>
     </Panel>
   );
