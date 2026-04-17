@@ -1,6 +1,7 @@
 export type TeachingMode = "mean" | "proportion";
 export type WorkflowMode = "estimation" | "testing";
 export type TestingKind = "mean" | "proportion";
+export type StudyDesign = "oneGroup" | "twoGroups";
 export type TestDirection = "two-sided" | "greater" | "less";
 export type TestTruth = "h0" | "h1";
 
@@ -28,6 +29,29 @@ export interface BernoulliPopulationConfig {
 
 export type PopulationConfig = MeanPopulationConfig | BernoulliPopulationConfig;
 
+export interface TwoGroupMeanPopulationConfig {
+  groupA: {
+    mean: number;
+  };
+  groupB: {
+    mean: number;
+  };
+  sd: number;
+}
+
+export interface TwoGroupProportionPopulationConfig {
+  groupA: {
+    p: number;
+  };
+  groupB: {
+    p: number;
+  };
+}
+
+export type TwoGroupPopulationConfig =
+  | TwoGroupMeanPopulationConfig
+  | TwoGroupProportionPopulationConfig;
+
 export interface SamplingState {
   sampleSize: number;
   estimates: number[];
@@ -42,6 +66,12 @@ export interface SimulationSummary {
   theoreticalMean: number | null;
   theoreticalSE: number | null;
   practicalCoverageCount: number;
+}
+
+export interface TwoGroupSimulationSummary extends SimulationSummary {
+  latestSampleA: number[] | null;
+  latestSampleB: number[] | null;
+  latestDifference: number | null;
 }
 
 export interface TestingSummary {

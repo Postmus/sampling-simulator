@@ -1,4 +1,9 @@
-import type { PopulationConfig, TeachingMode } from "./types";
+import type {
+  PopulationConfig,
+  TeachingMode,
+  TwoGroupMeanPopulationConfig,
+  TwoGroupProportionPopulationConfig,
+} from "./types";
 
 export function theoreticalMean(
   mode: TeachingMode,
@@ -34,4 +39,43 @@ export function theoreticalSE(
   }
 
   return null;
+}
+
+export function theoreticalMeanDifference(
+  population: TwoGroupMeanPopulationConfig,
+): number {
+  return population.groupA.mean - population.groupB.mean;
+}
+
+export function theoreticalMeanDifferenceSE(
+  population: TwoGroupMeanPopulationConfig,
+  sampleSizeA: number,
+  sampleSizeB: number,
+): number | null {
+  if (sampleSizeA <= 0 || sampleSizeB <= 0) {
+    return null;
+  }
+
+  return population.sd * Math.sqrt(1 / sampleSizeA + 1 / sampleSizeB);
+}
+
+export function theoreticalProportionDifference(
+  population: TwoGroupProportionPopulationConfig,
+): number {
+  return population.groupA.p - population.groupB.p;
+}
+
+export function theoreticalProportionDifferenceSE(
+  population: TwoGroupProportionPopulationConfig,
+  sampleSizeA: number,
+  sampleSizeB: number,
+): number | null {
+  if (sampleSizeA <= 0 || sampleSizeB <= 0) {
+    return null;
+  }
+
+  return Math.sqrt(
+    (population.groupA.p * (1 - population.groupA.p)) / sampleSizeA +
+      (population.groupB.p * (1 - population.groupB.p)) / sampleSizeB,
+  );
 }

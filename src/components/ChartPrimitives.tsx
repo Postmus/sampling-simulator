@@ -27,7 +27,7 @@ export function ValueCard({
   value,
   hint,
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   hint?: string;
 }) {

@@ -32,7 +32,6 @@ interface IntervalRulerProps {
   trueValue: number | null;
   interval: IntervalLike | null;
   unitLabel: string;
-  intervalLabel: string;
   digits: number;
 }
 
@@ -41,7 +40,6 @@ function IntervalRuler({
   trueValue,
   interval,
   unitLabel,
-  intervalLabel,
   digits,
 }: IntervalRulerProps) {
   const geometry = useMemo(() => {
@@ -117,9 +115,6 @@ function IntervalRuler({
           </g>
         ))}
 
-        <text x={60} y={42} className="ci-row-label">
-          {intervalLabel}
-        </text>
         <line x1={leftX} y1={bandY} x2={rightX} y2={bandY} className="ci-band practical" />
         <line x1={leftX} y1={bandY - 10} x2={leftX} y2={bandY + 10} className="ci-end practical" />
         <line x1={rightX} y1={bandY - 10} x2={rightX} y2={bandY + 10} className="ci-end practical" />
@@ -161,10 +156,6 @@ export function ConfidenceIntervalSection({
     theoreticalMean !== null &&
     interval.lower <= theoreticalMean &&
     theoreticalMean <= interval.upper;
-
-  const sampleLabel = mode === "mean" ? "Sample mean" : "Sample proportion";
-  const intervalLabel =
-    mode === "mean" ? "95% CI" : "95% CI";
 
   return (
     <section className="ci-section">
@@ -222,34 +213,22 @@ export function ConfidenceIntervalSection({
             </div>
           ) : (
             <>
-              <div className="value-grid ci-values">
-                <ValueCard
-                  label={sampleLabel}
-                  value={formatContinuousValue(estimate, unitLabel, displayDigits)}
-                />
-                <ValueCard
-                  label={intervalLabel}
-                  value={
-                    interval === null
-                      ? "-"
-                      : `${formatContinuousValue(interval.lower, unitLabel, displayDigits)} to ${formatContinuousValue(interval.upper, unitLabel, displayDigits)}`
-                  }
-                />
-                <ValueCard label="Contains true value" value={trueInInterval ? "Yes" : "No"} />
-              </div>
-
               <IntervalRuler
                 estimate={estimate}
                 trueValue={theoreticalMean}
                 interval={interval}
                 unitLabel={unitLabel}
-                intervalLabel={intervalLabel}
                 digits={displayDigits}
               />
 
-              <p className="caption">
-                This is the latest 95% confidence interval for the sample.
-              </p>
+              {interval !== null ? (
+                <p className="caption ci-summary">
+                  Latest estimate: {formatContinuousValue(estimate, unitLabel, displayDigits)} with 95% CI{" "}
+                  {formatContinuousValue(interval.lower, unitLabel, displayDigits)} to{" "}
+                  {formatContinuousValue(interval.upper, unitLabel, displayDigits)}.
+                  {trueInInterval ? " The interval contains the true value." : " The interval misses the true value."}
+                </p>
+              ) : null}
             </>
           )}
         </Panel>

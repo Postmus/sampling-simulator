@@ -55,16 +55,22 @@ export function PopulationPanel({
   mode,
   population,
   outcomeLabel,
+  successLabel,
+  failureLabel,
   decimalPlaces,
   unitLabel,
 }: {
   mode: TeachingMode;
   population: PopulationConfig;
   outcomeLabel: string;
+  successLabel: string;
+  failureLabel: string;
   decimalPlaces: number;
   unitLabel: string;
 }) {
   const curve = useMemo(() => populationCurve(population), [population]);
+  const positiveLabel = successLabel.trim() || "Yes";
+  const negativeLabel = failureLabel.trim() || "No";
   const rows = useMemo(
     () => populationRows(mode, population, decimalPlaces, unitLabel),
     [decimalPlaces, mode, population, unitLabel],
@@ -72,7 +78,7 @@ export function PopulationPanel({
   const options = useMemo<Plot.PlotOptions>(() => {
     if (population.kind === "bernoulli") {
       const barData = curve.map((point) => ({
-        outcome: String(point.x),
+        outcome: point.x === 0 ? negativeLabel : positiveLabel,
         probability: point.y,
       }));
 
@@ -90,6 +96,7 @@ export function PopulationPanel({
         x: {
           label: outcomeLabel.trim() || "Outcome",
           type: "band",
+          domain: [positiveLabel, negativeLabel],
         },
         y: {
           label: "Probability",
@@ -149,7 +156,7 @@ export function PopulationPanel({
         }),
       ],
     };
-  }, [curve, outcomeLabel, population, unitLabel]);
+  }, [curve, negativeLabel, outcomeLabel, positiveLabel, population, unitLabel]);
 
   return (
     <Panel

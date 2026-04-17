@@ -5,7 +5,6 @@ import { PopulationPanel } from "./PopulationPanel";
 import { SamplePanel } from "./SamplePanel";
 import { SamplingDistributionPanel } from "./SamplingDistributionPanel";
 import type {
-  MeanPopulationKind,
   PopulationConfig,
   SimulationSummary,
   TeachingMode,
@@ -24,16 +23,19 @@ interface EstimationWorkspaceProps {
   currentSample: number[];
   currentEstimate: number | null;
   outcomeLabel: string;
+  successLabel: string;
+  failureLabel: string;
   unitLabel: string;
   decimalPlaces: number;
   summary: EstimationSummary;
   summaryLoading: boolean;
   teachingTitle: string;
-  onPopulationKindChange: (kind: MeanPopulationKind) => void;
   onMeanChange: (value: number) => void;
   onSDChange: (value: number) => void;
   onPChange: (value: number) => void;
   onOutcomeLabelChange: (value: string) => void;
+  onSuccessLabelChange: (value: string) => void;
+  onFailureLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
   onSampleSizeChange: (value: number) => void;
@@ -49,16 +51,19 @@ export function EstimationWorkspace({
   currentSample,
   currentEstimate,
   outcomeLabel,
+  successLabel,
+  failureLabel,
   unitLabel,
   decimalPlaces,
   summary,
   summaryLoading,
   teachingTitle,
-  onPopulationKindChange,
   onMeanChange,
   onSDChange,
   onPChange,
   onOutcomeLabelChange,
+  onSuccessLabelChange,
+  onFailureLabelChange,
   onUnitLabelChange,
   onDecimalPlacesChange,
   onSampleSizeChange,
@@ -73,13 +78,16 @@ export function EstimationWorkspace({
         sampleSize={sampleSize}
         repetitions={estimates.length}
         outcomeLabel={outcomeLabel}
+        successLabel={successLabel}
+        failureLabel={failureLabel}
         unitLabel={unitLabel}
         decimalPlaces={decimalPlaces}
-        onPopulationKindChange={onPopulationKindChange}
         onMeanChange={onMeanChange}
         onSDChange={onSDChange}
         onPChange={onPChange}
         onOutcomeLabelChange={onOutcomeLabelChange}
+        onSuccessLabelChange={onSuccessLabelChange}
+        onFailureLabelChange={onFailureLabelChange}
         onUnitLabelChange={onUnitLabelChange}
         onDecimalPlacesChange={onDecimalPlacesChange}
         onSampleSizeChange={onSampleSizeChange}
@@ -92,15 +100,19 @@ export function EstimationWorkspace({
           mode={mode}
           population={population}
           outcomeLabel={outcomeLabel}
+          successLabel={successLabel}
+          failureLabel={failureLabel}
           unitLabel={unitLabel}
           decimalPlaces={decimalPlaces}
         />
         <SamplePanel
           mode={mode}
-          sample={currentSample}
-          estimate={currentEstimate}
-          outcomeLabel={outcomeLabel}
-          unitLabel={unitLabel}
+        sample={currentSample}
+        estimate={currentEstimate}
+        outcomeLabel={outcomeLabel}
+        successLabel={successLabel}
+        failureLabel={failureLabel}
+        unitLabel={unitLabel}
           decimalPlaces={decimalPlaces}
         />
         <SamplingDistributionPanel

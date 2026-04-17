@@ -15,6 +15,10 @@ interface TestingControlBandProps {
   sampleSize: number;
   repetitions: number;
   onOutcomeLabelChange: (value: string) => void;
+  successLabel: string;
+  failureLabel: string;
+  onSuccessLabelChange: (value: string) => void;
+  onFailureLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
   onNullMeanChange: (value: number) => void;
@@ -40,6 +44,10 @@ export function TestingControlBand({
   sampleSize,
   repetitions,
   onOutcomeLabelChange,
+  successLabel,
+  failureLabel,
+  onSuccessLabelChange,
+  onFailureLabelChange,
   onUnitLabelChange,
   onDecimalPlacesChange,
   onNullMeanChange,
@@ -85,22 +93,26 @@ export function TestingControlBand({
       <section className="control-card">
         <div className="control-card-header">
           <h2>Population Model</h2>
-          <p>Specify the underlying data-generating process for the population.</p>
+          <p>Specify the parametric model behind the sampled data.</p>
         </div>
 
         <div className="population-rows">
           <div className="population-row">
             <div className="row-label">
               <h3>Outcome</h3>
-              <p>Name the variable first, then add an optional unit of measurement and decimal places if you are working with a mean.</p>
+              {isMean ? (
+                <p>Specify the name of the outcome variable first, then add an optional unit and decimal places.</p>
+              ) : (
+                <p>Specify the name of the outcome variable first.</p>
+              )}
             </div>
             <div className="controls-grid population-row-grid">
               <label className="control-field">
-                <span>Outcome label</span>
+                <span>Outcome name</span>
                 <input
                   type="text"
                   value={outcomeLabel}
-                  placeholder="Blood pressure"
+                  placeholder={isMean ? "Blood pressure" : "Outcome"}
                   onChange={(event) => onOutcomeLabelChange(event.target.value)}
                 />
               </label>
@@ -141,14 +153,39 @@ export function TestingControlBand({
                     />
                   </label>
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <label className="control-field">
+                    <span>Success label</span>
+                    <input
+                      type="text"
+                      value={successLabel}
+                      placeholder="Yes"
+                      onChange={(event) => onSuccessLabelChange(event.target.value)}
+                    />
+                  </label>
+                  <label className="control-field">
+                    <span>Failure label</span>
+                    <input
+                      type="text"
+                      value={failureLabel}
+                      placeholder="No"
+                      onChange={(event) => onFailureLabelChange(event.target.value)}
+                    />
+                  </label>
+                </>
+              )}
             </div>
           </div>
 
           <div className="setup-subcard">
             <div className="row-label">
               <h3>Population parameters</h3>
-              <p>Set the population shape and parameters for the testing simulation.</p>
+              {isMean ? (
+                <p>Specify a normal parametric model with a null mean, alternative mean, and SD.</p>
+              ) : (
+                <p>Specify a Bernoulli model with null and alternative proportions.</p>
+              )}
             </div>
             <div className={`controls-grid population-row-grid ${isMean ? "" : "proportion-grid"}`}>
               <div className="fixed-field">
@@ -323,10 +360,9 @@ export function TestingControlBand({
 
                   onSampleSizeChange(parsed);
                 }}
-                onBlur={() => setSampleSizeInput(String(sampleSize))}
+                  onBlur={() => setSampleSizeInput(String(sampleSize))}
               />
             </div>
-            <strong className="slider-value">{sampleSize}</strong>
           </div>
 
           <div className="run-summary">

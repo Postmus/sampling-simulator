@@ -13,6 +13,8 @@ interface TestingSamplePanelProps {
   sample: number[];
   unitLabel: string;
   outcomeLabel: string;
+  successLabel: string;
+  failureLabel: string;
   decimalPlaces: number;
   truth: TestTruth;
 }
@@ -30,6 +32,8 @@ export function TestingSamplePanel({
   sample,
   unitLabel,
   outcomeLabel,
+  successLabel,
+  failureLabel,
   decimalPlaces,
   truth,
 }: TestingSamplePanelProps) {
@@ -50,6 +54,8 @@ export function TestingSamplePanel({
     () => (successes === null || sample.length === 0 ? null : successes / sample.length),
     [sample.length, successes],
   );
+  const positiveLabel = successLabel.trim() || "Yes";
+  const negativeLabel = failureLabel.trim() || "No";
   const hasSample = sample.length > 0;
 
   const plotOptions = useMemo<Plot.PlotOptions | null>(() => {
@@ -63,8 +69,8 @@ export function TestingSamplePanel({
 
     const failureCount = sample.length - (successes ?? 0);
     const data = [
-      { label: "Failures", count: failureCount, fill: "#5f9fc7" },
-      { label: "Successes", count: successes ?? 0, fill: "#dc8e2c" },
+      { label: positiveLabel, count: successes ?? 0, fill: "#dc8e2c" },
+      { label: negativeLabel, count: failureCount, fill: "#5f9fc7" },
     ];
 
     return {
@@ -80,6 +86,7 @@ export function TestingSamplePanel({
       },
       x: {
         label: outcomeLabel.trim() ? outcomeLabel : "Outcome",
+        domain: [positiveLabel, negativeLabel],
       },
       y: {
         label: "Count",
@@ -95,7 +102,7 @@ export function TestingSamplePanel({
         }),
       ],
     };
-  }, [isMean, outcomeLabel, sample, sample.length, successes, unitLabel]);
+  }, [isMean, negativeLabel, outcomeLabel, positiveLabel, sample, sample.length, successes, unitLabel]);
 
   return (
     <Panel
@@ -131,7 +138,7 @@ export function TestingSamplePanel({
             ) : (
               <>
                 <tr>
-                  <th scope="row">Observed successes (x)</th>
+                  <th scope="row">{positiveLabel} count</th>
                   <td>{successes?.toString() ?? "-"}</td>
                 </tr>
                 <tr>
@@ -143,7 +150,7 @@ export function TestingSamplePanel({
           </tbody>
         </table>
 
-        <div className="sample-mean-plot">
+      <div className="sample-mean-plot">
           {isMean ? (
             sample.length > 0 ? (
               <SampleBoxPlotFigure
@@ -156,15 +163,15 @@ export function TestingSamplePanel({
                 Add tests to see the latest sample here.
               </div>
             )
-          ) : plotOptions !== null ? (
-            <ObservablePlotFigure options={plotOptions} />
-          ) : (
-            <div className="sample-boxplot-empty">
-              Add tests to see the latest sample here.
-            </div>
-          )}
-        </div>
+        ) : plotOptions !== null ? (
+          <ObservablePlotFigure options={plotOptions} />
+        ) : (
+          <div className="sample-boxplot-empty">
+            Add tests to see the latest sample here.
+          </div>
+        )}
       </div>
-    </Panel>
+    </div>
+  </Panel>
   );
 }

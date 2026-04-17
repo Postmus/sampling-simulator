@@ -276,13 +276,20 @@ select {
 
 .sample-size-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  gap: 0.65rem;
-  align-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
 }
 
 .sample-size-row input[type="range"] {
   min-width: 0;
+}
+
+.compact-control {
+  padding: 0.75rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(32, 68, 88, 0.08);
 }
 
 .sample-size-input {
@@ -486,6 +493,34 @@ select {
   width: 100%;
 }
 
+.two-group-sample-layout {
+  gap: 1rem;
+}
+
+.two-group-sample-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.two-group-sample-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.85rem;
+}
+
+.two-group-sample-card {
+  padding: 0.75rem;
+  border-radius: 16px;
+  background: rgba(238, 245, 248, 0.6);
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.two-group-sample-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.96rem;
+}
+
 .sample-boxplot-shell {
   display: flex;
   flex-direction: column;
@@ -537,6 +572,26 @@ select {
   height: 100%;
 }
 
+.two-group-population-stack {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.6rem;
+}
+
+.two-group-population-card {
+  padding: 0.8rem 0.85rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(238, 245, 248, 0.56);
+  border: 1px solid rgba(32, 68, 88, 0.08);
+}
+
+.two-group-population-label {
+  margin-bottom: 0.3rem;
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: #173142;
+}
+
 .sample-summary-table th,
 .sample-summary-table td {
   padding: 0.7rem 0.9rem;
@@ -559,6 +614,31 @@ select {
 .sample-summary-table td {
   color: #173142;
   font-weight: 600;
+}
+
+.contingency-table {
+  margin-top: 0.9rem;
+  table-layout: fixed;
+}
+
+.contingency-table th,
+.contingency-table td {
+  text-align: center;
+}
+
+.contingency-table th[scope="row"] {
+  text-align: left;
+  width: 28%;
+}
+
+.sample-summary-table-compact {
+  margin-top: 0.85rem;
+}
+
+.contingency-table-total th,
+.contingency-table-total td {
+  font-weight: 700;
+  background: rgba(238, 245, 248, 0.7);
 }
 
 .hypothesis-spec {
@@ -836,7 +916,7 @@ select {
 .ci-true-label,
 .ci-tick-label {
   fill: #486171;
-  font-size: 12px;
+  font-size: 14.5px;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 

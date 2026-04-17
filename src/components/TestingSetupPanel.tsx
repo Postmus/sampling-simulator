@@ -49,7 +49,7 @@ export function TestingSetupPanel({
           <p className="setup-subcard-text">
             {isMean
               ? "This measures how far the sample mean is from the assumed null mean, in estimated SE units."
-              : "This compares the observed success count with the expected count under the null proportion."}
+              : "This compares the observed success count with the expected count under the null proportion for a binary outcome."}
           </p>
         </div>
       </div>

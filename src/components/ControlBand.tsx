@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { MeanPopulationKind, PopulationConfig, TeachingMode } from "../core/types";
+import type { PopulationConfig, TeachingMode } from "../core/types";
 import { getDecimalStep } from "../core/format";
 
 interface ControlBandProps {
@@ -10,11 +10,14 @@ interface ControlBandProps {
   outcomeLabel: string;
   unitLabel: string;
   decimalPlaces: number;
-  onPopulationKindChange: (kind: MeanPopulationKind) => void;
   onMeanChange: (value: number) => void;
   onSDChange: (value: number) => void;
   onPChange: (value: number) => void;
   onOutcomeLabelChange: (value: string) => void;
+  successLabel: string;
+  failureLabel: string;
+  onSuccessLabelChange: (value: string) => void;
+  onFailureLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
   onSampleSizeChange: (value: number) => void;
@@ -30,11 +33,14 @@ export function ControlBand({
   outcomeLabel,
   unitLabel,
   decimalPlaces,
-  onPopulationKindChange,
   onMeanChange,
   onSDChange,
   onPChange,
   onOutcomeLabelChange,
+  successLabel,
+  failureLabel,
+  onSuccessLabelChange,
+  onFailureLabelChange,
   onUnitLabelChange,
   onDecimalPlacesChange,
   onSampleSizeChange,
@@ -42,11 +48,12 @@ export function ControlBand({
   onReset,
 }: ControlBandProps) {
   const [decimalPlacesInput, setDecimalPlacesInput] = useState(String(decimalPlaces));
+  const meanPopulation = population.kind !== "bernoulli" ? population : null;
   const [meanInput, setMeanInput] = useState(
-    population.kind !== "bernoulli" ? String(population.params.mean) : "",
+    meanPopulation !== null ? String(meanPopulation.params.mean) : "",
   );
   const [sdInput, setSdInput] = useState(
-    population.kind !== "bernoulli" ? String(population.params.sd) : "",
+    meanPopulation !== null ? String(meanPopulation.params.sd) : "",
   );
   const [sampleSizeInput, setSampleSizeInput] = useState(String(sampleSize));
 
@@ -55,11 +62,11 @@ export function ControlBand({
   }, [decimalPlaces]);
 
   useEffect(() => {
-    if (population.kind !== "bernoulli") {
-      setMeanInput(String(population.params.mean));
-      setSdInput(String(population.params.sd));
+    if (meanPopulation !== null) {
+      setMeanInput(String(meanPopulation.params.mean));
+      setSdInput(String(meanPopulation.params.sd));
     }
-  }, [population]);
+  }, [meanPopulation]);
 
   useEffect(() => {
     setSampleSizeInput(String(sampleSize));
@@ -70,90 +77,104 @@ export function ControlBand({
       <section className="control-card">
         <div className="control-card-header">
           <h2>Population Model</h2>
-          <p>Specify the underlying data-generating process for the population.</p>
+          <p>Specify the parametric model behind the sampled data.</p>
         </div>
 
         <div className="population-rows">
           <div className="population-row">
             <div className="row-label">
               <h3>Outcome</h3>
-              <p>Name the variable first, then add an optional unit of measurement and decimal places if you are working with a mean.</p>
+              {mode === "mean" ? (
+                <p>Specify the name of the outcome variable first, then add an optional unit and decimal places.</p>
+              ) : (
+                <p>Specify the name of the outcome variable first.</p>
+              )}
             </div>
             <div className="controls-grid population-row-grid">
               <label className="control-field">
-                <span>Outcome label</span>
+                <span>Outcome name</span>
                 <input
                   type="text"
                   value={outcomeLabel}
-                  placeholder={mode === "mean" ? "Blood pressure" : "Responder"}
+                  placeholder={mode === "mean" ? "Blood pressure" : "Outcome"}
                   onChange={(event) => onOutcomeLabelChange(event.target.value)}
                 />
               </label>
 
               {mode === "mean" ? (
-                <label className="control-field">
-                  <span>Unit of measurement</span>
-                  <input
-                    type="text"
-                    value={unitLabel}
-                    placeholder="mmHg"
-                    onChange={(event) => onUnitLabelChange(event.target.value)}
-                  />
-                </label>
-              ) : null}
+                <>
+                  <label className="control-field">
+                    <span>Unit of measurement</span>
+                    <input
+                      type="text"
+                      value={unitLabel}
+                      placeholder="mmHg"
+                      onChange={(event) => onUnitLabelChange(event.target.value)}
+                    />
+                  </label>
+                  <label className="control-field">
+                    <span>Decimal places</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={decimalPlacesInput}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setDecimalPlacesInput(nextValue);
 
-              {mode === "mean" ? (
-                <label className="control-field">
-                  <span>Decimal places</span>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={decimalPlacesInput}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-                      setDecimalPlacesInput(nextValue);
+                        if (nextValue === "") {
+                          return;
+                        }
 
-                      if (nextValue === "") {
-                        return;
-                      }
-
-                      const parsed = Number(nextValue);
-                      if (Number.isNaN(parsed)) {
-                        return;
-                      }
-                      onDecimalPlacesChange(Math.max(0, Math.round(parsed)));
-                    }}
-                    onBlur={() => setDecimalPlacesInput(String(decimalPlaces))}
-                  />
-                </label>
-              ) : null}
+                        const parsed = Number(nextValue);
+                        if (Number.isNaN(parsed)) {
+                          return;
+                        }
+                        onDecimalPlacesChange(Math.max(0, Math.round(parsed)));
+                      }}
+                      onBlur={() => setDecimalPlacesInput(String(decimalPlaces))}
+                    />
+                  </label>
+                </>
+              ) : (
+                <>
+                  <label className="control-field">
+                    <span>Success label</span>
+                    <input
+                      type="text"
+                      value={successLabel}
+                      placeholder="Yes"
+                      onChange={(event) => onSuccessLabelChange(event.target.value)}
+                    />
+                  </label>
+                  <label className="control-field">
+                    <span>Failure label</span>
+                    <input
+                      type="text"
+                      value={failureLabel}
+                      placeholder="No"
+                      onChange={(event) => onFailureLabelChange(event.target.value)}
+                    />
+                  </label>
+                </>
+              )}
             </div>
           </div>
 
-          <div className="population-row">
+          <div className="setup-subcard">
             <div className="row-label">
-              <h3>Model parameters</h3>
-              <p>Set the population shape and parameters for the chosen mode.</p>
+              <h3>Population parameters</h3>
+              {mode === "mean" ? (
+                <p>Specify a normal parametric model with a single mean and SD.</p>
+              ) : (
+                <p>Specify a Bernoulli model with a success probability.</p>
+              )}
             </div>
-            {mode === "mean" && population.kind !== "bernoulli" ? (
+            {mode === "mean" && meanPopulation !== null ? (
               <div className="controls-grid population-row-grid">
                 <label className="control-field">
-                  <span>Population shape</span>
-                  <select
-                    value={population.kind}
-                    onChange={(event) =>
-                      onPopulationKindChange(event.target.value as MeanPopulationKind)
-                    }
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="uniform">Uniform</option>
-                    <option value="rightSkewed">Right-skewed</option>
-                  </select>
-                </label>
-
-                <label className="control-field">
-                  <span>True mean</span>
+                  <span>True mean (μ)</span>
                   <input
                     type="number"
                     value={meanInput}
@@ -173,12 +194,12 @@ export function ControlBand({
 
                       onMeanChange(parsed);
                     }}
-                    onBlur={() => setMeanInput(String(population.params.mean))}
+                    onBlur={() => setMeanInput(String(meanPopulation.params.mean))}
                   />
                 </label>
 
                 <label className="control-field">
-                  <span>Population SD</span>
+                  <span>Population SD (σ)</span>
                   <input
                     type="number"
                     min="0"
@@ -199,33 +220,36 @@ export function ControlBand({
 
                       onSDChange(parsed);
                     }}
-                    onBlur={() => setSdInput(String(population.params.sd))}
+                    onBlur={() => setSdInput(String(meanPopulation.params.sd))}
                   />
                 </label>
               </div>
-            ) : null}
-
-            {mode === "proportion" && population.kind === "bernoulli" ? (
-              <div className="controls-grid population-row-grid proportion-grid">
-                <div className="fixed-field">
-                  <span>Population shape</span>
-                  <strong>Bernoulli</strong>
-                </div>
-
+            ) : (
+              <div className="controls-grid population-row-grid">
                 <label className="control-field">
                   <span>True proportion (π)</span>
-                  <input
-                    type="range"
-                    min="0.05"
-                    max="0.95"
-                    step="0.01"
-                    value={population.params.p}
-                    onChange={(event) => onPChange(Number(event.target.value))}
-                  />
-                  <strong className="slider-value">{population.params.p.toFixed(2)}</strong>
+                  <div className="sample-size-row">
+                    <input
+                      type="range"
+                      min="0.05"
+                      max="0.95"
+                      step="0.01"
+                      value={population.kind === "bernoulli" ? population.params.p : 0.5}
+                      onChange={(event) => onPChange(Number(event.target.value))}
+                    />
+                    <input
+                      className="sample-size-input"
+                      type="number"
+                      min="0.05"
+                      max="0.95"
+                      step="0.01"
+                      value={population.kind === "bernoulli" ? population.params.p : 0.5}
+                      onChange={(event) => onPChange(Number(event.target.value))}
+                    />
+                  </div>
                 </label>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </section>
@@ -269,10 +293,9 @@ export function ControlBand({
 
                   onSampleSizeChange(parsed);
                 }}
-                onBlur={() => setSampleSizeInput(String(sampleSize))}
+                  onBlur={() => setSampleSizeInput(String(sampleSize))}
               />
             </div>
-            <strong className="slider-value">{sampleSize}</strong>
           </div>
 
           <div className="run-summary">

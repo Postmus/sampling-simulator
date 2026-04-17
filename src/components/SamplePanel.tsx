@@ -13,6 +13,8 @@ interface SamplePanelProps {
   sample: number[];
   estimate: number | null;
   outcomeLabel: string;
+  successLabel: string;
+  failureLabel: string;
   unitLabel: string;
   decimalPlaces: number;
 }
@@ -26,6 +28,8 @@ export function SamplePanel({
   sample,
   estimate,
   outcomeLabel,
+  successLabel,
+  failureLabel,
   unitLabel,
   decimalPlaces,
 }: SamplePanelProps) {
@@ -38,6 +42,8 @@ export function SamplePanel({
     () => (mode === "mean" && sample.length > 0 && sampleSD !== null ? sampleSD / Math.sqrt(sample.length) : null),
     [mode, sample.length, sampleSD],
   );
+  const positiveLabel = successLabel.trim() || "Yes";
+  const negativeLabel = failureLabel.trim() || "No";
 
   const binaryCounts = useMemo(() => {
     if (mode !== "proportion") {
@@ -46,10 +52,10 @@ export function SamplePanel({
 
     const successCount = sample.reduce((sum, value) => sum + value, 0);
     return [
-      { outcome: "0", count: sample.length - successCount },
-      { outcome: "1", count: successCount },
+      { outcome: positiveLabel, count: successCount },
+      { outcome: negativeLabel, count: sample.length - successCount },
     ];
-  }, [mode, sample]);
+  }, [mode, negativeLabel, positiveLabel, sample]);
 
   const binaryOptions = useMemo<Plot.PlotOptions | null>(() => {
     if (mode !== "proportion" || sample.length === 0) {
@@ -70,6 +76,7 @@ export function SamplePanel({
       x: {
         type: "band",
         label: outcomeLabel.trim() || "Observed outcome",
+        domain: [positiveLabel, negativeLabel],
       },
       y: {
         label: "Count",
@@ -131,7 +138,7 @@ export function SamplePanel({
               ) : (
                 <>
                   <tr>
-                    <th scope="row">{outcomeLabel.trim() ? `${outcomeLabel} count` : "Successes"}</th>
+                    <th scope="row">{positiveLabel} count</th>
                     <td>{sample.reduce((sum, value) => sum + value, 0).toString()}</td>
                   </tr>
                   <tr>
@@ -177,9 +184,9 @@ export function SamplePanel({
 
       {mode === "proportion" && sample.length > 0 && binaryOptions ? (
         <p className="caption">
-          The bar chart shows the 0 and 1 outcomes in the latest Bernoulli sample
+          The bar chart shows the {negativeLabel} and {positiveLabel} outcomes in the latest Bernoulli sample
           {outcomeLabel.trim() ? ` for ${outcomeLabel}` : ""}. The sample proportion p is the
-          proportion of 1s.
+          proportion of {positiveLabel} values.
         </p>
       ) : null}
     </Panel>

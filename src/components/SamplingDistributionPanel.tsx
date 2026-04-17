@@ -22,10 +22,23 @@ export function SamplingDistributionPanel({
   outcomeLabel,
   unitLabel,
 }: SamplingDistributionPanelProps) {
-  const estimateLabel =
-    title.toLowerCase().includes("proportion") ? "sample proportions (p)" : "sample means";
-  const parameterLabel =
-    title.toLowerCase().includes("proportion") ? "true proportion (π)" : "true mean";
+  const lowerTitle = title.toLowerCase();
+  const isProportion = lowerTitle.includes("proportion");
+  const isDifference = lowerTitle.includes("difference");
+  const estimateLabel = isDifference
+    ? isProportion
+      ? "sample proportion differences (pA - pB)"
+      : "sample mean differences"
+    : isProportion
+      ? "sample proportions (p)"
+      : "sample means";
+  const parameterLabel = isDifference
+    ? isProportion
+      ? "true proportion difference"
+      : "true mean difference"
+    : isProportion
+      ? "true proportion (π)"
+      : "true mean";
   const xDomain = useMemo<[number, number] | undefined>(() => {
     const values = [...estimates];
 
@@ -115,7 +128,7 @@ export function SamplingDistributionPanel({
     },
     x: {
       label:
-        outcomeLabel.trim() && title.toLowerCase().includes("mean")
+        outcomeLabel.trim() && lowerTitle.includes("mean")
           ? `${title}${unitLabel.trim() ? ` (${unitLabel.trim()})` : ""}`
           : title,
       domain: xDomain,
@@ -237,13 +250,25 @@ export function SamplingDistributionPanel({
             {theoreticalValue !== null ? (
               <span className="legend-item">
                 <span className="legend-swatch theory" />
-                {title.toLowerCase().includes("proportion") ? "True proportion (π)" : "True value"}
+                {isDifference
+                  ? isProportion
+                    ? "True proportion difference"
+                    : "True mean difference"
+                  : isProportion
+                    ? "True proportion (π)"
+                    : "True value"}
               </span>
             ) : null}
             {currentEstimate !== null ? (
               <span className="legend-item">
                 <span className="legend-swatch current" />
-                {title.toLowerCase().includes("proportion") ? "Latest sample proportion (p)" : "Latest estimate"}
+                {isDifference
+                  ? isProportion
+                    ? "Latest proportion difference"
+                    : "Latest mean difference"
+                  : isProportion
+                    ? "Latest sample proportion (p)"
+                    : "Latest estimate"}
               </span>
             ) : null}
           </div>
@@ -251,7 +276,9 @@ export function SamplingDistributionPanel({
       )}
       <p className="caption">
         {referenceBand !== null
-          ? title.toLowerCase().includes("proportion")
+          ? isDifference
+            ? `${title}. The dashed boundaries show ${parameterLabel} ± 1.96 × SE, where about 95% of ${estimateLabel} fall when the sampling distribution is approximately normal.`
+            : isProportion
             ? `${title}. The dashed boundaries show ${parameterLabel} ± 1.96 × SE, where about 95% of ${estimateLabel} fall when the sampling distribution is approximately normal.`
             : `${title}. The dashed boundaries show ${parameterLabel} ± 1.96 × SE, where about 95% of ${estimateLabel} fall when the sampling distribution is normal or approximately normal.`
           : title}

@@ -10,6 +10,8 @@ import type { TestingRunResult } from "../core/testing";
 interface TestingWorkspaceProps {
   testingKind: TestingKind;
   testingOutcomeLabel: string;
+  successLabel: string;
+  failureLabel: string;
   testingUnitLabel: string;
   decimalPlaces: number;
   nullMean: number;
@@ -28,6 +30,8 @@ interface TestingWorkspaceProps {
   testingSummaryH1: TestingRunResult;
   testingSummaryLoading: boolean;
   onTestingOutcomeLabelChange: (value: string) => void;
+  onSuccessLabelChange: (value: string) => void;
+  onFailureLabelChange: (value: string) => void;
   onTestingUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
   onTestingNullMeanChange: (value: number) => void;
@@ -43,6 +47,8 @@ interface TestingWorkspaceProps {
 export function TestingWorkspace({
   testingKind,
   testingOutcomeLabel,
+  successLabel,
+  failureLabel,
   testingUnitLabel,
   decimalPlaces,
   nullMean,
@@ -61,6 +67,8 @@ export function TestingWorkspace({
   testingSummaryH1,
   testingSummaryLoading,
   onTestingOutcomeLabelChange,
+  onSuccessLabelChange,
+  onFailureLabelChange,
   onTestingUnitLabelChange,
   onDecimalPlacesChange,
   onTestingNullMeanChange,
@@ -77,6 +85,8 @@ export function TestingWorkspace({
       <TestingControlBand
         testKind={testingKind}
         outcomeLabel={testingOutcomeLabel}
+        successLabel={successLabel}
+        failureLabel={failureLabel}
         unitLabel={testingUnitLabel}
         decimalPlaces={decimalPlaces}
         nullMean={nullMean}
@@ -87,6 +97,8 @@ export function TestingWorkspace({
         sampleSize={testingSampleSize}
         repetitions={testingSummary.statistics.length}
         onOutcomeLabelChange={onTestingOutcomeLabelChange}
+        onSuccessLabelChange={onSuccessLabelChange}
+        onFailureLabelChange={onFailureLabelChange}
         onUnitLabelChange={onTestingUnitLabelChange}
         onDecimalPlacesChange={onDecimalPlacesChange}
         onNullMeanChange={onTestingNullMeanChange}
@@ -111,6 +123,8 @@ export function TestingWorkspace({
           sample={testingSample}
           unitLabel={testingUnitLabel}
           outcomeLabel={testingOutcomeLabel}
+          successLabel={successLabel}
+          failureLabel={failureLabel}
           decimalPlaces={decimalPlaces}
           truth={truth}
         />

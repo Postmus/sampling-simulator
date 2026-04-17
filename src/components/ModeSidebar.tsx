@@ -1,19 +1,28 @@
-import type { TeachingMode, TestingKind, WorkflowMode } from "../core/types";
+import type {
+  StudyDesign,
+  TeachingMode,
+  TestingKind,
+  WorkflowMode,
+} from "../core/types";
 
 interface ModeSidebarProps {
   workflowMode: WorkflowMode;
+  studyDesign: StudyDesign;
   mode: TeachingMode;
   testingKind: TestingKind;
   onWorkflowModeChange: (mode: WorkflowMode) => void;
+  onStudyDesignChange: (design: StudyDesign) => void;
   onModeChange: (mode: TeachingMode) => void;
   onTestingKindChange: (kind: TestingKind) => void;
 }
 
 export function ModeSidebar({
   workflowMode,
+  studyDesign,
   mode,
   testingKind,
   onWorkflowModeChange,
+  onStudyDesignChange,
   onModeChange,
   onTestingKindChange,
 }: ModeSidebarProps) {
@@ -24,10 +33,19 @@ export function ModeSidebar({
       <section className="sidebar-section">
         <h2>Study Design</h2>
         <div className="sidebar-stack">
-          <button type="button" className="mode-pill active" disabled>
+          <button
+            type="button"
+            className={`mode-pill ${studyDesign === "oneGroup" ? "active" : ""}`}
+            onClick={() => onStudyDesignChange("oneGroup")}
+          >
             One group
           </button>
-          <button type="button" className="mode-pill" disabled>
+          <button
+            type="button"
+            className={`mode-pill ${studyDesign === "twoGroups" ? "active" : ""}`}
+            onClick={() => onStudyDesignChange("twoGroups")}
+            disabled={workflowMode !== "estimation"}
+          >
             Two groups
           </button>
         </div>
@@ -54,7 +72,7 @@ export function ModeSidebar({
       </section>
 
       <section className="sidebar-section">
-        <h2>Parameter</h2>
+        <h2>Outcome Type</h2>
         <div className="sidebar-segment">
           <button
             type="button"
@@ -63,7 +81,7 @@ export function ModeSidebar({
               workflowMode === "estimation" ? onModeChange("mean") : onTestingKindChange("mean")
             }
           >
-            Mean
+            Continuous
           </button>
           <button
             type="button"
@@ -74,7 +92,7 @@ export function ModeSidebar({
                 : onTestingKindChange("proportion")
             }
           >
-            Proportion
+            Binary
           </button>
         </div>
       </section>
