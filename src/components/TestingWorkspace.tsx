@@ -132,8 +132,8 @@ export function TestingWorkspace({
           title={testingKind === "mean" ? "Theoretical sampling distribution under H0" : "Theoretical sampling distribution under H0"}
           subtitle={
             testingKind === "mean"
-              ? "Repeated tests from the null population."
-              : "Repeated tests from the null population."
+              ? "Repeated samples from the null population."
+              : "Repeated samples from the null population."
           }
           subtitleSpacer
           distributionType="theoretical"
@@ -152,8 +152,8 @@ export function TestingWorkspace({
           title={testingKind === "mean" ? "Empirical sampling distribution under H1" : "Empirical sampling distribution under H1"}
           subtitle={
             testingKind === "mean"
-              ? "Repeated tests from the specified true population under the alternative scenario."
-              : "Repeated tests from the specified true population under the alternative scenario."
+              ? "Repeated samples from the specified true population under the alternative scenario."
+              : "Repeated samples from the specified true population under the alternative scenario."
           }
           distributionType="empirical"
           testKind={testingKind}

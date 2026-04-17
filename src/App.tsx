@@ -2,6 +2,8 @@ import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { ModeSidebar } from "./components/ModeSidebar";
 import TwoGroupEstimationWorkspace from "./components/TwoGroupEstimationWorkspace";
 import TwoGroupProportionWorkspace from "./components/TwoGroupProportionWorkspace";
+import TwoGroupProportionTestingWorkspace from "./components/TwoGroupProportionTestingWorkspace";
+import TwoGroupTestingWorkspace from "./components/TwoGroupTestingWorkspace";
 import { createRng, randomSeed } from "./core/rng";
 import {
   runSamplingBatch,
@@ -10,7 +12,12 @@ import {
   simulateAdditionalEstimates,
   simulateAdditionalTwoGroupProportionEstimates,
 } from "./core/simulate";
-import { runTestingBatch, type TestingRunResult } from "./core/testing";
+import {
+  runTestingBatch,
+  runTwoGroupTestingBatch,
+  runTwoGroupProportionTestingBatch,
+  type TestingRunResult,
+} from "./core/testing";
 import type {
   MeanPopulationConfig,
   PopulationConfig,
@@ -21,7 +28,9 @@ import type {
   TestTruth,
   TwoGroupMeanPopulationConfig,
   TwoGroupProportionPopulationConfig,
+  TwoGroupProportionTestingRunResult,
   TwoGroupSimulationSummary,
+  TwoGroupTestingSummary,
   WorkflowMode,
 } from "./core/types";
 
@@ -48,6 +57,18 @@ function getDefaultPopulation(mode: TeachingMode): PopulationConfig {
 }
 
 function getDefaultTwoGroupPopulation(): TwoGroupMeanPopulationConfig {
+  return {
+    groupA: {
+      mean: 100,
+    },
+    groupB: {
+      mean: 108,
+    },
+    sd: 15,
+  };
+}
+
+function getDefaultTwoGroupTestingPopulation(): TwoGroupMeanPopulationConfig {
   return {
     groupA: {
       mean: 100,
@@ -147,6 +168,29 @@ function getDefaultTestingState(testKind: TestingKind) {
   };
 }
 
+function getDefaultTwoGroupTestingState() {
+  return {
+    population: getDefaultTwoGroupTestingPopulation(),
+    outcomeLabel: "Outcome",
+    unitLabel: "",
+    decimalPlaces: 0,
+    direction: "two-sided" as TestDirection,
+    alpha: 0.05,
+    sampleSizeA: 60,
+    sampleSizeB: 60,
+  };
+}
+
+function getDefaultTwoGroupProportionTestingState() {
+  return {
+    population: getDefaultTwoGroupProportionPopulation(),
+    outcomeLabel: "Outcome",
+    alpha: 0.05,
+    sampleSizeA: 60,
+    sampleSizeB: 60,
+  };
+}
+
 function buildSummary(
   nextMode: TeachingMode,
   nextPopulation: PopulationConfig,
@@ -203,6 +247,24 @@ function buildTwoGroupProportionSummary(
   );
 }
 
+function buildTwoGroupProportionTestingSummary(
+  population: TwoGroupProportionPopulationConfig,
+  sampleSizeA: number,
+  sampleSizeB: number,
+  alpha: number,
+) {
+  return runTwoGroupProportionTestingBatch(
+    population,
+    sampleSizeA,
+    sampleSizeB,
+    0,
+    [],
+    0,
+    alpha,
+    createRng(1),
+  );
+}
+
 function buildTestingSummary(
   testKind: TestingKind,
   truthValue: number,
@@ -220,6 +282,27 @@ function buildTestingSummary(
     alternativeValue,
     populationSD,
     sampleSize,
+    0,
+    [],
+    0,
+    alpha,
+    direction,
+    createRng(1),
+  );
+}
+
+function buildTwoGroupTestingSummary(
+  population: TwoGroupMeanPopulationConfig,
+  sampleSizeA: number,
+  sampleSizeB: number,
+  alpha: number,
+  direction: TestDirection,
+) {
+  return runTwoGroupTestingBatch(
+    population,
+    0,
+    sampleSizeA,
+    sampleSizeB,
     0,
     [],
     0,
@@ -260,10 +343,49 @@ function createEmptyTwoGroupSummary(): TwoGroupSimulationSummary {
   };
 }
 
+function createEmptyTwoGroupTestingSummary(): TwoGroupTestingSummary {
+  return {
+    statistics: [],
+    empiricalRejectionRate: null,
+    theoreticalRejectionRate: null,
+    criticalValue: null,
+    criticalLower: null,
+    criticalUpper: null,
+    rejectionMask: null,
+    rejectionCount: 0,
+    latestSampleA: null,
+    latestSampleB: null,
+    latestDifference: null,
+    latestStatistic: null,
+    latestPValue: null,
+    latestReject: null,
+  };
+}
+
+function createEmptyTwoGroupProportionTestingSummary(): TwoGroupProportionTestingRunResult {
+  return {
+    statistics: [],
+    empiricalRejectionRate: null,
+    theoreticalRejectionRate: null,
+    criticalValue: null,
+    criticalLower: null,
+    criticalUpper: null,
+    rejectionMask: null,
+    rejectionCount: 0,
+    latestSampleA: null,
+    latestSampleB: null,
+    latestDifference: null,
+    latestStatistic: null,
+    latestPValue: null,
+    latestReject: null,
+  };
+}
+
 export default function App() {
   const initial = getInitialState();
   const initialTwoGroup = getInitialTwoGroupState();
   const initialTwoGroupProportion = getInitialTwoGroupProportionState();
+  const initialTwoGroupTesting = getDefaultTwoGroupTestingState();
   const [testingKind, setTestingKind] = useState<TestingKind>("mean");
   const testingInitial = getDefaultTestingState(testingKind);
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode>("estimation");
@@ -293,6 +415,7 @@ export default function App() {
   const [twoGroupProportionSampleSizeB, setTwoGroupProportionSampleSizeB] = useState(
     initialTwoGroupProportion.sampleSizeB,
   );
+  const [twoGroupProportionEqualSampleSizes, setTwoGroupProportionEqualSampleSizes] = useState(true);
   const [twoGroupProportionOutcomeLabel, setTwoGroupProportionOutcomeLabel] = useState(
     initialTwoGroupProportion.outcomeLabel,
   );
@@ -305,11 +428,44 @@ export default function App() {
     () => createEmptyTwoGroupSummary(),
   );
   const [twoGroupProportionSummaryLoading, setTwoGroupProportionSummaryLoading] = useState(false);
+  const [twoGroupProportionTestingPopulation, setTwoGroupProportionTestingPopulation] =
+    useState<TwoGroupProportionPopulationConfig>(
+      getDefaultTwoGroupProportionTestingState().population,
+    );
+  const [twoGroupProportionTestingOutcomeLabel, setTwoGroupProportionTestingOutcomeLabel] = useState(
+    getDefaultTwoGroupProportionTestingState().outcomeLabel,
+  );
+  const [twoGroupProportionTestingAlpha, setTwoGroupProportionTestingAlpha] = useState(
+    getDefaultTwoGroupProportionTestingState().alpha,
+  );
+  const [twoGroupProportionTestingSampleSizeA, setTwoGroupProportionTestingSampleSizeA] = useState(
+    getDefaultTwoGroupProportionTestingState().sampleSizeA,
+  );
+  const [twoGroupProportionTestingSampleSizeB, setTwoGroupProportionTestingSampleSizeB] = useState(
+    getDefaultTwoGroupProportionTestingState().sampleSizeB,
+  );
+  const [twoGroupProportionTestingEqualSampleSizes, setTwoGroupProportionTestingEqualSampleSizes] = useState(true);
+  const [twoGroupProportionTestingCurrentSampleA, setTwoGroupProportionTestingCurrentSampleA] = useState<number[]>(
+    [],
+  );
+  const [twoGroupProportionTestingCurrentSampleB, setTwoGroupProportionTestingCurrentSampleB] = useState<number[]>(
+    [],
+  );
+  const [twoGroupProportionTestingCurrentDifference, setTwoGroupProportionTestingCurrentDifference] = useState<
+    number | null
+  >(null);
+  const [twoGroupProportionTestingStatistic, setTwoGroupProportionTestingStatistic] = useState<number | null>(null);
+  const [twoGroupProportionTestingPValue, setTwoGroupProportionTestingPValue] = useState<number | null>(null);
+  const [twoGroupProportionTestingReject, setTwoGroupProportionTestingReject] = useState<boolean | null>(null);
+  const [twoGroupProportionTestingSummaryLoading, setTwoGroupProportionTestingSummaryLoading] = useState(false);
+  const [twoGroupProportionTestingSummary, setTwoGroupProportionTestingSummary] =
+    useState<TwoGroupProportionTestingRunResult>(() => createEmptyTwoGroupProportionTestingSummary());
   const [twoGroupPopulation, setTwoGroupPopulation] = useState<TwoGroupMeanPopulationConfig>(
     initialTwoGroup.population,
   );
   const [twoGroupSampleSizeA, setTwoGroupSampleSizeA] = useState(initialTwoGroup.sampleSizeA);
   const [twoGroupSampleSizeB, setTwoGroupSampleSizeB] = useState(initialTwoGroup.sampleSizeB);
+  const [twoGroupEqualSampleSizes, setTwoGroupEqualSampleSizes] = useState(true);
   const [twoGroupOutcomeLabel, setTwoGroupOutcomeLabel] = useState(initialTwoGroup.outcomeLabel);
   const [twoGroupUnitLabel, setTwoGroupUnitLabel] = useState(initialTwoGroup.unitLabel);
   const [twoGroupDecimalPlaces, setTwoGroupDecimalPlaces] = useState(0);
@@ -321,6 +477,37 @@ export default function App() {
     createEmptyTwoGroupSummary(),
   );
   const [twoGroupSummaryLoading, setTwoGroupSummaryLoading] = useState(false);
+  const [twoGroupTestingPopulation, setTwoGroupTestingPopulation] = useState<TwoGroupMeanPopulationConfig>(
+    initialTwoGroupTesting.population,
+  );
+  const [twoGroupTestingOutcomeLabel, setTwoGroupTestingOutcomeLabel] = useState(
+    initialTwoGroupTesting.outcomeLabel,
+  );
+  const [twoGroupTestingUnitLabel, setTwoGroupTestingUnitLabel] = useState(initialTwoGroupTesting.unitLabel);
+  const [twoGroupTestingDecimalPlaces, setTwoGroupTestingDecimalPlaces] = useState(
+    initialTwoGroupTesting.decimalPlaces,
+  );
+  const [twoGroupTestingDirection, setTwoGroupTestingDirection] = useState<TestDirection>(
+    initialTwoGroupTesting.direction,
+  );
+  const [twoGroupTestingAlpha, setTwoGroupTestingAlpha] = useState(initialTwoGroupTesting.alpha);
+  const [twoGroupTestingSampleSizeA, setTwoGroupTestingSampleSizeA] = useState(
+    initialTwoGroupTesting.sampleSizeA,
+  );
+  const [twoGroupTestingSampleSizeB, setTwoGroupTestingSampleSizeB] = useState(
+    initialTwoGroupTesting.sampleSizeB,
+  );
+  const [twoGroupTestingEqualSampleSizes, setTwoGroupTestingEqualSampleSizes] = useState(true);
+  const [twoGroupTestingCurrentSampleA, setTwoGroupTestingCurrentSampleA] = useState<number[]>([]);
+  const [twoGroupTestingCurrentSampleB, setTwoGroupTestingCurrentSampleB] = useState<number[]>([]);
+  const [twoGroupTestingCurrentDifference, setTwoGroupTestingCurrentDifference] = useState<number | null>(null);
+  const [twoGroupTestingStatistic, setTwoGroupTestingStatistic] = useState<number | null>(null);
+  const [twoGroupTestingPValue, setTwoGroupTestingPValue] = useState<number | null>(null);
+  const [twoGroupTestingReject, setTwoGroupTestingReject] = useState<boolean | null>(null);
+  const [twoGroupTestingSummaryLoading, setTwoGroupTestingSummaryLoading] = useState(false);
+  const [twoGroupTestingSummary, setTwoGroupTestingSummary] = useState<TwoGroupTestingSummary>(
+    () => createEmptyTwoGroupTestingSummary(),
+  );
 
   const [testingOutcomeLabel, setTestingOutcomeLabel] = useState(testingInitial.outcomeLabel);
   const [testingUnitLabel, setTestingUnitLabel] = useState(testingInitial.unitLabel);
@@ -342,10 +529,14 @@ export default function App() {
   const summaryTimeoutRef = useRef<number | null>(null);
   const twoGroupTimeoutRef = useRef<number | null>(null);
   const twoGroupProportionTimeoutRef = useRef<number | null>(null);
+  const twoGroupTestingTimeoutRef = useRef<number | null>(null);
+  const twoGroupProportionTestingTimeoutRef = useRef<number | null>(null);
   const testingTimeoutRef = useRef<number | null>(null);
   const summaryWorkIdRef = useRef(0);
   const twoGroupWorkIdRef = useRef(0);
   const twoGroupProportionWorkIdRef = useRef(0);
+  const twoGroupTestingWorkIdRef = useRef(0);
+  const twoGroupProportionTestingWorkIdRef = useRef(0);
   const testingWorkIdRef = useRef(0);
 
   const rngRef = useRef(createRng(randomSeed()));
@@ -370,6 +561,23 @@ export default function App() {
         initialTwoGroupProportion.sampleSizeB,
       ),
     );
+    setTwoGroupTestingSummary(
+      buildTwoGroupTestingSummary(
+        initialTwoGroupTesting.population,
+        initialTwoGroupTesting.sampleSizeA,
+        initialTwoGroupTesting.sampleSizeB,
+        initialTwoGroupTesting.alpha,
+        initialTwoGroupTesting.direction,
+      ),
+    );
+    setTwoGroupProportionTestingSummary(
+      buildTwoGroupProportionTestingSummary(
+        getDefaultTwoGroupProportionTestingState().population,
+        getDefaultTwoGroupProportionTestingState().sampleSizeA,
+        getDefaultTwoGroupProportionTestingState().sampleSizeB,
+        getDefaultTwoGroupProportionTestingState().alpha,
+      ),
+    );
   }, []);
 
   useEffect(() => {
@@ -382,6 +590,12 @@ export default function App() {
       }
       if (twoGroupProportionTimeoutRef.current !== null) {
         window.clearTimeout(twoGroupProportionTimeoutRef.current);
+      }
+      if (twoGroupTestingTimeoutRef.current !== null) {
+        window.clearTimeout(twoGroupTestingTimeoutRef.current);
+      }
+      if (twoGroupProportionTestingTimeoutRef.current !== null) {
+        window.clearTimeout(twoGroupProportionTestingTimeoutRef.current);
       }
       if (testingTimeoutRef.current !== null) {
         window.clearTimeout(testingTimeoutRef.current);
@@ -449,6 +663,46 @@ export default function App() {
     }, 0);
   }
 
+  function scheduleTwoGroupTestingSummaryUpdate(work: () => void) {
+    twoGroupTestingWorkIdRef.current += 1;
+    const workId = twoGroupTestingWorkIdRef.current;
+    setTwoGroupTestingSummaryLoading(true);
+
+    if (twoGroupTestingTimeoutRef.current !== null) {
+      window.clearTimeout(twoGroupTestingTimeoutRef.current);
+    }
+
+    twoGroupTestingTimeoutRef.current = window.setTimeout(() => {
+      if (twoGroupTestingWorkIdRef.current !== workId) {
+        return;
+      }
+
+      work();
+      setTwoGroupTestingSummaryLoading(false);
+      twoGroupTestingTimeoutRef.current = null;
+    }, 0);
+  }
+
+  function scheduleTwoGroupProportionTestingSummaryUpdate(work: () => void) {
+    twoGroupProportionTestingWorkIdRef.current += 1;
+    const workId = twoGroupProportionTestingWorkIdRef.current;
+    setTwoGroupProportionTestingSummaryLoading(true);
+
+    if (twoGroupProportionTestingTimeoutRef.current !== null) {
+      window.clearTimeout(twoGroupProportionTestingTimeoutRef.current);
+    }
+
+    twoGroupProportionTestingTimeoutRef.current = window.setTimeout(() => {
+      if (twoGroupProportionTestingWorkIdRef.current !== workId) {
+        return;
+      }
+
+      work();
+      setTwoGroupProportionTestingSummaryLoading(false);
+      twoGroupProportionTestingTimeoutRef.current = null;
+    }, 0);
+  }
+
   function scheduleTestingUpdate(work: () => void) {
     testingWorkIdRef.current += 1;
     const workId = testingWorkIdRef.current;
@@ -507,6 +761,52 @@ export default function App() {
       setTwoGroupProportionEstimates([]);
       setTwoGroupProportionSummary(
         buildTwoGroupProportionSummary(nextPopulation, nextSampleSizeA, nextSampleSizeB),
+      );
+    });
+  }
+
+  function resetTwoGroupTestingSimulation(
+    nextPopulation = twoGroupTestingPopulation,
+    nextSampleSizeA = twoGroupTestingSampleSizeA,
+    nextSampleSizeB = twoGroupTestingSampleSizeB,
+    nextAlpha = twoGroupTestingAlpha,
+    nextDirection = twoGroupTestingDirection,
+  ) {
+    reseed();
+    scheduleTwoGroupTestingSummaryUpdate(() => {
+      setTwoGroupTestingCurrentSampleA([]);
+      setTwoGroupTestingCurrentSampleB([]);
+      setTwoGroupTestingCurrentDifference(null);
+      setTwoGroupTestingStatistic(null);
+      setTwoGroupTestingPValue(null);
+      setTwoGroupTestingReject(null);
+      const summary = buildTwoGroupTestingSummary(
+        nextPopulation,
+        nextSampleSizeA,
+        nextSampleSizeB,
+        nextAlpha,
+        nextDirection,
+      );
+      setTwoGroupTestingSummary(summary);
+    });
+  }
+
+  function resetTwoGroupProportionTestingSimulation(
+    nextPopulation = twoGroupProportionTestingPopulation,
+    nextSampleSizeA = twoGroupProportionTestingSampleSizeA,
+    nextSampleSizeB = twoGroupProportionTestingSampleSizeB,
+    nextAlpha = twoGroupProportionTestingAlpha,
+  ) {
+    reseed();
+    scheduleTwoGroupProportionTestingSummaryUpdate(() => {
+      setTwoGroupProportionTestingCurrentSampleA([]);
+      setTwoGroupProportionTestingCurrentSampleB([]);
+      setTwoGroupProportionTestingCurrentDifference(null);
+      setTwoGroupProportionTestingStatistic(null);
+      setTwoGroupProportionTestingPValue(null);
+      setTwoGroupProportionTestingReject(null);
+      setTwoGroupProportionTestingSummary(
+        buildTwoGroupProportionTestingSummary(nextPopulation, nextSampleSizeA, nextSampleSizeB, nextAlpha),
       );
     });
   }
@@ -574,6 +874,43 @@ export default function App() {
     setTestingKind(nextTestingKind);
 
     const nextDefaults = getDefaultTestingState(nextTestingKind);
+    if (workflowMode === "testing" && studyDesign === "twoGroups") {
+      if (nextTestingKind === "mean") {
+        setStudyDesign("twoGroups");
+        setTwoGroupTestingOutcomeLabel(initialTwoGroupTesting.outcomeLabel);
+        setTwoGroupTestingUnitLabel(initialTwoGroupTesting.unitLabel);
+        setTwoGroupTestingDecimalPlaces(initialTwoGroupTesting.decimalPlaces);
+        setTwoGroupTestingPopulation(initialTwoGroupTesting.population);
+        setTwoGroupTestingDirection(initialTwoGroupTesting.direction);
+        setTwoGroupTestingAlpha(initialTwoGroupTesting.alpha);
+        setTwoGroupTestingSampleSizeA(initialTwoGroupTesting.sampleSizeA);
+        setTwoGroupTestingSampleSizeB(initialTwoGroupTesting.sampleSizeB);
+        resetTwoGroupTestingSimulation(
+          initialTwoGroupTesting.population,
+          initialTwoGroupTesting.sampleSizeA,
+          initialTwoGroupTesting.sampleSizeB,
+          initialTwoGroupTesting.alpha,
+          initialTwoGroupTesting.direction,
+        );
+        return;
+      }
+
+      setStudyDesign("twoGroups");
+      const nextProportionTestingDefaults = getDefaultTwoGroupProportionTestingState();
+      setTwoGroupProportionTestingOutcomeLabel(nextProportionTestingDefaults.outcomeLabel);
+      setTwoGroupProportionTestingPopulation(nextProportionTestingDefaults.population);
+      setTwoGroupProportionTestingAlpha(nextProportionTestingDefaults.alpha);
+      setTwoGroupProportionTestingSampleSizeA(nextProportionTestingDefaults.sampleSizeA);
+      setTwoGroupProportionTestingSampleSizeB(nextProportionTestingDefaults.sampleSizeB);
+      resetTwoGroupProportionTestingSimulation(
+        nextProportionTestingDefaults.population,
+        nextProportionTestingDefaults.sampleSizeA,
+        nextProportionTestingDefaults.sampleSizeB,
+        nextProportionTestingDefaults.alpha,
+      );
+      return;
+    }
+
     setTestingOutcomeLabel(nextDefaults.outcomeLabel);
     setTestingUnitLabel(nextDefaults.unitLabel);
     setNullMean(nextDefaults.nullMean);
@@ -598,7 +935,11 @@ export default function App() {
   function handleStudyDesignChange(nextStudyDesign: StudyDesign) {
     setStudyDesign(nextStudyDesign);
     if (nextStudyDesign === "twoGroups") {
-      if (mode === "mean") {
+      if (workflowMode === "testing" && testingKind === "mean") {
+        resetTwoGroupTestingSimulation();
+      } else if (workflowMode === "testing" && testingKind === "proportion") {
+        resetTwoGroupProportionTestingSimulation();
+      } else if (mode === "mean") {
         resetTwoGroupSimulation(twoGroupPopulation, twoGroupSampleSizeA, twoGroupSampleSizeB);
       } else {
         resetTwoGroupProportionSimulation(
@@ -608,15 +949,25 @@ export default function App() {
         );
       }
     } else {
-      resetSimulation(population, mode, sampleSize);
+      if (workflowMode === "testing") {
+        resetTestingSimulation();
+      } else {
+        resetSimulation(population, mode, sampleSize);
+      }
     }
   }
 
   function handleWorkflowModeChange(nextWorkflowMode: WorkflowMode) {
     setWorkflowMode(nextWorkflowMode);
     if (nextWorkflowMode === "testing") {
-      setStudyDesign("oneGroup");
-      resetTestingSimulation();
+      if (studyDesign === "twoGroups" && testingKind === "mean") {
+        resetTwoGroupTestingSimulation();
+      } else if (studyDesign === "twoGroups" && testingKind === "proportion") {
+        resetTwoGroupProportionTestingSimulation();
+      } else {
+        setStudyDesign("oneGroup");
+        resetTestingSimulation();
+      }
     } else {
       if (studyDesign === "twoGroups") {
         if (mode === "mean") {
@@ -739,13 +1090,31 @@ export default function App() {
   function handleTwoGroupSampleSizeAChange(value: number) {
     const nextSampleSize = Math.max(2, Math.round(value));
     setTwoGroupSampleSizeA(nextSampleSize);
+    if (twoGroupEqualSampleSizes) {
+      setTwoGroupSampleSizeB(nextSampleSize);
+      resetTwoGroupSimulation(twoGroupPopulation, nextSampleSize, nextSampleSize);
+      return;
+    }
     resetTwoGroupSimulation(twoGroupPopulation, nextSampleSize, twoGroupSampleSizeB);
   }
 
   function handleTwoGroupSampleSizeBChange(value: number) {
     const nextSampleSize = Math.max(2, Math.round(value));
     setTwoGroupSampleSizeB(nextSampleSize);
+    if (twoGroupEqualSampleSizes) {
+      setTwoGroupSampleSizeA(nextSampleSize);
+      resetTwoGroupSimulation(twoGroupPopulation, nextSampleSize, nextSampleSize);
+      return;
+    }
     resetTwoGroupSimulation(twoGroupPopulation, twoGroupSampleSizeA, nextSampleSize);
+  }
+
+  function handleTwoGroupEqualSampleSizesChange(nextEqual: boolean) {
+    setTwoGroupEqualSampleSizes(nextEqual);
+    if (nextEqual) {
+      setTwoGroupSampleSizeB(twoGroupSampleSizeA);
+      resetTwoGroupSimulation(twoGroupPopulation, twoGroupSampleSizeA, twoGroupSampleSizeA);
+    }
   }
 
   function handleTwoGroupProportionGroupAChange(value: number) {
@@ -783,21 +1152,166 @@ export default function App() {
   function handleTwoGroupProportionSampleSizeAChange(value: number) {
     const nextSampleSize = Math.max(2, Math.round(value));
     setTwoGroupProportionSampleSizeA(nextSampleSize);
-    resetTwoGroupProportionSimulation(
-      twoGroupProportionPopulation,
-      nextSampleSize,
-      twoGroupProportionSampleSizeB,
-    );
+    if (twoGroupProportionEqualSampleSizes) {
+      setTwoGroupProportionSampleSizeB(nextSampleSize);
+      resetTwoGroupProportionSimulation(twoGroupProportionPopulation, nextSampleSize, nextSampleSize);
+      return;
+    }
+    resetTwoGroupProportionSimulation(twoGroupProportionPopulation, nextSampleSize, twoGroupProportionSampleSizeB);
   }
 
   function handleTwoGroupProportionSampleSizeBChange(value: number) {
     const nextSampleSize = Math.max(2, Math.round(value));
     setTwoGroupProportionSampleSizeB(nextSampleSize);
+    if (twoGroupProportionEqualSampleSizes) {
+      setTwoGroupProportionSampleSizeA(nextSampleSize);
+      resetTwoGroupProportionSimulation(twoGroupProportionPopulation, nextSampleSize, nextSampleSize);
+      return;
+    }
     resetTwoGroupProportionSimulation(
       twoGroupProportionPopulation,
       twoGroupProportionSampleSizeA,
       nextSampleSize,
     );
+  }
+
+  function handleTwoGroupProportionEqualSampleSizesChange(nextEqual: boolean) {
+    setTwoGroupProportionEqualSampleSizes(nextEqual);
+    if (nextEqual) {
+      setTwoGroupProportionSampleSizeB(twoGroupProportionSampleSizeA);
+      resetTwoGroupProportionSimulation(
+        twoGroupProportionPopulation,
+        twoGroupProportionSampleSizeA,
+        twoGroupProportionSampleSizeA,
+      );
+    }
+  }
+
+  function handleTwoGroupProportionTestingOutcomeLabelChange(value: string) {
+    setTwoGroupProportionTestingOutcomeLabel(value);
+  }
+
+  function handleTwoGroupProportionTestingGroupAChange(value: number) {
+    const nextPopulation: TwoGroupProportionPopulationConfig = {
+      ...twoGroupProportionTestingPopulation,
+      groupA: {
+        p: Math.min(Math.max(Number.isFinite(value) ? value : twoGroupProportionTestingPopulation.groupA.p, 0.05), 0.95),
+      },
+    };
+
+    setTwoGroupProportionTestingPopulation(nextPopulation);
+    resetTwoGroupProportionTestingSimulation(
+      nextPopulation,
+      twoGroupProportionTestingSampleSizeA,
+      twoGroupProportionTestingSampleSizeB,
+      twoGroupProportionTestingAlpha,
+    );
+  }
+
+  function handleTwoGroupProportionTestingGroupBChange(value: number) {
+    const nextPopulation: TwoGroupProportionPopulationConfig = {
+      ...twoGroupProportionTestingPopulation,
+      groupB: {
+        p: Math.min(Math.max(Number.isFinite(value) ? value : twoGroupProportionTestingPopulation.groupB.p, 0.05), 0.95),
+      },
+    };
+
+    setTwoGroupProportionTestingPopulation(nextPopulation);
+    resetTwoGroupProportionTestingSimulation(
+      nextPopulation,
+      twoGroupProportionTestingSampleSizeA,
+      twoGroupProportionTestingSampleSizeB,
+      twoGroupProportionTestingAlpha,
+    );
+  }
+
+  function handleTwoGroupProportionTestingAlphaChange(value: number) {
+    const nextAlpha = Number.isFinite(value) ? value : twoGroupProportionTestingAlpha;
+    setTwoGroupProportionTestingAlpha(nextAlpha);
+    resetTwoGroupProportionTestingSimulation(
+      twoGroupProportionTestingPopulation,
+      twoGroupProportionTestingSampleSizeA,
+      twoGroupProportionTestingSampleSizeB,
+      nextAlpha,
+    );
+  }
+
+  function handleTwoGroupProportionTestingSampleSizeAChange(value: number) {
+    const nextSampleSize = Math.max(2, Math.round(value));
+    setTwoGroupProportionTestingSampleSizeA(nextSampleSize);
+    if (twoGroupProportionTestingEqualSampleSizes) {
+      setTwoGroupProportionTestingSampleSizeB(nextSampleSize);
+      resetTwoGroupProportionTestingSimulation(
+        twoGroupProportionTestingPopulation,
+        nextSampleSize,
+        nextSampleSize,
+        twoGroupProportionTestingAlpha,
+      );
+      return;
+    }
+    resetTwoGroupProportionTestingSimulation(
+      twoGroupProportionTestingPopulation,
+      nextSampleSize,
+      twoGroupProportionTestingSampleSizeB,
+      twoGroupProportionTestingAlpha,
+    );
+  }
+
+  function handleTwoGroupProportionTestingSampleSizeBChange(value: number) {
+    const nextSampleSize = Math.max(2, Math.round(value));
+    setTwoGroupProportionTestingSampleSizeB(nextSampleSize);
+    if (twoGroupProportionTestingEqualSampleSizes) {
+      setTwoGroupProportionTestingSampleSizeA(nextSampleSize);
+      resetTwoGroupProportionTestingSimulation(
+        twoGroupProportionTestingPopulation,
+        nextSampleSize,
+        nextSampleSize,
+        twoGroupProportionTestingAlpha,
+      );
+      return;
+    }
+    resetTwoGroupProportionTestingSimulation(
+      twoGroupProportionTestingPopulation,
+      twoGroupProportionTestingSampleSizeA,
+      nextSampleSize,
+      twoGroupProportionTestingAlpha,
+    );
+  }
+
+  function handleTwoGroupProportionTestingEqualSampleSizesChange(nextEqual: boolean) {
+    setTwoGroupProportionTestingEqualSampleSizes(nextEqual);
+    if (nextEqual) {
+      setTwoGroupProportionTestingSampleSizeB(twoGroupProportionTestingSampleSizeA);
+      resetTwoGroupProportionTestingSimulation(
+        twoGroupProportionTestingPopulation,
+        twoGroupProportionTestingSampleSizeA,
+        twoGroupProportionTestingSampleSizeA,
+        twoGroupProportionTestingAlpha,
+      );
+    }
+  }
+
+  function handleTwoGroupProportionTestingAddSamples(count: number) {
+    scheduleTwoGroupProportionTestingSummaryUpdate(() => {
+      const result = runTwoGroupProportionTestingBatch(
+        twoGroupProportionTestingPopulation,
+        twoGroupProportionTestingSampleSizeA,
+        twoGroupProportionTestingSampleSizeB,
+        count,
+        twoGroupProportionTestingSummary.statistics,
+        twoGroupProportionTestingSummary.rejectionCount,
+        twoGroupProportionTestingAlpha,
+        rngRef.current,
+      );
+
+      setTwoGroupProportionTestingCurrentSampleA(result.latestSampleA ?? []);
+      setTwoGroupProportionTestingCurrentSampleB(result.latestSampleB ?? []);
+      setTwoGroupProportionTestingCurrentDifference(result.latestDifference);
+      setTwoGroupProportionTestingStatistic(result.latestStatistic);
+      setTwoGroupProportionTestingPValue(result.latestPValue);
+      setTwoGroupProportionTestingReject(result.latestReject);
+      setTwoGroupProportionTestingSummary(result);
+    });
   }
 
   function handleTwoGroupProportionAddSamples(count: number) {
@@ -946,6 +1460,178 @@ export default function App() {
     );
   }
 
+  function handleTwoGroupTestingOutcomeLabelChange(value: string) {
+    setTwoGroupTestingOutcomeLabel(value);
+  }
+
+  function handleTwoGroupTestingUnitLabelChange(value: string) {
+    setTwoGroupTestingUnitLabel(value);
+  }
+
+  function handleTwoGroupTestingDecimalPlacesChange(value: number) {
+    setTwoGroupTestingDecimalPlaces(value);
+  }
+
+  function handleTwoGroupTestingGroupAMeanChange(value: number) {
+    const nextPopulation: TwoGroupMeanPopulationConfig = {
+      ...twoGroupTestingPopulation,
+      groupA: {
+        mean: Number.isFinite(value) ? value : twoGroupTestingPopulation.groupA.mean,
+      },
+    };
+
+    setTwoGroupTestingPopulation(nextPopulation);
+    resetTwoGroupTestingSimulation(
+      nextPopulation,
+      twoGroupTestingSampleSizeA,
+      twoGroupTestingSampleSizeB,
+      twoGroupTestingAlpha,
+      twoGroupTestingDirection,
+    );
+  }
+
+  function handleTwoGroupTestingGroupBChange(value: number) {
+    const nextPopulation: TwoGroupMeanPopulationConfig = {
+      ...twoGroupTestingPopulation,
+      groupB: {
+        mean: Number.isFinite(value) ? value : twoGroupTestingPopulation.groupB.mean,
+      },
+    };
+
+    setTwoGroupTestingPopulation(nextPopulation);
+    resetTwoGroupTestingSimulation(
+      nextPopulation,
+      twoGroupTestingSampleSizeA,
+      twoGroupTestingSampleSizeB,
+      twoGroupTestingAlpha,
+      twoGroupTestingDirection,
+    );
+  }
+
+  function handleTwoGroupTestingSDChange(value: number) {
+    const nextPopulation: TwoGroupMeanPopulationConfig = {
+      ...twoGroupTestingPopulation,
+      sd: Math.max(Number.isFinite(value) ? value : twoGroupTestingPopulation.sd, 0.1),
+    };
+
+    setTwoGroupTestingPopulation(nextPopulation);
+    resetTwoGroupTestingSimulation(
+      nextPopulation,
+      twoGroupTestingSampleSizeA,
+      twoGroupTestingSampleSizeB,
+      twoGroupTestingAlpha,
+      twoGroupTestingDirection,
+    );
+  }
+
+  function handleTwoGroupTestingDirectionChange(nextDirection: TestDirection) {
+    setTwoGroupTestingDirection(nextDirection);
+    resetTwoGroupTestingSimulation(
+      twoGroupTestingPopulation,
+      twoGroupTestingSampleSizeA,
+      twoGroupTestingSampleSizeB,
+      twoGroupTestingAlpha,
+      nextDirection,
+    );
+  }
+
+  function handleTwoGroupTestingAlphaChange(value: number) {
+    const nextAlpha = Number.isFinite(value) ? value : twoGroupTestingAlpha;
+    setTwoGroupTestingAlpha(nextAlpha);
+    resetTwoGroupTestingSimulation(
+      twoGroupTestingPopulation,
+      twoGroupTestingSampleSizeA,
+      twoGroupTestingSampleSizeB,
+      nextAlpha,
+      twoGroupTestingDirection,
+    );
+  }
+
+  function handleTwoGroupTestingSampleSizeAChange(value: number) {
+    const nextSampleSize = Math.max(2, Math.round(value));
+    setTwoGroupTestingSampleSizeA(nextSampleSize);
+    if (twoGroupTestingEqualSampleSizes) {
+      setTwoGroupTestingSampleSizeB(nextSampleSize);
+      resetTwoGroupTestingSimulation(
+        twoGroupTestingPopulation,
+        nextSampleSize,
+        nextSampleSize,
+        twoGroupTestingAlpha,
+        twoGroupTestingDirection,
+      );
+      return;
+    }
+    resetTwoGroupTestingSimulation(
+      twoGroupTestingPopulation,
+      nextSampleSize,
+      twoGroupTestingSampleSizeB,
+      twoGroupTestingAlpha,
+      twoGroupTestingDirection,
+    );
+  }
+
+  function handleTwoGroupTestingSampleSizeBChange(value: number) {
+    const nextSampleSize = Math.max(2, Math.round(value));
+    setTwoGroupTestingSampleSizeB(nextSampleSize);
+    if (twoGroupTestingEqualSampleSizes) {
+      setTwoGroupTestingSampleSizeA(nextSampleSize);
+      resetTwoGroupTestingSimulation(
+        twoGroupTestingPopulation,
+        nextSampleSize,
+        nextSampleSize,
+        twoGroupTestingAlpha,
+        twoGroupTestingDirection,
+      );
+      return;
+    }
+    resetTwoGroupTestingSimulation(
+      twoGroupTestingPopulation,
+      twoGroupTestingSampleSizeA,
+      nextSampleSize,
+      twoGroupTestingAlpha,
+      twoGroupTestingDirection,
+    );
+  }
+
+  function handleTwoGroupTestingEqualSampleSizesChange(nextEqual: boolean) {
+    setTwoGroupTestingEqualSampleSizes(nextEqual);
+    if (nextEqual) {
+      setTwoGroupTestingSampleSizeB(twoGroupTestingSampleSizeA);
+      resetTwoGroupTestingSimulation(
+        twoGroupTestingPopulation,
+        twoGroupTestingSampleSizeA,
+        twoGroupTestingSampleSizeA,
+        twoGroupTestingAlpha,
+        twoGroupTestingDirection,
+      );
+    }
+  }
+
+  function handleTwoGroupTestingAddSamples(count: number) {
+    scheduleTwoGroupTestingSummaryUpdate(() => {
+      const result = runTwoGroupTestingBatch(
+        twoGroupTestingPopulation,
+        0,
+        twoGroupTestingSampleSizeA,
+        twoGroupTestingSampleSizeB,
+        count,
+        twoGroupTestingSummary.statistics,
+        twoGroupTestingSummary.rejectionCount,
+        twoGroupTestingAlpha,
+        twoGroupTestingDirection,
+        rngRef.current,
+      );
+
+      setTwoGroupTestingCurrentSampleA(result.latestSampleA ?? []);
+      setTwoGroupTestingCurrentSampleB(result.latestSampleB ?? []);
+      setTwoGroupTestingCurrentDifference(result.latestDifference);
+      setTwoGroupTestingStatistic(result.latestStatistic);
+      setTwoGroupTestingPValue(result.latestPValue);
+      setTwoGroupTestingReject(result.latestReject);
+      setTwoGroupTestingSummary(result);
+    });
+  }
+
   function handleTestingAddSamples(count: number) {
     scheduleTestingUpdate(() => {
       const h0Result = runTestingBatch(
@@ -1020,7 +1706,67 @@ export default function App() {
 
         <div className="workspace-main">
           <Suspense fallback={<div className="panel-grid">Loading workspace...</div>}>
-            {workflowMode === "testing" ? (
+            {workflowMode === "testing" && studyDesign === "twoGroups" && testingKind === "mean" ? (
+              <TwoGroupTestingWorkspace
+                population={twoGroupTestingPopulation}
+                sampleSizeA={twoGroupTestingSampleSizeA}
+                sampleSizeB={twoGroupTestingSampleSizeB}
+                equalSampleSizes={twoGroupTestingEqualSampleSizes}
+                repetitions={twoGroupTestingSummary.statistics.length}
+                currentSampleA={twoGroupTestingCurrentSampleA}
+                currentSampleB={twoGroupTestingCurrentSampleB}
+                currentDifference={twoGroupTestingCurrentDifference}
+                outcomeLabel={twoGroupTestingOutcomeLabel}
+                unitLabel={twoGroupTestingUnitLabel}
+                decimalPlaces={twoGroupTestingDecimalPlaces}
+                direction={twoGroupTestingDirection}
+                alpha={twoGroupTestingAlpha}
+                summary={twoGroupTestingSummary}
+                summaryLoading={twoGroupTestingSummaryLoading}
+                onOutcomeLabelChange={handleTwoGroupTestingOutcomeLabelChange}
+                onUnitLabelChange={handleTwoGroupTestingUnitLabelChange}
+                onDecimalPlacesChange={handleTwoGroupTestingDecimalPlacesChange}
+                onGroupAMeanChange={handleTwoGroupTestingGroupAMeanChange}
+                onGroupBMeanChange={handleTwoGroupTestingGroupBChange}
+                onPopulationSDChange={handleTwoGroupTestingSDChange}
+                onDirectionChange={handleTwoGroupTestingDirectionChange}
+                onAlphaChange={handleTwoGroupTestingAlphaChange}
+                onEqualSampleSizesChange={handleTwoGroupTestingEqualSampleSizesChange}
+                onSampleSizeAChange={handleTwoGroupTestingSampleSizeAChange}
+                onSampleSizeBChange={handleTwoGroupTestingSampleSizeBChange}
+                onAddSamples={handleTwoGroupTestingAddSamples}
+                onReset={() => resetTwoGroupTestingSimulation()}
+              />
+            ) : workflowMode === "testing" && studyDesign === "twoGroups" && testingKind === "proportion" ? (
+              <TwoGroupProportionTestingWorkspace
+                population={twoGroupProportionTestingPopulation}
+                sampleSizeA={twoGroupProportionTestingSampleSizeA}
+                sampleSizeB={twoGroupProportionTestingSampleSizeB}
+                repetitions={twoGroupProportionTestingSummary.statistics.length}
+                currentSampleA={twoGroupProportionTestingCurrentSampleA}
+                currentSampleB={twoGroupProportionTestingCurrentSampleB}
+                currentStatistic={twoGroupProportionTestingStatistic}
+                currentDifference={twoGroupProportionTestingCurrentDifference}
+                outcomeLabel={twoGroupProportionTestingOutcomeLabel}
+                successLabel={successLabel}
+                failureLabel={failureLabel}
+                alpha={twoGroupProportionTestingAlpha}
+                equalSampleSizes={twoGroupProportionTestingEqualSampleSizes}
+                summary={twoGroupProportionTestingSummary}
+                summaryLoading={twoGroupProportionTestingSummaryLoading}
+                onOutcomeLabelChange={handleTwoGroupProportionTestingOutcomeLabelChange}
+                onSuccessLabelChange={setSuccessLabel}
+                onFailureLabelChange={setFailureLabel}
+                onGroupAChange={handleTwoGroupProportionTestingGroupAChange}
+                onGroupBChange={handleTwoGroupProportionTestingGroupBChange}
+                onAlphaChange={handleTwoGroupProportionTestingAlphaChange}
+                onEqualSampleSizesChange={handleTwoGroupProportionTestingEqualSampleSizesChange}
+                onSampleSizeAChange={handleTwoGroupProportionTestingSampleSizeAChange}
+                onSampleSizeBChange={handleTwoGroupProportionTestingSampleSizeBChange}
+                onAddSamples={handleTwoGroupProportionTestingAddSamples}
+                onReset={() => resetTwoGroupProportionTestingSimulation()}
+              />
+            ) : workflowMode === "testing" ? (
               <TestingWorkspace
                 testingKind={testingKind}
                 testingOutcomeLabel={testingOutcomeLabel}
@@ -1059,11 +1805,12 @@ export default function App() {
               />
             ) : studyDesign === "twoGroups" ? (
               mode === "mean" ? (
-                <TwoGroupEstimationWorkspace
-                  population={twoGroupPopulation}
-                  sampleSizeA={twoGroupSampleSizeA}
-                  sampleSizeB={twoGroupSampleSizeB}
-                  repetitions={twoGroupEstimates.length}
+              <TwoGroupEstimationWorkspace
+                population={twoGroupPopulation}
+                sampleSizeA={twoGroupSampleSizeA}
+                sampleSizeB={twoGroupSampleSizeB}
+                equalSampleSizes={twoGroupEqualSampleSizes}
+                repetitions={twoGroupEstimates.length}
                   estimates={twoGroupEstimates}
                   currentSampleA={twoGroupCurrentSampleA}
                   currentSampleB={twoGroupCurrentSampleB}
@@ -1077,20 +1824,22 @@ export default function App() {
                   onMeanAChange={handleTwoGroupMeanAChange}
                   onMeanBChange={handleTwoGroupMeanBChange}
                   onSDChange={handleTwoGroupSDChange}
-                  onOutcomeLabelChange={handleTwoGroupOutcomeLabelChange}
-                  onUnitLabelChange={handleTwoGroupUnitLabelChange}
-                  onDecimalPlacesChange={handleTwoGroupDecimalPlacesChange}
-                  onSampleSizeAChange={handleTwoGroupSampleSizeAChange}
-                  onSampleSizeBChange={handleTwoGroupSampleSizeBChange}
+                onOutcomeLabelChange={handleTwoGroupOutcomeLabelChange}
+                onUnitLabelChange={handleTwoGroupUnitLabelChange}
+                onDecimalPlacesChange={handleTwoGroupDecimalPlacesChange}
+                onEqualSampleSizesChange={handleTwoGroupEqualSampleSizesChange}
+                onSampleSizeAChange={handleTwoGroupSampleSizeAChange}
+                onSampleSizeBChange={handleTwoGroupSampleSizeBChange}
                   onAddSamples={handleTwoGroupAddSamples}
                   onReset={() => resetTwoGroupSimulation()}
                 />
               ) : (
-                <TwoGroupProportionWorkspace
-                  population={twoGroupProportionPopulation}
-                  sampleSizeA={twoGroupProportionSampleSizeA}
-                  sampleSizeB={twoGroupProportionSampleSizeB}
-                  repetitions={twoGroupProportionEstimates.length}
+              <TwoGroupProportionWorkspace
+                population={twoGroupProportionPopulation}
+                sampleSizeA={twoGroupProportionSampleSizeA}
+                sampleSizeB={twoGroupProportionSampleSizeB}
+                equalSampleSizes={twoGroupProportionEqualSampleSizes}
+                repetitions={twoGroupProportionEstimates.length}
                   estimates={twoGroupProportionEstimates}
                   currentSampleA={twoGroupProportionCurrentSampleA}
                   currentSampleB={twoGroupProportionCurrentSampleB}
@@ -1102,12 +1851,13 @@ export default function App() {
                   summaryLoading={twoGroupProportionSummaryLoading}
                   teachingTitle={teachingTitle}
                   onOutcomeLabelChange={setTwoGroupProportionOutcomeLabel}
-                  onSuccessLabelChange={setSuccessLabel}
-                  onFailureLabelChange={setFailureLabel}
-                  onGroupAChange={handleTwoGroupProportionGroupAChange}
-                  onGroupBChange={handleTwoGroupProportionGroupBChange}
-                  onSampleSizeAChange={handleTwoGroupProportionSampleSizeAChange}
-                  onSampleSizeBChange={handleTwoGroupProportionSampleSizeBChange}
+                onSuccessLabelChange={setSuccessLabel}
+                onFailureLabelChange={setFailureLabel}
+                onGroupAChange={handleTwoGroupProportionGroupAChange}
+                onGroupBChange={handleTwoGroupProportionGroupBChange}
+                onEqualSampleSizesChange={handleTwoGroupProportionEqualSampleSizesChange}
+                onSampleSizeAChange={handleTwoGroupProportionSampleSizeAChange}
+                onSampleSizeBChange={handleTwoGroupProportionSampleSizeBChange}
                   onAddSamples={handleTwoGroupProportionAddSamples}
                   onReset={() => resetTwoGroupProportionSimulation()}
                 />

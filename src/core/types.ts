@@ -88,3 +88,21 @@ export interface TestingSummary {
   latestPValue: number | null;
   latestReject: boolean | null;
 }
+
+export interface TwoGroupTestingSummary extends Omit<TestingSummary, "latestSample"> {
+  latestSampleA: number[] | null;
+  latestSampleB: number[] | null;
+  latestDifference: number | null;
+}
+
+export interface TwoGroupProportionTestingSummary extends Omit<TestingSummary, "latestSample"> {
+  latestSampleA: number[] | null;
+  latestSampleB: number[] | null;
+  latestDifference: number | null;
+}
+
+export interface TwoGroupProportionTestingRunResult extends TwoGroupProportionTestingSummary {
+  latestSampleA: number[] | null;
+  latestSampleB: number[] | null;
+  latestDifference: number | null;
+}

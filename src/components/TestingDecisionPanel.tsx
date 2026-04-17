@@ -8,6 +8,7 @@ interface TestingDecisionPanelProps {
   pValue: number | null;
   sampleSize: number;
   reject: boolean | null;
+  caption?: string;
 }
 
 function formatPercent(value: number | null) {
@@ -25,6 +26,7 @@ export function TestingDecisionPanel({
   pValue,
   sampleSize,
   reject,
+  caption,
 }: TestingDecisionPanelProps) {
   const isMean = testKind === "mean";
   const decisionText =
@@ -51,9 +53,10 @@ export function TestingDecisionPanel({
         )}
       </div>
       <p className="caption">
-        {isMean
-          ? "The observed t uses the latest sample's mean, SD, and sample size."
-          : "The observed count is compared with the expected count under the null proportion, and the p-value comes from the binomial model under the null population."}
+        {caption ??
+          (isMean
+            ? "The observed t uses the latest sample's mean, SD, and sample size."
+            : "The observed count is compared with the expected count under the null proportion, and the p-value comes from the binomial model under the null population.")}
       </p>
     </Panel>
   );

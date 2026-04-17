@@ -44,7 +44,6 @@ export function ModeSidebar({
             type="button"
             className={`mode-pill ${studyDesign === "twoGroups" ? "active" : ""}`}
             onClick={() => onStudyDesignChange("twoGroups")}
-            disabled={workflowMode !== "estimation"}
           >
             Two groups
           </button>

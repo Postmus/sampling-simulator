@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import * as Plot from "@observablehq/plot";
 import binomial from "@stdlib/stats-base-dists-binomial";
+import chisquare from "@stdlib/stats-base-dists-chisquare";
 import tDist from "@stdlib/stats-base-dists-t";
 import { Panel } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
@@ -10,8 +11,11 @@ interface TestingDistributionPanelProps {
   title: string;
   subtitle: string;
   subtitleSpacer?: boolean;
+  caption?: string;
   distributionType: "theoretical" | "empirical";
+  statisticFamily?: "t" | "chi-square";
   testKind: TestingKind;
+  degreesOfFreedom?: number;
   nullValue: number;
   statistics: number[];
   sampleSize: number;
@@ -183,8 +187,11 @@ export function TestingDistributionPanel({
   title,
   subtitle,
   subtitleSpacer = false,
+  caption,
   distributionType,
+  statisticFamily = "t",
   testKind,
+  degreesOfFreedom,
   nullValue,
   statistics,
   sampleSize,
@@ -197,12 +204,18 @@ export function TestingDistributionPanel({
 }: TestingDistributionPanelProps) {
   const isMean = testKind === "mean";
   const isTheoretical = distributionType === "theoretical";
+  const isChiSquare = statisticFamily === "chi-square";
   const minimumEmpiricalSamples = 3;
-  const degreesOfFreedom = Math.max(sampleSize - 1, 1);
+  const resolvedDegreesOfFreedom = Math.max(degreesOfFreedom ?? sampleSize - 1, 1);
   const theoreticalDiscreteTail = 0.005;
 
   const xDomain = useMemo<[number, number] | undefined>(() => {
     if (isTheoretical) {
+      if (isChiSquare) {
+        const upper = chisquare.quantile(0.995, resolvedDegreesOfFreedom);
+        return [0, Number.isFinite(upper) ? upper : 10];
+      }
+
       if (isMean) {
         return [-3, 3];
       }
@@ -216,7 +229,7 @@ export function TestingDistributionPanel({
       return [minCount - 0.5, maxCount + 0.5];
     }
 
-    if (!isMean) {
+    if (!isMean && !isChiSquare) {
       const values = [...statistics];
 
       if (currentStatistic !== null) {
@@ -293,6 +306,81 @@ export function TestingDistributionPanel({
   }, [criticalLower, criticalUpper, criticalValue, currentStatistic, isMean, isTheoretical, nullValue, rejectionMask, sampleSize, statistics]);
 
   const options = useMemo<Plot.PlotOptions>(() => {
+    if (isChiSquare && isTheoretical) {
+      const domain = xDomain ?? [0, 10];
+      const segmentCount = 180;
+      const step = (domain[1] - domain[0]) / segmentCount;
+      const segments = Array.from({ length: segmentCount }, (_, index) => {
+        const x1 = domain[0] + index * step;
+        const x2 = x1 + step;
+        const midpoint = (x1 + x2) / 2;
+        const density = chisquare.pdf(midpoint, resolvedDegreesOfFreedom);
+        const rejected = criticalValue !== null ? midpoint >= criticalValue : false;
+
+        return {
+          x1,
+          x2,
+          y1: 0,
+          y2: density,
+          fill: rejected ? "#d97878" : "#8abf97",
+        };
+      });
+
+      return {
+        width: 560,
+        height: 280,
+        marginTop: 16,
+        marginRight: 18,
+        marginBottom: 52,
+        marginLeft: 76,
+        style: {
+          background: "transparent",
+          fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
+        },
+        x: {
+          label: "χ² statistic",
+          labelArrow: "none",
+          labelAnchor: "center",
+          domain,
+        },
+        y: {
+          label: "Density",
+          grid: true,
+        },
+        marks: [
+          Plot.ruleY([0], { stroke: "rgba(19, 33, 45, 0.35)" }),
+          Plot.rectY(segments, {
+            x1: "x1",
+            x2: "x2",
+            y1: "y1",
+            y2: "y2",
+            fill: "fill",
+            fillOpacity: 0.74,
+            inset: 0,
+          }),
+          Plot.line(
+            segments.map((segment) => ({ x: (segment.x1 + segment.x2) / 2, y: segment.y2 })),
+            {
+              x: "x",
+              y: "y",
+              stroke: "#173142",
+              strokeWidth: 2,
+            },
+          ),
+          ...(criticalValue !== null
+            ? [
+                Plot.ruleX([criticalValue], {
+                  stroke: "#6b7280",
+                  strokeWidth: 1.5,
+                  strokeOpacity: 0.75,
+                  strokeDasharray: "5,4",
+                }),
+              ]
+            : []),
+        ],
+      };
+    }
+
     if (isMean && isTheoretical) {
       const domain = xDomain ?? [-5, 5];
       const segmentCount = 180;
@@ -301,7 +389,7 @@ export function TestingDistributionPanel({
         const x1 = domain[0] + index * step;
         const x2 = x1 + step;
         const midpoint = (x1 + x2) / 2;
-        const density = tDist.pdf(midpoint, degreesOfFreedom);
+        const density = tDist.pdf(midpoint, resolvedDegreesOfFreedom);
         const rejected = isRejectedMean(midpoint, criticalValue, direction);
 
         return {
@@ -377,15 +465,34 @@ export function TestingDistributionPanel({
       };
     }
 
-    if (isMean) {
+    if (isMean || isChiSquare) {
       const empiricalHistogramMax = estimateHistogramMax(statistics, xDomain ?? [-5, 5]);
       const yDomainMax = Math.max(1, Math.ceil(empiricalHistogramMax * 1.15));
-      const backgroundBands = buildMeanH1Bands(
-        xDomain ?? [-5, 5],
-        criticalValue,
-        direction,
-        yDomainMax,
-      );
+      const backgroundBands = isChiSquare
+        ? (criticalValue !== null
+            ? [
+                {
+                  x1: xDomain?.[0] ?? 0,
+                  x2: criticalValue,
+                  y1: 0,
+                  y2: yDomainMax,
+                  fill: "#8abf97",
+                },
+                {
+                  x1: criticalValue,
+                  x2: xDomain?.[1] ?? Math.max(criticalValue + 1, 10),
+                  y1: 0,
+                  y2: yDomainMax,
+                  fill: "#d97878",
+                },
+              ]
+            : [])
+        : buildMeanH1Bands(
+            xDomain ?? [-5, 5],
+            criticalValue,
+            direction,
+            yDomainMax,
+          );
 
       return {
         width: 560,
@@ -399,7 +506,7 @@ export function TestingDistributionPanel({
           fontFamily: '"Avenir Next", "Segoe UI", sans-serif',
         },
         x: {
-          label: "t statistic",
+          label: isChiSquare ? "χ² statistic" : "t statistic",
           labelArrow: "none",
           labelAnchor: "center",
           domain: xDomain,
@@ -461,7 +568,7 @@ export function TestingDistributionPanel({
                   strokeWidth: 2,
                 }),
               ]
-            : []),
+          : []),
         ],
       };
     }
@@ -610,9 +717,23 @@ export function TestingDistributionPanel({
           : []),
       ],
     };
-  }, [criticalLower, criticalUpper, criticalValue, currentStatistic, degreesOfFreedom, direction, isMean, isTheoretical, nullValue, rejectionMask, sampleSize, statistics, xDomain]);
+  }, [
+    criticalLower,
+    criticalUpper,
+    criticalValue,
+    currentStatistic,
+    resolvedDegreesOfFreedom,
+    direction,
+    isMean,
+    isTheoretical,
+    nullValue,
+    rejectionMask,
+    sampleSize,
+    statistics,
+    xDomain,
+  ]);
 
-  const caption = isTheoretical
+  const defaultCaption = isTheoretical
     ? "Green shows the acceptance region and red shows the rejection region under H0."
     : isMean
       ? "The orange bars show the empirical distribution under H1, and the colored bands show the H0 decision regions."
@@ -624,7 +745,7 @@ export function TestingDistributionPanel({
       {isTheoretical || statistics.length >= minimumEmpiricalSamples ? (
         <>
           <ObservablePlotFigure options={options} />
-          <p className="caption">{caption}</p>
+          <p className="caption">{caption ?? defaultCaption}</p>
         </>
       ) : (
         <p className="placeholder">

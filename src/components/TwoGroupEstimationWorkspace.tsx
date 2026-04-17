@@ -13,6 +13,7 @@ import type {
   TwoGroupSimulationSummary,
 } from "../core/types";
 import { SamplingDistributionPanel } from "./SamplingDistributionPanel";
+import { TwoGroupSampleSizeControls } from "./TwoGroupSampleSizeControls";
 
 function buildNormalPopulation(mean: number, sd: number) {
   return {
@@ -36,6 +37,7 @@ interface TwoGroupEstimationWorkspaceProps {
   outcomeLabel: string;
   unitLabel: string;
   decimalPlaces: number;
+  equalSampleSizes: boolean;
   summary: TwoGroupSimulationSummary;
   summaryLoading: boolean;
   teachingTitle: string;
@@ -45,6 +47,7 @@ interface TwoGroupEstimationWorkspaceProps {
   onOutcomeLabelChange: (value: string) => void;
   onUnitLabelChange: (value: string) => void;
   onDecimalPlacesChange: (value: number) => void;
+  onEqualSampleSizesChange: (value: boolean) => void;
   onSampleSizeAChange: (value: number) => void;
   onSampleSizeBChange: (value: number) => void;
   onAddSamples: (count: number) => void;
@@ -667,6 +670,7 @@ function TwoGroupControlBand({
   population,
   sampleSizeA,
   sampleSizeB,
+  equalSampleSizes,
   repetitions,
   outcomeLabel,
   unitLabel,
@@ -677,6 +681,7 @@ function TwoGroupControlBand({
   onOutcomeLabelChange,
   onUnitLabelChange,
   onDecimalPlacesChange,
+  onEqualSampleSizesChange,
   onSampleSizeAChange,
   onSampleSizeBChange,
   onAddSamples,
@@ -695,8 +700,6 @@ function TwoGroupControlBand({
   const [groupAMeanInput, setGroupAMeanInput] = useState(String(population.groupA.mean));
   const [groupBMeanInput, setGroupBMeanInput] = useState(String(population.groupB.mean));
   const [sharedSDInput, setSharedSDInput] = useState(String(population.sd));
-  const [sampleSizeAInput, setSampleSizeAInput] = useState(String(sampleSizeA));
-  const [sampleSizeBInput, setSampleSizeBInput] = useState(String(sampleSizeB));
 
   useEffect(() => {
     setDecimalPlacesInput(String(decimalPlaces));
@@ -707,14 +710,6 @@ function TwoGroupControlBand({
     setGroupBMeanInput(String(population.groupB.mean));
     setSharedSDInput(String(population.sd));
   }, [population]);
-
-  useEffect(() => {
-    setSampleSizeAInput(String(sampleSizeA));
-  }, [sampleSizeA]);
-
-  useEffect(() => {
-    setSampleSizeBInput(String(sampleSizeB));
-  }, [sampleSizeB]);
 
   return (
     <section className="control-band">
@@ -879,77 +874,14 @@ function TwoGroupControlBand({
         <div className="controls-grid sampling-grid">
           <div className="control-field sample-size-field">
             <span>Sample sizes</span>
-            <div className="sample-size-row">
-              <label className="control-field compact-control">
-                <span>Group A</span>
-                <input
-                  type="range"
-                  min="2"
-                  max="200"
-                  step="1"
-                  value={sampleSizeA}
-                  onChange={(event) => onSampleSizeAChange(Number(event.target.value))}
-                />
-                <input
-                  className="sample-size-input"
-                  type="number"
-                  min="2"
-                  step="1"
-                  value={sampleSizeAInput}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setSampleSizeAInput(nextValue);
-
-                    if (nextValue === "") {
-                      return;
-                    }
-
-                    const parsed = Number(nextValue);
-                    if (Number.isNaN(parsed)) {
-                      return;
-                    }
-
-                    onSampleSizeAChange(parsed);
-                  }}
-                  onBlur={() => setSampleSizeAInput(String(sampleSizeA))}
-                />
-              </label>
-
-              <label className="control-field compact-control">
-                <span>Group B</span>
-                <input
-                  type="range"
-                  min="2"
-                  max="200"
-                  step="1"
-                  value={sampleSizeB}
-                  onChange={(event) => onSampleSizeBChange(Number(event.target.value))}
-                />
-                <input
-                  className="sample-size-input"
-                  type="number"
-                  min="2"
-                  step="1"
-                  value={sampleSizeBInput}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setSampleSizeBInput(nextValue);
-
-                    if (nextValue === "") {
-                      return;
-                    }
-
-                    const parsed = Number(nextValue);
-                    if (Number.isNaN(parsed)) {
-                      return;
-                    }
-
-                    onSampleSizeBChange(parsed);
-                  }}
-                  onBlur={() => setSampleSizeBInput(String(sampleSizeB))}
-                />
-              </label>
-            </div>
+            <TwoGroupSampleSizeControls
+              equalSampleSizes={equalSampleSizes}
+              sampleSizeA={sampleSizeA}
+              sampleSizeB={sampleSizeB}
+              onEqualSampleSizesChange={onEqualSampleSizesChange}
+              onSampleSizeAChange={onSampleSizeAChange}
+              onSampleSizeBChange={onSampleSizeBChange}
+            />
           </div>
 
           <div className="run-summary">
@@ -984,6 +916,7 @@ export function TwoGroupEstimationWorkspace({
   outcomeLabel,
   unitLabel,
   decimalPlaces,
+  equalSampleSizes,
   summary,
   summaryLoading,
   teachingTitle,
@@ -993,6 +926,7 @@ export function TwoGroupEstimationWorkspace({
   onOutcomeLabelChange,
   onUnitLabelChange,
   onDecimalPlacesChange,
+  onEqualSampleSizesChange,
   onSampleSizeAChange,
   onSampleSizeBChange,
   onAddSamples,
@@ -1004,6 +938,7 @@ export function TwoGroupEstimationWorkspace({
         population={population}
         sampleSizeA={sampleSizeA}
         sampleSizeB={sampleSizeB}
+        equalSampleSizes={equalSampleSizes}
         repetitions={repetitions}
         outcomeLabel={outcomeLabel}
         unitLabel={unitLabel}
@@ -1014,6 +949,7 @@ export function TwoGroupEstimationWorkspace({
         onOutcomeLabelChange={onOutcomeLabelChange}
         onUnitLabelChange={onUnitLabelChange}
         onDecimalPlacesChange={onDecimalPlacesChange}
+        onEqualSampleSizesChange={onEqualSampleSizesChange}
         onSampleSizeAChange={onSampleSizeAChange}
         onSampleSizeBChange={onSampleSizeBChange}
         onAddSamples={onAddSamples}

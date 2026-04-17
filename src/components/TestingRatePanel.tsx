@@ -8,6 +8,7 @@ interface TestingRatePanelProps {
   h1EmpiricalRejectionRate: number | null;
   h1TheoreticalRejectionRate: number | null;
   isLoading?: boolean;
+  subtitle?: string;
 }
 
 function formatPercent(value: number | null) {
@@ -25,12 +26,13 @@ export function TestingRatePanel({
   h1EmpiricalRejectionRate,
   h1TheoreticalRejectionRate,
   isLoading = false,
+  subtitle,
 }: TestingRatePanelProps) {
   const isMean = testKind === "mean";
   const panelTitle = "Power";
-  const panelSubtitle = isMean
+  const panelSubtitle = subtitle ?? (isMean
     ? "This shows the power under the specified true population."
-    : "This shows the power under the specified true population for the exact binomial test.";
+    : "This shows the power under the specified true population for the exact binomial test.");
 
   return (
     <Panel title={panelTitle} subtitle={panelSubtitle}>

@@ -188,11 +188,6 @@ export function TestingControlBand({
               )}
             </div>
             <div className={`controls-grid population-row-grid ${isMean ? "" : "proportion-grid"}`}>
-              <div className="fixed-field">
-                <span>Population shape</span>
-                <strong>{isMean ? "Normal" : "Bernoulli"}</strong>
-              </div>
-
               <label className="control-field">
                 <span>{isMean ? "True mean" : "True proportion (π)"}</span>
                 {isMean ? (
@@ -218,7 +213,7 @@ export function TestingControlBand({
                     onBlur={() => setAlternativeMeanInput(String(alternativeMean))}
                   />
                 ) : (
-                  <>
+                  <div className="sample-size-row">
                     <input
                       type="range"
                       min="0.05"
@@ -227,8 +222,16 @@ export function TestingControlBand({
                       value={alternativeMean}
                       onChange={(event) => onAlternativeMeanChange(Number(event.target.value))}
                     />
-                    <strong className="slider-value">{alternativeMean.toFixed(2)}</strong>
-                  </>
+                    <input
+                      className="sample-size-input"
+                      type="number"
+                      min="0.05"
+                      max="0.95"
+                      step="0.01"
+                      value={alternativeMean}
+                      onChange={(event) => onAlternativeMeanChange(Number(event.target.value))}
+                    />
+                  </div>
                 )}
               </label>
 
@@ -324,7 +327,7 @@ export function TestingControlBand({
       <section className="control-card">
         <div className="control-card-header">
           <h2>Sampling</h2>
-          <p>Choose the sample size and run repeated tests.</p>
+          <p>Choose the sample size and run repeated samples.</p>
         </div>
 
         <div className="controls-grid sampling-grid">
@@ -366,7 +369,7 @@ export function TestingControlBand({
           </div>
 
           <div className="run-summary">
-            <span>Repeated tests</span>
+            <span>Repeated samples</span>
             <strong>{repetitions}</strong>
           </div>
         </div>

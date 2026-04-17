@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import * as Plot from "@observablehq/plot";
 import { Panel, ValueCard } from "./ChartPrimitives";
 import { ObservablePlotFigure } from "./ObservablePlotFigure";
@@ -16,6 +16,7 @@ import type {
   TwoGroupSimulationSummary,
 } from "../core/types";
 import { SamplingDistributionPanel } from "./SamplingDistributionPanel";
+import { TwoGroupSampleSizeControls } from "./TwoGroupSampleSizeControls";
 
 function buildBernoulliPopulation(p: number) {
   return {
@@ -662,6 +663,7 @@ export function TwoGroupProportionWorkspace({
   population,
   sampleSizeA,
   sampleSizeB,
+  equalSampleSizes,
   repetitions,
   estimates,
   currentSampleA,
@@ -678,6 +680,7 @@ export function TwoGroupProportionWorkspace({
   onFailureLabelChange,
   onGroupAChange,
   onGroupBChange,
+  onEqualSampleSizesChange,
   onSampleSizeAChange,
   onSampleSizeBChange,
   onAddSamples,
@@ -686,6 +689,7 @@ export function TwoGroupProportionWorkspace({
   population: TwoGroupProportionPopulationConfig;
   sampleSizeA: number;
   sampleSizeB: number;
+  equalSampleSizes: boolean;
   repetitions: number;
   estimates: number[];
   currentSampleA: number[];
@@ -702,22 +706,12 @@ export function TwoGroupProportionWorkspace({
   onFailureLabelChange: (value: string) => void;
   onGroupAChange: (value: number) => void;
   onGroupBChange: (value: number) => void;
+  onEqualSampleSizesChange: (value: boolean) => void;
   onSampleSizeAChange: (value: number) => void;
   onSampleSizeBChange: (value: number) => void;
   onAddSamples: (count: number) => void;
   onReset: () => void;
 }) {
-  const [sampleSizeAInput, setSampleSizeAInput] = useState(String(sampleSizeA));
-  const [sampleSizeBInput, setSampleSizeBInput] = useState(String(sampleSizeB));
-
-  useEffect(() => {
-    setSampleSizeAInput(String(sampleSizeA));
-  }, [sampleSizeA]);
-
-  useEffect(() => {
-    setSampleSizeBInput(String(sampleSizeB));
-  }, [sampleSizeB]);
-
   return (
     <>
       <section className="control-band">
@@ -826,81 +820,18 @@ export function TwoGroupProportionWorkspace({
             <p>Set the sample size for each group and generate repeated sample pairs.</p>
           </div>
 
-          <div className="controls-grid sampling-grid">
-            <div className="control-field sample-size-field">
-              <span>Sample sizes</span>
-              <div className="sample-size-row">
-                <label className="control-field compact-control">
-                  <span>Group A</span>
-                  <input
-                    type="range"
-                    min="2"
-                    max="200"
-                    step="1"
-                    value={sampleSizeA}
-                    onChange={(event) => onSampleSizeAChange(Number(event.target.value))}
-                  />
-                  <input
-                    className="sample-size-input"
-                    type="number"
-                    min="2"
-                    step="1"
-                    value={sampleSizeAInput}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-                      setSampleSizeAInput(nextValue);
-
-                      if (nextValue === "") {
-                        return;
-                      }
-
-                      const parsed = Number(nextValue);
-                      if (Number.isNaN(parsed)) {
-                        return;
-                      }
-
-                      onSampleSizeAChange(parsed);
-                    }}
-                    onBlur={() => setSampleSizeAInput(String(sampleSizeA))}
-                  />
-                </label>
-
-                <label className="control-field compact-control">
-                  <span>Group B</span>
-                  <input
-                    type="range"
-                    min="2"
-                    max="200"
-                    step="1"
-                    value={sampleSizeB}
-                    onChange={(event) => onSampleSizeBChange(Number(event.target.value))}
-                  />
-                  <input
-                    className="sample-size-input"
-                    type="number"
-                    min="2"
-                    step="1"
-                    value={sampleSizeBInput}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-                      setSampleSizeBInput(nextValue);
-
-                      if (nextValue === "") {
-                        return;
-                      }
-
-                      const parsed = Number(nextValue);
-                      if (Number.isNaN(parsed)) {
-                        return;
-                      }
-
-                      onSampleSizeBChange(parsed);
-                    }}
-                    onBlur={() => setSampleSizeBInput(String(sampleSizeB))}
-                  />
-                </label>
-              </div>
-            </div>
+        <div className="controls-grid sampling-grid">
+          <div className="control-field sample-size-field">
+            <span>Sample sizes</span>
+            <TwoGroupSampleSizeControls
+              equalSampleSizes={equalSampleSizes}
+              sampleSizeA={sampleSizeA}
+              sampleSizeB={sampleSizeB}
+              onEqualSampleSizesChange={onEqualSampleSizesChange}
+              onSampleSizeAChange={onSampleSizeAChange}
+              onSampleSizeBChange={onSampleSizeBChange}
+            />
+          </div>
 
             <div className="run-summary">
               <span>Repeated samples</span>
