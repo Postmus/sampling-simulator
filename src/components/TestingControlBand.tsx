@@ -86,7 +86,15 @@ export function TestingControlBand({
   }, [sampleSize]);
 
   const isMean = testKind === "mean";
-  const nullLabel = isMean ? "H0 mean" : "H0 proportion (π)";
+  const nullLabel = isMean ? (
+    <>
+      H<sub>0</sub> mean (μ<sub>0</sub>)
+    </>
+  ) : (
+    <>
+      H<sub>0</sub> proportion (π<sub>0</sub>)
+    </>
+  );
   const hypothesisStep = isMean ? getDecimalStep(decimalPlaces) : "0.01";
   return (
     <section className="control-band">
@@ -182,14 +190,29 @@ export function TestingControlBand({
             <div className="row-label">
               <h3>Population parameters</h3>
               {isMean ? (
-                <p>Specify a normal parametric model with a null mean, alternative mean, and SD.</p>
+                <p>
+                  Specify a normal parametric model with null mean μ<sub>0</sub>, alternative mean μ<sub>1</sub>,
+                  and SD.
+                </p>
               ) : (
-                <p>Specify a Bernoulli model with null and alternative proportions.</p>
+                <p>
+                  Specify a Bernoulli model with null proportion π<sub>0</sub> and alternative proportion π<sub>1</sub>.
+                </p>
               )}
             </div>
             <div className={`controls-grid population-row-grid ${isMean ? "" : "proportion-grid"}`}>
               <label className="control-field">
-                <span>{isMean ? "True mean" : "True proportion (π)"}</span>
+                <span>
+                  {isMean ? (
+                    <>
+                      H<sub>1</sub> mean (μ<sub>1</sub>)
+                    </>
+                  ) : (
+                    <>
+                      H<sub>1</sub> proportion (π<sub>1</sub>)
+                    </>
+                  )}
+                </span>
                 {isMean ? (
                   <input
                     type="number"

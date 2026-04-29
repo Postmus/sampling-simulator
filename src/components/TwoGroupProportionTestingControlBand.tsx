@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { TwoGroupSampleSizeControls } from "./TwoGroupSampleSizeControls";
 
 interface TwoGroupProportionTestingControlBandProps {
@@ -30,7 +31,7 @@ function GroupProportionInput({
   value,
   onChange,
 }: {
-  label: string;
+  label: ReactNode;
   value: number;
   onChange: (value: number) => void;
 }) {
@@ -157,8 +158,24 @@ export function TwoGroupProportionTestingControlBand({
               <p>Specify a Bernoulli parametric model with separate group proportions.</p>
             </div>
             <div className="controls-grid population-row-grid proportion-grid">
-              <GroupProportionInput label="Group A proportion (πA)" value={groupAPercentage} onChange={onGroupAChange} />
-              <GroupProportionInput label="Group B proportion (πB)" value={groupBPercentage} onChange={onGroupBChange} />
+              <GroupProportionInput
+                label={
+                  <>
+                    Group A proportion (π<sub>A</sub>)
+                  </>
+                }
+                value={groupAPercentage}
+                onChange={onGroupAChange}
+              />
+              <GroupProportionInput
+                label={
+                  <>
+                    Group B proportion (π<sub>B</sub>)
+                  </>
+                }
+                value={groupBPercentage}
+                onChange={onGroupBChange}
+              />
             </div>
           </div>
         </div>

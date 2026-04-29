@@ -173,16 +173,22 @@ function ChiSquareHomogeneitySetupPanel({
           <div className="formula-label">Hypotheses</div>
           <div className="hypothesis-spec compact">
             <p>
-              <strong>H0:</strong> π<sub>A</sub> = π<sub>B</sub>
+              <strong>
+                H<sub>0</sub>:
+              </strong>{" "}
+              π<sub>A</sub> = π<sub>B</sub>
             </p>
             <p>
-              <strong>H1:</strong> π<sub>A</sub> ≠ π<sub>B</sub>
+              <strong>
+                H<sub>1</sub>:
+              </strong>{" "}
+              π<sub>A</sub> ≠ π<sub>B</sub>
             </p>
           </div>
         </div>
 
         <div className="setup-subcard">
-          <div className="formula-label">Expected counts under H0</div>
+          <div className="formula-label">Expected counts under H₀</div>
           {contingency !== null ? (
             <>
               <table className="sample-summary-table contingency-table">
@@ -226,7 +232,7 @@ function ChiSquareHomogeneitySetupPanel({
               </p>
             </>
           ) : (
-            <p className="placeholder">Add samples to display the expected counts under H0.</p>
+            <p className="placeholder">Add samples to display the expected counts under H₀.</p>
           )}
         </div>
 
@@ -240,7 +246,7 @@ function ChiSquareHomogeneitySetupPanel({
             </div>
           </div>
           <p className="setup-subcard-text">
-            This compares the observed table with the expected table under H0. The 2 × 2 table uses 1 degree of
+            This compares the observed table with the expected table under H₀. The 2 × 2 table uses 1 degree of
             freedom.
           </p>
         </div>
@@ -379,7 +385,7 @@ function ChiSquareDecisionPanel({
   pValue: number | null;
   reject: boolean | null;
 }) {
-  const decisionText = reject === null ? "-" : reject ? "Reject H0" : "Keep H0";
+  const decisionText = reject === null ? "-" : reject ? "Reject H₀" : "Keep H₀";
 
   return (
     <Panel
@@ -392,7 +398,7 @@ function ChiSquareDecisionPanel({
         <ValueCard label="Decision" value={decisionText} />
       </div>
       <p className="caption">
-        The observed chi-square statistic compares the latest contingency table with the expected counts under H0,
+        The observed chi-square statistic compares the latest contingency table with the expected counts under H₀,
         and the p-value comes from the chi-square distribution with 1 degree of freedom.
       </p>
     </Panel>
@@ -472,10 +478,10 @@ export function TwoGroupProportionTestingWorkspace({
           failureLabel={failureLabel}
         />
         <TestingDistributionPanel
-          title="Theoretical sampling distribution under H0"
-          subtitle="Analytical H0 reference for the chi-square test of homogeneity."
+          title="Theoretical sampling distribution under H₀"
+          subtitle="Analytical H₀ reference for the chi-square test of homogeneity."
           subtitleSpacer
-          caption={`Null χ² distribution with df = ${degreesOfFreedom}. The curve is the analytical H0 reference for the chi-square test of homogeneity.`}
+          caption={`Null χ² distribution with df = ${degreesOfFreedom}. The curve is the analytical H₀ reference for the chi-square test of homogeneity.`}
           distributionType="theoretical"
           statisticFamily="chi-square"
           testKind="proportion"
@@ -491,7 +497,7 @@ export function TwoGroupProportionTestingWorkspace({
           direction="greater"
         />
         <TestingDistributionPanel
-          title="Empirical sampling distribution under H1"
+          title="Empirical sampling distribution under H₁"
           subtitle="Repeated samples from the specified true populations under the alternative scenario."
           distributionType="empirical"
           statisticFamily="chi-square"

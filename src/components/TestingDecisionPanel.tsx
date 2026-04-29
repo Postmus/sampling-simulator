@@ -30,7 +30,7 @@ export function TestingDecisionPanel({
 }: TestingDecisionPanelProps) {
   const isMean = testKind === "mean";
   const decisionText =
-    reject === null ? "-" : reject ? "Reject H0" : "Keep H0";
+    reject === null ? "-" : reject ? "Reject H₀" : "Keep H₀";
 
   return (
     <Panel

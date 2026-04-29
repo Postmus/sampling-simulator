@@ -44,8 +44,8 @@ export function TestingRatePanel({
       ) : (
         <>
           <div className="value-grid ci-values tight">
-            <ValueCard label="H1 tests" value={h1Repetitions.toString()} />
-            <ValueCard label="H1 rejections" value={h1RejectionCount.toString()} />
+            <ValueCard label="H₁ tests" value={h1Repetitions.toString()} />
+            <ValueCard label="H₁ rejections" value={h1RejectionCount.toString()} />
             <ValueCard label="Empirical power" value={formatPercent(h1EmpiricalRejectionRate)} />
           </div>
 

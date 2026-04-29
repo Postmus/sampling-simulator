@@ -734,10 +734,10 @@ export function TestingDistributionPanel({
   ]);
 
   const defaultCaption = isTheoretical
-    ? "Green shows the acceptance region and red shows the rejection region under H0."
+    ? "Green shows the acceptance region and red shows the rejection region under H₀."
     : isMean
-      ? "The orange bars show the empirical distribution under H1, and the colored bands show the H0 decision regions."
-      : "The orange bars show the empirical distribution under H1, and the colored bands show the H0 decision regions.";
+      ? "The orange bars show the empirical distribution under H₁, and the colored bands show the H₀ decision regions."
+      : "The orange bars show the empirical distribution under H₁, and the colored bands show the H₀ decision regions.";
 
   return (
     <Panel title={title} subtitle={subtitle}>

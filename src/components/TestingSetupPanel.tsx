@@ -18,6 +18,15 @@ export function TestingSetupPanel({
   const isMean = testKind === "mean";
   const displayDigits = decimalPlaces;
   const parameterSymbol = isMean ? "μ" : "π";
+  const nullParameterSymbol = isMean ? (
+    <>
+      μ<sub>0</sub>
+    </>
+  ) : (
+    <>
+      π<sub>0</sub>
+    </>
+  );
   const hypothesisValueText = isMean
     ? formatContinuousValue(nullMean, "", displayDigits)
     : nullMean.toFixed(2);
@@ -31,10 +40,16 @@ export function TestingSetupPanel({
           <div className="formula-label">Hypotheses</div>
           <div className="hypothesis-spec compact">
             <p>
-              <strong>H0:</strong> {parameterSymbol} = {hypothesisValueText}
+              <strong>
+                H<sub>0</sub>:
+              </strong>{" "}
+              {parameterSymbol} = {nullParameterSymbol} = {hypothesisValueText}
             </p>
             <p>
-              <strong>H1:</strong> {parameterSymbol} {alternativeOperator} {hypothesisValueText}
+              <strong>
+                H<sub>1</sub>:
+              </strong>{" "}
+              {parameterSymbol} {alternativeOperator} {nullParameterSymbol}
             </p>
           </div>
         </div>
@@ -43,7 +58,13 @@ export function TestingSetupPanel({
           <div className="formula-label">Test statistic</div>
           <div className="formula-block compact">
             <div className="formula-value">
-              {isMean ? "t = (x̄ - μ0) / (s / √n)" : "X = number of successes"}
+              {isMean ? (
+                <>
+                  t = (x&#772; - μ<sub>0</sub>) / (s / √n)
+                </>
+              ) : (
+                "X = number of successes"
+              )}
             </div>
           </div>
           <p className="setup-subcard-text">

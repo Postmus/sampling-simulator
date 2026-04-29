@@ -27,7 +27,7 @@ export function SamplingDistributionPanel({
   const isDifference = lowerTitle.includes("difference");
   const estimateLabel = isDifference
     ? isProportion
-      ? "sample proportion differences (pA - pB)"
+      ? "sample proportion differences"
       : "sample mean differences"
     : isProportion
       ? "sample proportions (p)"

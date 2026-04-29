@@ -63,10 +63,16 @@ function TwoGroupTestingSetupPanel({
           <div className="formula-label">Hypotheses</div>
           <div className="hypothesis-spec compact">
             <p>
-              <strong>H0:</strong> μ<sub>A</sub> - μ<sub>B</sub> = 0
+              <strong>
+                H<sub>0</sub>:
+              </strong>{" "}
+              μ<sub>A</sub> - μ<sub>B</sub> = 0
             </p>
             <p>
-              <strong>H1:</strong> μ<sub>A</sub> - μ<sub>B</sub> {alternativeOperator} 0
+              <strong>
+                H<sub>1</sub>:
+              </strong>{" "}
+              μ<sub>A</sub> - μ<sub>B</sub> {alternativeOperator} 0
             </p>
           </div>
         </div>
@@ -311,10 +317,10 @@ export default function TwoGroupTestingWorkspace({
           decimalPlaces={decimalPlaces}
         />
         <TestingDistributionPanel
-          title="Theoretical sampling distribution under H0"
+          title="Theoretical sampling distribution under H₀"
           subtitle="Repeated samples from the null population."
           subtitleSpacer
-          caption={`Null t distribution with df = ${degreesOfFreedom}. Repeated samples from the null population. Green shows the acceptance region and red shows the rejection region under H0.`}
+          caption={`Null t distribution with df = ${degreesOfFreedom}. Repeated samples from the null population. Green shows the acceptance region and red shows the rejection region under H₀.`}
           distributionType="theoretical"
           testKind="mean"
           degreesOfFreedom={degreesOfFreedom}
@@ -329,7 +335,7 @@ export default function TwoGroupTestingWorkspace({
           direction={direction}
         />
         <TestingDistributionPanel
-          title="Empirical sampling distribution under H1"
+          title="Empirical sampling distribution under H₁"
           subtitle="Repeated samples from the specified true populations under the alternative scenario."
           distributionType="empirical"
           testKind="mean"

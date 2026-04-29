@@ -204,6 +204,65 @@ function computeBinomialPValue(
   );
 }
 
+function computeNormalPValue(statistic: number | null, direction: TestDirection) {
+  if (statistic === null || !Number.isFinite(statistic)) {
+    return null;
+  }
+
+  if (direction === "two-sided") {
+    return Math.min(1, 2 * (1 - normalCdf(Math.abs(statistic), 0, 1)));
+  }
+
+  if (direction === "greater") {
+    return 1 - normalCdf(statistic, 0, 1);
+  }
+
+  return normalCdf(statistic, 0, 1);
+}
+
+export function computeProportionZApproximation(
+  count: number | null,
+  sampleSize: number,
+  nullProbability: number,
+  alpha: number,
+  direction: TestDirection,
+) {
+  const expectedSuccesses = sampleSize * nullProbability;
+  const expectedFailures = sampleSize * (1 - nullProbability);
+
+  if (
+    count === null ||
+    sampleSize <= 0 ||
+    nullProbability <= 0 ||
+    nullProbability >= 1
+  ) {
+    return {
+      sampleProportion: null,
+      standardError: null,
+      zStatistic: null,
+      pValue: null,
+      reject: null,
+      expectedSuccesses,
+      expectedFailures,
+    };
+  }
+
+  const sampleProportion = count / sampleSize;
+  const standardError = Math.sqrt((nullProbability * (1 - nullProbability)) / sampleSize);
+  const zStatistic = standardError === 0 ? null : (sampleProportion - nullProbability) / standardError;
+  const pValue = computeNormalPValue(zStatistic, direction);
+
+  return {
+    sampleProportion,
+    standardError,
+    zStatistic,
+    pValue,
+    reject: pValue === null ? null : pValue <= alpha,
+    expectedSuccesses,
+    expectedFailures,
+  };
+}
+
 function computeChiSquareHomogeneityStatistic(sampleA: number[], sampleB: number[]) {
   if (sampleA.length === 0 || sampleB.length === 0) {
     return null;

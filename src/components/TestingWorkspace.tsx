@@ -4,6 +4,7 @@ import { TestingDistributionPanel } from "./TestingDistributionPanel";
 import { TestingRatePanel } from "./TestingRatePanel";
 import { TestingSamplePanel } from "./TestingSamplePanel";
 import { TestingSetupPanel } from "./TestingSetupPanel";
+import { NormalApproximationComparison } from "./NormalApproximationComparison";
 import type { TestDirection, TestTruth, TestingKind } from "../core/types";
 import type { TestingRunResult } from "../core/testing";
 
@@ -129,7 +130,7 @@ export function TestingWorkspace({
           truth={truth}
         />
         <TestingDistributionPanel
-          title={testingKind === "mean" ? "Theoretical sampling distribution under H0" : "Theoretical sampling distribution under H0"}
+          title={testingKind === "mean" ? "Theoretical sampling distribution under H₀" : "Theoretical sampling distribution under H₀"}
           subtitle={
             testingKind === "mean"
               ? "Repeated samples from the null population."
@@ -149,7 +150,7 @@ export function TestingWorkspace({
           direction={direction}
         />
         <TestingDistributionPanel
-          title={testingKind === "mean" ? "Empirical sampling distribution under H1" : "Empirical sampling distribution under H1"}
+          title={testingKind === "mean" ? "Empirical sampling distribution under H₁" : "Empirical sampling distribution under H₁"}
           subtitle={
             testingKind === "mean"
               ? "Repeated samples from the specified true population under the alternative scenario."
@@ -183,6 +184,16 @@ export function TestingWorkspace({
           sampleSize={testingSampleSize}
           reject={testingReject}
         />
+        {testingKind === "proportion" ? (
+          <NormalApproximationComparison
+            count={testingStatistic}
+            sampleSize={testingSampleSize}
+            nullProbability={nullMean}
+            alpha={alpha}
+            direction={direction}
+            exactPValue={testingPValue}
+          />
+        ) : null}
       </main>
     </>
   );
