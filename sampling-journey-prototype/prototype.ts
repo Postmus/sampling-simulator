@@ -10,8 +10,8 @@ const PLOT_WIDTH = RIGHT - LEFT;
 const POPULATION_AXIS_Y = 224;
 const SAMPLE_AXIS_Y = 438;
 const DISTRIBUTION_AXIS_Y = 700;
-const DISTRIBUTION_TOP_Y = 546;
-const ESTIMATE_BIN_COUNT = 54;
+const HISTOGRAM_TOP_Y = 582;
+const HISTOGRAM_BOTTOM_Y = DISTRIBUTION_AXIS_Y - 2;
 
 interface Configuration {
   mean: number;
@@ -24,12 +24,19 @@ interface Point {
   y: number;
 }
 
+interface HistogramPlan {
+  binWidth: number;
+  start: number;
+  binCount: number;
+}
+
 const stage = requireElement<SVGSVGElement>("sampling-stage");
 const populationLayer = requireElement<SVGGElement>("population-layer");
+const populationSampleLayer = requireElement<SVGGElement>("population-sample-layer");
 const sampleLayer = requireElement<SVGGElement>("sample-layer");
 const meanLayer = requireElement<SVGGElement>("mean-layer");
 const distributionReferenceLayer = requireElement<SVGGElement>("distribution-reference-layer");
-const distributionDotLayer = requireElement<SVGGElement>("distribution-dot-layer");
+const histogramLayer = requireElement<SVGGElement>("histogram-layer");
 const transitionLayer = requireElement<SVGGElement>("transition-layer");
 const annotationLayer = requireElement<SVGGElement>("annotation-layer");
 
@@ -46,13 +53,13 @@ const generateHundredButton = requireElement<HTMLButtonElement>("generate-hundre
 const pauseButton = requireElement<HTMLButtonElement>("pause");
 const resetButton = requireElement<HTMLButtonElement>("reset");
 const newSeedButton = requireElement<HTMLButtonElement>("new-seed");
+const fullscreenButton = requireElement<HTMLButtonElement>("fullscreen-button");
 
 const statusOutput = requireElement<HTMLElement>("status");
 const seedOutput = requireElement<HTMLOutputElement>("seed-output");
 const latestMeanOutput = requireElement<HTMLElement>("latest-mean");
 const sampleCountOutput = requireElement<HTMLElement>("sample-count");
 const empiricalSeOutput = requireElement<HTMLElement>("empirical-se");
-const theoreticalSeOutput = requireElement<HTMLElement>("theoretical-se");
 
 let configuration: Configuration = readConfiguration();
 let seed = 314159;
@@ -125,8 +132,7 @@ function populationDomain(): [number, number] {
 }
 
 function estimateDomain(): [number, number] {
-  const se = theoreticalSE();
-  return [configuration.mean - 4 * se, configuration.mean + 4 * se];
+  return populationDomain();
 }
 
 function populationX(value: number) {
@@ -135,8 +141,7 @@ function populationX(value: number) {
 }
 
 function estimateX(value: number) {
-  const [min, max] = estimateDomain();
-  return linearScale(value, min, max);
+  return populationX(value);
 }
 
 function theoreticalSE() {
@@ -206,7 +211,7 @@ function renderStaticStage() {
   appendText(populationLayer, "1  Population model", 58, 62, "zone-title");
   appendText(
     populationLayer,
-    "The population is fixed. Random observations are generated from this distribution.",
+    "The population is fixed. Outlined orange points retain the values from the latest sample.",
     58,
     84,
     "zone-subtitle",
@@ -239,33 +244,12 @@ function renderStaticStage() {
   appendText(distributionReferenceLayer, "3  Sampling distribution of the sample mean", 58, 530, "zone-title");
   appendText(
     distributionReferenceLayer,
-    "Each dot is the mean from one independent random sample.",
+    `Bars count sample means in fixed intervals of width ${formatCompactNumber(histogramPlan().binWidth)}. The x-axis matches panels 1 and 2.`,
     58,
     552,
     "zone-subtitle",
   );
-  const referencePath = svgElement("path", {
-    d: densityPath(
-      configuration.mean,
-      theoreticalSE(),
-      estimateRange,
-      estimateX,
-      DISTRIBUTION_AXIS_Y,
-      126,
-      false,
-    ),
-    class: "distribution-reference",
-  });
-  distributionReferenceLayer.append(referencePath);
   axis(distributionReferenceLayer, DISTRIBUTION_AXIS_Y, estimateRange, estimateX);
-  appendText(
-    distributionReferenceLayer,
-    "Dashed curve: theoretical sampling distribution",
-    RIGHT,
-    574,
-    "annotation-text",
-    "end",
-  );
 
   if (showTrueMeanInput.checked) {
     const popMeanX = populationX(configuration.mean);
@@ -284,7 +268,7 @@ function renderStaticStage() {
     distributionReferenceLayer.append(
       svgElement("line", {
         x1: distributionMeanX,
-        y1: DISTRIBUTION_TOP_Y,
+        y1: HISTOGRAM_TOP_Y,
         x2: distributionMeanX,
         y2: DISTRIBUTION_AXIS_Y,
         class: "true-mean-line",
@@ -314,71 +298,192 @@ function sampleTarget(value: number, index: number): Point {
   };
 }
 
-function estimateBin(value: number) {
-  const [min, max] = estimateDomain();
-  const proportion = clamp((value - min) / (max - min), 0, 0.999999);
-  return Math.floor(proportion * ESTIMATE_BIN_COUNT);
+function formatCompactNumber(value: number) {
+  return Number(value.toPrecision(3)).toString();
 }
 
-function estimateDotStyle(count = estimates.length) {
-  if (count > 500) {
-    return { radius: 1.8, spacing: 1.8 };
+function readableBinWidth(rawWidth: number) {
+  const exponent = Math.floor(Math.log10(rawWidth));
+  const magnitude = 10 ** exponent;
+  const scaled = rawWidth / magnitude;
+  const candidates = [1, 2, 2.5, 5, 10];
+  const closest = candidates.reduce((best, candidate) =>
+    Math.abs(candidate - scaled) < Math.abs(best - scaled) ? candidate : best,
+  );
+  return closest * magnitude;
+}
+
+function histogramPlan(): HistogramPlan {
+  const [domainMin, domainMax] = estimateDomain();
+  const binWidth = readableBinWidth(0.5 * theoreticalSE());
+  let start = configuration.mean - binWidth / 2;
+  while (start > domainMin) {
+    start -= binWidth;
   }
-  if (count > 200) {
-    return { radius: 2.3, spacing: 2.7 };
+  const binCount = Math.ceil((domainMax - start) / binWidth);
+  return { binWidth, start, binCount };
+}
+
+function histogramBin(value: number, plan = histogramPlan()) {
+  return clamp(Math.floor((value - plan.start) / plan.binWidth), 0, plan.binCount - 1);
+}
+
+function niceCountMaximum(value: number) {
+  if (value <= 1) {
+    return 2;
   }
-  if (count > 70) {
-    return { radius: 3, spacing: 4 };
-  }
-  return { radius: 4.2, spacing: 7.2 };
+  const target = value * 1.08;
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const increment = Math.max(1, magnitude / 10);
+  return Math.ceil(target / increment) * increment;
+}
+
+function histogramLayout(values: number[]) {
+  const plan = histogramPlan();
+  const counts = Array.from({ length: plan.binCount }, () => 0);
+  values.forEach((value) => {
+    counts[histogramBin(value, plan)] += 1;
+  });
+  const maximumCount = Math.max(0, ...counts);
+  const yMaximum = niceCountMaximum(maximumCount);
+  const chartHeight = HISTOGRAM_BOTTOM_Y - HISTOGRAM_TOP_Y;
+  const [domainMin, domainMax] = estimateDomain();
+  const bars = counts.map((count, index) => {
+    const lower = plan.start + index * plan.binWidth;
+    const upper = lower + plan.binWidth;
+    const x1 = estimateX(Math.max(domainMin, lower));
+    const x2 = estimateX(Math.min(domainMax, upper));
+    const height = (count / yMaximum) * chartHeight;
+    return {
+      index,
+      lower,
+      upper,
+      count,
+      x: x1 + 0.6,
+      width: Math.max(0.8, x2 - x1 - 1.2),
+      y: HISTOGRAM_BOTTOM_Y - height,
+      height,
+    };
+  });
+  return { plan, counts, maximumCount, yMaximum, bars };
 }
 
 function targetForNewEstimate(value: number): Point {
-  const bin = estimateBin(value);
-  const currentLevel = estimates.reduce((count, estimate) => count + Number(estimateBin(estimate) === bin), 0);
-  const binCenter = LEFT + ((bin + 0.5) / ESTIMATE_BIN_COUNT) * PLOT_WIDTH;
-  const style = estimateDotStyle(estimates.length + 1);
-  return {
-    x: binCenter,
-    y: DISTRIBUTION_AXIS_Y - 7 - currentLevel * style.spacing,
-  };
+  const layout = histogramLayout([...estimates, value]);
+  const bar = layout.bars[histogramBin(value, layout.plan)];
+  return bar === undefined
+    ? { x: estimateX(value), y: HISTOGRAM_BOTTOM_Y }
+    : { x: bar.x + bar.width / 2, y: bar.y };
 }
 
-function renderEstimateDots() {
-  clear(distributionDotLayer);
-  const levels = new Map<number, number>();
-  const style = estimateDotStyle();
-  estimates.forEach((estimate) => {
-    const bin = estimateBin(estimate);
-    const level = levels.get(bin) ?? 0;
-    levels.set(bin, level + 1);
-    const x = LEFT + ((bin + 0.5) / ESTIMATE_BIN_COUNT) * PLOT_WIDTH;
-    const y = DISTRIBUTION_AXIS_Y - 7 - level * style.spacing;
-    distributionDotLayer.append(
-      svgElement("circle", { cx: x, cy: y, r: style.radius, class: "estimate-dot" }),
-    );
+function renderHistogram(highlightedBin: number | null = null) {
+  clear(histogramLayer);
+  const layout = histogramLayout(estimates);
+  const total = estimates.length;
+
+  layout.bars.forEach((bar) => {
+    if (bar.count === 0) {
+      return;
+    }
+    const rectangle = svgElement("rect", {
+      x: bar.x,
+      y: bar.y,
+      width: bar.width,
+      height: Math.max(1, bar.height),
+      rx: Math.min(2, bar.width / 4),
+      "data-bin-index": bar.index,
+      "data-count": bar.count,
+      "data-lower": bar.lower,
+      "data-upper": bar.upper,
+      class: `histogram-bar${bar.index === highlightedBin ? " histogram-bar-highlight" : ""}`,
+    });
+    const title = svgElement("title");
+    const percentage = total > 0 ? (100 * bar.count) / total : 0;
+    title.textContent = `${formatCompactNumber(bar.lower)} to ${formatCompactNumber(bar.upper)}: ${bar.count.toLocaleString()} sample mean${bar.count === 1 ? "" : "s"} (${percentage.toFixed(1)}%)`;
+    rectangle.append(title);
+    histogramLayer.append(rectangle);
   });
+
+  histogramLayer.append(
+    svgElement("line", {
+      x1: LEFT,
+      y1: HISTOGRAM_TOP_Y,
+      x2: LEFT,
+      y2: HISTOGRAM_BOTTOM_Y,
+      class: "histogram-count-axis",
+    }),
+  );
+  appendText(histogramLayer, layout.yMaximum.toLocaleString(), LEFT - 9, HISTOGRAM_TOP_Y + 4, "histogram-count-label", "end");
+  appendText(histogramLayer, "0", LEFT - 9, HISTOGRAM_BOTTOM_Y + 4, "histogram-count-label", "end");
+  appendText(histogramLayer, "count", LEFT - 9, HISTOGRAM_TOP_Y - 8, "histogram-count-title", "end");
 }
 
 function renderMeanMarker(estimate: number) {
   clear(meanLayer);
   const x = populationX(estimate);
-  meanLayer.append(
-    svgElement("line", {
-      x1: x,
-      y1: 338,
-      x2: x,
-      y2: SAMPLE_AXIS_Y,
-      class: "sample-mean-line",
-    }),
+  const line = svgElement("line", {
+    x1: x,
+    y1: 338,
+    x2: x,
+    y2: SAMPLE_AXIS_Y,
+    class: "sample-mean-line",
+  });
+  meanLayer.append(line);
+  const label = appendText(
+    meanLayer,
+    `sample mean = ${formatValue(estimate)}`,
+    x,
+    355,
+    "sample-mean-label",
+    "middle",
   );
-  appendText(meanLayer, `sample mean = ${formatValue(estimate)}`, x, 355, "sample-mean-label", "middle");
+  return { line, label };
+}
+
+async function animateMeanMarker(estimate: number) {
+  const { line, label } = renderMeanMarker(estimate);
+  await Promise.all([
+    animateElement(
+      line,
+      [
+        { opacity: 0, transform: "scaleY(0)" },
+        { opacity: 1, transform: "scaleY(1)" },
+      ],
+      {
+        duration: 440,
+        easing: "cubic-bezier(.2,.75,.25,1)",
+        fill: "forwards",
+      },
+    ),
+    animateElement(
+      label,
+      [
+        { opacity: 0, transform: "translateY(5px)" },
+        { opacity: 1, transform: "translateY(0px)" },
+      ],
+      {
+        duration: 330,
+        delay: reduceMotionInput.checked ? 0 : animationDuration(190),
+        easing: "ease-out",
+        fill: "forwards",
+      },
+    ),
+  ]);
 }
 
 function renderLatestSampleImmediately() {
+  clear(populationSampleLayer);
   clear(sampleLayer);
   latestSample.forEach((value, index) => {
     const target = sampleTarget(value, index);
+    populationSampleLayer.append(
+      svgElement("circle", {
+        cx: populationX(value),
+        cy: populationCurveY(value),
+        r: 6.5,
+        class: "population-sample-point",
+      }),
+    );
     sampleLayer.append(
       svgElement("circle", { cx: target.x, cy: target.y, r: 6, class: "sample-point" }),
     );
@@ -392,7 +497,6 @@ function renderMetrics() {
   latestMeanOutput.textContent = formatValue(latestEstimate);
   sampleCountOutput.textContent = estimates.length.toLocaleString();
   empiricalSeOutput.textContent = estimates.length > 1 ? formatValue(standardDeviation(estimates)) : "—";
-  theoreticalSeOutput.textContent = formatValue(theoreticalSE());
   seedOutput.textContent = String(seed);
 }
 
@@ -450,9 +554,10 @@ async function animateOneSample(token: number) {
   const estimate = sampleMean(sample);
 
   clear(sampleLayer);
+  clear(populationSampleLayer);
   clear(meanLayer);
   clear(transitionLayer);
-  statusOutput.textContent = `A new random sample of ${configuration.sampleSize} observations is being drawn.`;
+  statusOutput.textContent = `Step 1 of 4: draw ${configuration.sampleSize} random observations from the population.`;
 
   const sampleCircles = sample.map((value, index) => {
     const origin = { x: populationX(value), y: populationCurveY(value) };
@@ -469,25 +574,62 @@ async function animateOneSample(token: number) {
   });
 
   await Promise.all(
+    sampleCircles.map(async ({ circle, index }) => {
+      await animateElement(
+        circle,
+        [
+          { opacity: 0, transform: "scale(0.35)" },
+          { opacity: 1, transform: "scale(1)" },
+        ],
+        {
+          duration: 340,
+          delay: reduceMotionInput.checked ? 0 : Math.min(index * 18, 260),
+          easing: "ease-out",
+          fill: "forwards",
+        },
+      );
+    }),
+  );
+
+  if (token !== runToken) {
+    return;
+  }
+
+  await pacedDelay(animationDuration(360), token);
+  sampleCircles.forEach(({ origin }) => {
+    populationSampleLayer.append(
+      svgElement("circle", {
+        cx: origin.x,
+        cy: origin.y,
+        r: configuration.sampleSize > 60 ? 5 : 6.5,
+        class: "population-sample-point",
+      }),
+    );
+  });
+  statusOutput.textContent = "Step 2 of 4: retain the sampled values above and place the observations in panel 2.";
+
+  await Promise.all(
     sampleCircles.map(async ({ circle, origin, target, index }) => {
       await animateElement(
         circle,
         [
-          { opacity: 0, transform: "translate(0px, 0px)" },
-          { opacity: 1, offset: 0.22, transform: "translate(0px, 0px)" },
+          { opacity: 1, transform: "translate(0px, 0px)" },
           { opacity: 1, transform: `translate(${target.x - origin.x}px, ${target.y - origin.y}px)` },
         ],
         {
           duration: 620,
-          delay: reduceMotionInput.checked ? 0 : Math.min(index * 12, 220),
+          delay: reduceMotionInput.checked ? 0 : Math.min(index * 8, 100),
           easing: "cubic-bezier(.22,.75,.25,1)",
           fill: "forwards",
         },
       );
+      // The final position is stored in the SVG attributes. Remove both completed
+      // fill-forwards animations so their transforms are not applied a second time.
+      circle.getAnimations().forEach((animation) => animation.cancel());
       circle.setAttribute("cx", String(target.x));
       circle.setAttribute("cy", String(target.y));
       circle.setAttribute("opacity", "1");
-      circle.style.transform = "none";
+      circle.removeAttribute("style");
     }),
   );
 
@@ -497,28 +639,38 @@ async function animateOneSample(token: number) {
 
   latestSample = sample;
   latestEstimate = estimate;
-  renderMeanMarker(estimate);
   renderMetrics();
-  statusOutput.textContent = `This sample produced a mean of ${formatValue(estimate)}. That is one estimate.`;
-  await pacedDelay(animationDuration(520), token);
+  statusOutput.textContent = `Step 3 of 4: calculate the mean and mark its value, ${formatValue(estimate)}.`;
+  await animateMeanMarker(estimate);
+  await pacedDelay(animationDuration(600), token);
 
   if (token !== runToken) {
     return;
   }
 
-  const start = { x: populationX(estimate), y: SAMPLE_AXIS_Y + 8 };
+  const start = { x: populationX(estimate), y: 338 };
   const target = targetForNewEstimate(estimate);
+  const movingMean = svgElement("g", { class: "moving-mean-token" });
   const movingDot = svgElement("circle", {
     cx: start.x,
     cy: start.y,
     r: 8,
     class: "moving-estimate",
   });
-  transitionLayer.append(movingDot);
-  statusOutput.textContent = "The sample mean now becomes one point in the sampling distribution.";
+  movingMean.append(movingDot);
+  appendText(
+    movingMean,
+    `mean ${formatValue(estimate)}`,
+    start.x + (start.x > RIGHT - 150 ? -14 : 14),
+    start.y + 5,
+    "moving-mean-label",
+    start.x > RIGHT - 150 ? "end" : "start",
+  );
+  transitionLayer.append(movingMean);
+  statusOutput.textContent = "Step 4 of 4: move only the calculated mean into the sampling distribution.";
 
   await animateElement(
-    movingDot,
+    movingMean,
     [
       { transform: "translate(0px, 0px)" },
       {
@@ -536,9 +688,9 @@ async function animateOneSample(token: number) {
     return;
   }
 
-  movingDot.remove();
+  movingMean.remove();
   estimates.push(estimate);
-  renderEstimateDots();
+  renderHistogram(histogramBin(estimate));
   renderMetrics();
   statusOutput.textContent = `${estimates.length.toLocaleString()} sample${estimates.length === 1 ? " has" : "s have"} produced ${estimates.length.toLocaleString()} mean${estimates.length === 1 ? "" : "s"}.`;
   await pacedDelay(animationDuration(220), token);
@@ -583,7 +735,7 @@ function generateBatch(count: number) {
   }
   estimates.push(...newEstimates);
   renderLatestSampleImmediately();
-  renderEstimateDots();
+  renderHistogram(latestEstimate === null ? null : histogramBin(latestEstimate));
   renderMetrics();
   statusOutput.textContent = `${count} samples were generated quickly. Every sample still contributed exactly one mean.`;
 }
@@ -618,8 +770,9 @@ function resetSimulation(message = "Draw one sample to begin.") {
   latestSample = [];
   latestEstimate = null;
   clear(sampleLayer);
+  clear(populationSampleLayer);
   clear(meanLayer);
-  clear(distributionDotLayer);
+  clear(histogramLayer);
   clear(transitionLayer);
   renderStaticStage();
   renderMetrics();
@@ -646,6 +799,22 @@ resetButton.addEventListener("click", () => resetSimulation("Reset complete. The
 newSeedButton.addEventListener("click", () => {
   seed = randomSeed();
   resetSimulation("A new random seed is ready. Draw one sample to begin.");
+});
+
+fullscreenButton.addEventListener("click", async () => {
+  try {
+    if (document.fullscreenElement === null) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch {
+    statusOutput.textContent = "Fullscreen mode is not available in this browser.";
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  fullscreenButton.textContent = document.fullscreenElement === null ? "Presentation mode" : "Exit presentation";
 });
 
 [meanInput, sdInput, sampleSizeInput].forEach((control) => {

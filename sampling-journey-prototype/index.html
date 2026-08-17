@@ -7,82 +7,107 @@
       name="description"
       content="Animated prototype for teaching how repeated samples create a sampling distribution."
     />
-    <title>Sampling Journey Prototype</title>
+    <title>Sampling distribution of the sample mean</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="prototype-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Disposable teaching prototype</p>
-          <h1>Where does a sampling distribution come from?</h1>
-          <p class="hero-copy">
-            Every random sample produces one sample mean. Watch that mean become one point in the
-            sampling distribution.
-          </p>
+      <header class="compact-header">
+        <div class="compact-title">
+          <h1>Sampling distribution of the sample mean: variation across repeated samples</h1>
+          <p class="header-subtitle">Case: a normally distributed continuous outcome</p>
         </div>
-        <a class="back-link" href="../">Open the existing simulator</a>
+        <div class="header-actions">
+          <button id="fullscreen-button" class="secondary compact-button" type="button">Presentation mode</button>
+        </div>
       </header>
 
-      <section class="control-surface" aria-label="Simulation controls">
-        <div class="control-group model-controls">
-          <label>
-            <span>Population mean</span>
-            <input id="population-mean" type="number" value="100" step="1" />
-          </label>
-          <label>
-            <span>Population SD</span>
-            <input id="population-sd" type="number" value="15" min="0.1" step="1" />
-          </label>
-          <label>
-            <span>Sample size</span>
-            <select id="sample-size">
-              <option value="5">n = 5</option>
-              <option value="10" selected>n = 10</option>
-              <option value="30">n = 30</option>
-              <option value="60">n = 60</option>
-              <option value="100">n = 100</option>
-            </select>
-          </label>
-          <label>
-            <span>Animation speed</span>
-            <select id="animation-speed">
-              <option value="0.65">Slow</option>
-              <option value="1" selected>Normal</option>
-              <option value="1.8">Fast</option>
-              <option value="3">Very fast</option>
-            </select>
-          </label>
-        </div>
+      <div class="workspace-layout">
+        <aside class="control-rail" aria-label="Simulation controls and summary">
+          <section class="rail-section">
+            <div class="rail-heading">
+              <span>Population and sample</span>
+              <small>Change any value to reset</small>
+            </div>
+            <div class="rail-fields">
+              <label>
+                <span>Population mean</span>
+                <input id="population-mean" type="number" value="100" step="1" />
+              </label>
+              <label>
+                <span>Population SD</span>
+                <input id="population-sd" type="number" value="15" min="0.1" step="1" />
+              </label>
+              <label>
+                <span>Sample size</span>
+                <select id="sample-size">
+                  <option value="5">n = 5</option>
+                  <option value="10" selected>n = 10</option>
+                  <option value="30">n = 30</option>
+                  <option value="60">n = 60</option>
+                  <option value="100">n = 100</option>
+                </select>
+              </label>
+              <label>
+                <span>Animation speed</span>
+                <select id="animation-speed">
+                  <option value="0.65">Slow</option>
+                  <option value="1" selected>Normal</option>
+                  <option value="1.8">Fast</option>
+                  <option value="3">Very fast</option>
+                </select>
+              </label>
+            </div>
+          </section>
 
-        <div class="control-group action-controls">
-          <button id="draw-one" class="primary" type="button">Draw 1 sample</button>
-          <button id="animate-ten" type="button">Animate 10</button>
-          <button id="generate-hundred" type="button">Generate 100</button>
-          <button id="pause" type="button" disabled>Pause</button>
-          <button id="reset" class="secondary" type="button">Reset / replay</button>
-          <button id="new-seed" class="text-button" type="button">New random seed</button>
-        </div>
+          <section class="rail-section">
+            <div class="rail-heading"><span>Run simulation</span></div>
+            <div class="action-grid">
+              <button id="draw-one" class="primary action-wide" type="button">Draw 1 sample</button>
+              <button id="animate-ten" type="button">Animate 10</button>
+              <button id="generate-hundred" type="button">Generate 100</button>
+              <button id="pause" type="button" disabled>Pause</button>
+              <button id="reset" class="secondary" type="button">Reset / replay</button>
+            </div>
+          </section>
 
-        <div class="control-group option-controls">
-          <label class="check-control">
-            <input id="show-true-mean" type="checkbox" checked />
-            <span>Show true mean</span>
-          </label>
-          <label class="check-control">
-            <input id="reduce-motion" type="checkbox" />
-            <span>Reduce motion</span>
-          </label>
-          <span class="seed-label">Seed <output id="seed-output">314159</output></span>
-        </div>
-      </section>
+          <details class="advanced-options">
+            <summary>Display and replay options</summary>
+            <div class="advanced-content">
+              <label class="check-control">
+                <input id="show-true-mean" type="checkbox" checked />
+                <span>Show true mean</span>
+              </label>
+              <label class="check-control">
+                <input id="reduce-motion" type="checkbox" />
+                <span>Reduce motion</span>
+              </label>
+              <div class="seed-row">
+                <span class="seed-label">Seed <output id="seed-output">314159</output></span>
+                <button id="new-seed" class="text-button" type="button">New seed</button>
+              </div>
+            </div>
+          </details>
 
-      <section class="stage-card" aria-labelledby="stage-heading">
+          <section class="rail-metrics" aria-label="Simulation summary">
+            <div class="rail-heading"><span>Simulation summary</span></div>
+            <article class="rail-metric">
+              <span>Latest sample mean</span>
+              <strong id="latest-mean">—</strong>
+            </article>
+            <article class="rail-metric">
+              <span>Repeated samples</span>
+              <strong id="sample-count">0</strong>
+            </article>
+            <article class="rail-metric">
+              <span>Empirical SE</span>
+              <strong id="empirical-se">—</strong>
+            </article>
+          </section>
+        </aside>
+
+        <section class="stage-card" aria-label="Animated sampling process">
         <div class="stage-heading-row">
-          <div>
-            <p class="step-label">One connected process</p>
-            <h2 id="stage-heading">Population → sample → sample mean → sampling distribution</h2>
-          </div>
           <p id="status" class="status" role="status" aria-live="polite">
             Draw one sample to begin.
           </p>
@@ -97,8 +122,9 @@
           >
             <title id="svg-title">Animated sampling journey</title>
             <desc id="svg-description">
-              Observations move from a normal population into a random sample. Their sample mean
-              then moves into a dot plot of means from repeated samples.
+              A random sample first appears in the population panel. Its observations move into the
+              sample panel, where a vertical bar marks their calculated mean. Only that mean then
+              moves into a histogram of means from repeated samples.
             </desc>
 
             <rect class="zone-background population-zone" x="30" y="28" width="1140" height="225" rx="24" />
@@ -106,48 +132,17 @@
             <rect class="zone-background distribution-zone" x="30" y="496" width="1140" height="235" rx="24" />
 
             <g id="population-layer"></g>
+            <g id="population-sample-layer"></g>
             <g id="sample-layer"></g>
             <g id="mean-layer"></g>
+            <g id="histogram-layer"></g>
             <g id="distribution-reference-layer"></g>
-            <g id="distribution-dot-layer"></g>
             <g id="transition-layer"></g>
             <g id="annotation-layer"></g>
           </svg>
         </div>
-      </section>
-
-      <section class="metric-grid" aria-label="Simulation summary">
-        <article class="metric-card">
-          <span>Latest sample mean</span>
-          <strong id="latest-mean">—</strong>
-          <small>One estimate from one sample</small>
-        </article>
-        <article class="metric-card">
-          <span>Repeated samples</span>
-          <strong id="sample-count">0</strong>
-          <small>One dot per sample</small>
-        </article>
-        <article class="metric-card">
-          <span>Empirical SE</span>
-          <strong id="empirical-se">—</strong>
-          <small>Observed spread of the sample means</small>
-        </article>
-        <article class="metric-card accent-card">
-          <span>Theoretical SE</span>
-          <strong id="theoretical-se">4.74</strong>
-          <small>Population SD / √n</small>
-        </article>
-      </section>
-
-      <section class="teaching-note">
-        <h2>What to try</h2>
-        <ol>
-          <li>Draw the first three samples slowly and follow each mean.</li>
-          <li>Animate ten samples and watch the distribution begin to form.</li>
-          <li>Change the sample size and compare the theoretical standard error.</li>
-          <li>Generate 100 samples to see the long-run pattern more clearly.</li>
-        </ol>
-      </section>
+        </section>
+      </div>
     </main>
 
     <script type="module" src="./prototype.ts"></script>
