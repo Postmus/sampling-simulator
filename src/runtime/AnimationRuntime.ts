@@ -66,6 +66,30 @@ export class AnimationRuntime {
     }
   }
 
+  async tween(milliseconds: number, token: number, update: (progress: number) => void) {
+    if (this.options.reducedMotion()) {
+      update(1);
+      return;
+    }
+
+    const duration = this.duration(milliseconds);
+    let elapsed = 0;
+    let previousTime = performance.now();
+    update(0);
+
+    while (elapsed < duration && this.isCurrent(token)) {
+      const currentTime = await new Promise<number>((resolve) => requestAnimationFrame(resolve));
+      if (!this.isCurrent(token)) {
+        return;
+      }
+      if (!this.paused) {
+        elapsed += currentTime - previousTime;
+      }
+      previousTime = currentTime;
+      update(Math.min(1, elapsed / duration));
+    }
+  }
+
   togglePaused() {
     this.paused = !this.paused;
     this.animations.forEach((animation) => (this.paused ? animation.pause() : animation.play()));

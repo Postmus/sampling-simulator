@@ -17,6 +17,14 @@ export const conceptRegistry: ConceptDefinition[] = [
       "Follow observations from a fixed population into one sample, then watch one mean from every sample build a new distribution.",
     component: lazy(() => import("../concepts/sampling-distribution/SamplingDistributionPage")),
   },
+  {
+    id: "least-squares",
+    title: "How least squares chooses a line",
+    category: "Relationships and regression",
+    description:
+      "Move a candidate line, collect its squared errors into SSE, inspect its residuals, and follow slope and intercept to the minimum.",
+    component: lazy(() => import("../concepts/least-squares/LeastSquaresPage")),
+  },
 ];
 
 export function findConcept(id: string | null) {

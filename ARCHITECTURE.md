@@ -51,6 +51,7 @@ concepts need the same behavior; concept-specific geometry stays with its concep
 5. Add one lazy-loaded entry to `conceptRegistry.ts`.
 6. Verify `npm test` and `npm run build`.
 
-Confidence interval coverage is the recommended second concept because it can reuse sampling while
-testing whether the current boundaries are useful. Extract additional shared primitives only after
-that implementation demonstrates real duplication.
+The least-squares exploration is the second implemented concept and demonstrates that the shell,
+animation runtime, presentation behavior, and design language can be shared without forcing its
+state into the sampling model. Future inference concepts should remain separate features and reuse
+only the mathematical or visual primitives they genuinely share.

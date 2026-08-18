@@ -3,9 +3,16 @@
 An extensible, frontend-only teaching app for explaining statistical ideas through animated,
 interactive visualizations.
 
-The first concept follows observations from a fixed normal population into one random sample,
-calculates its mean, and then moves that single estimate into a sampling distribution. It supports
-deterministic replay, fast batch generation, pause/resume, presentation mode, and reduced motion.
+The current concept library includes:
+
+- a sampling journey that follows observations into one sample and then builds a sampling
+  distribution from repeated sample means;
+- a least-squares exploration that links a movable regression line, an always-visible mean
+  reference, residual squares, an animated SSE accumulator, the slope–intercept error landscape,
+  and a residual dot plot for the current candidate line.
+
+Both explorations support presentation mode and reduced motion. The sampling journey also supports
+deterministic replay and fast batch generation.
 
 ## Run locally
 
@@ -15,13 +22,15 @@ npm run dev
 ```
 
 Open the local Vite URL. The concept library is the home page; concepts use static-host-friendly
-hash routes such as `#/concepts/sampling-distribution`.
+hash routes such as `#/concepts/sampling-distribution` and `#/concepts/least-squares`.
 
 ## Validate
 
 ```bash
 npm test
 npm run build
+npx playwright install chromium # first browser-test run only
+npm run test:e2e
 ```
 
 ## Architecture
