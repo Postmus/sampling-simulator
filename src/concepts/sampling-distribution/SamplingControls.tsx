@@ -1,22 +1,27 @@
+import { useLocale } from "../../i18n/LocaleContext";
+import { samplingMessages } from "./messages";
+
 export function SamplingControls() {
+  const { locale } = useLocale();
+  const messages = samplingMessages[locale].controls;
   return (
-    <aside className="control-rail" aria-label="Simulation controls and summary">
+    <aside className="control-rail" aria-label={messages.aria}>
       <section className="rail-section">
         <div className="rail-heading">
-          <span>Population and sample</span>
-          <small>Changing a value resets the run</small>
+          <span>{messages.populationAndSample}</span>
+          <small>{messages.resetHint}</small>
         </div>
         <div className="rail-fields">
           <label>
-            <span>Population mean</span>
+            <span>{messages.populationMean}</span>
             <input data-role="population-mean" type="number" defaultValue="100" step="1" />
           </label>
           <label>
-            <span>Population SD</span>
+            <span>{messages.populationSd}</span>
             <input data-role="population-sd" type="number" defaultValue="15" min="0.1" step="1" />
           </label>
           <label>
-            <span>Sample size</span>
+            <span>{messages.sampleSize}</span>
             <select data-role="sample-size" defaultValue="10">
               <option value="5">n = 5</option>
               <option value="10">n = 10</option>
@@ -26,58 +31,58 @@ export function SamplingControls() {
             </select>
           </label>
           <label>
-            <span>Animation speed</span>
+            <span>{messages.animationSpeed}</span>
             <select data-role="animation-speed" defaultValue="1">
-              <option value="0.65">Slow</option>
-              <option value="1">Normal</option>
-              <option value="1.8">Fast</option>
-              <option value="3">Very fast</option>
+              <option value="0.65">{messages.slow}</option>
+              <option value="1">{messages.normal}</option>
+              <option value="1.8">{messages.fast}</option>
+              <option value="3">{messages.veryFast}</option>
             </select>
           </label>
         </div>
       </section>
 
       <section className="rail-section">
-        <div className="rail-heading"><span>Run simulation</span></div>
+        <div className="rail-heading"><span>{messages.run}</span></div>
         <div className="action-grid">
-          <button data-role="draw-one" className="primary action-wide" type="button">Draw 1 sample</button>
-          <button data-role="animate-ten" type="button">Animate 10</button>
-          <button data-role="generate-hundred" type="button">Generate 100</button>
-          <button data-role="pause" type="button" disabled>Pause</button>
-          <button data-role="reset" className="secondary" type="button">Reset / replay</button>
+          <button data-role="draw-one" className="primary action-wide" type="button">{messages.drawOne}</button>
+          <button data-role="animate-ten" type="button">{messages.animateTen}</button>
+          <button data-role="generate-hundred" type="button">{messages.generateHundred}</button>
+          <button data-role="pause" type="button" disabled>{messages.pause}</button>
+          <button data-role="reset" className="secondary" type="button">{messages.resetReplay}</button>
         </div>
       </section>
 
       <details className="advanced-options">
-        <summary>Display and replay options</summary>
+        <summary>{messages.options}</summary>
         <div className="advanced-content">
           <label className="check-control">
             <input data-role="show-true-mean" type="checkbox" defaultChecked />
-            <span>Show true mean</span>
+            <span>{messages.showTrueMean}</span>
           </label>
           <label className="check-control">
             <input data-role="reduce-motion" type="checkbox" />
-            <span>Reduce motion</span>
+            <span>{messages.reduceMotion}</span>
           </label>
           <div className="seed-row">
-            <span className="seed-label">Seed <output data-role="seed">314159</output></span>
-            <button data-role="new-seed" className="text-button" type="button">New seed</button>
+            <span className="seed-label">{messages.seed} <output data-role="seed">314159</output></span>
+            <button data-role="new-seed" className="text-button" type="button">{messages.newSeed}</button>
           </div>
         </div>
       </details>
 
-      <section className="rail-metrics" aria-label="Simulation summary">
-        <div className="rail-heading"><span>Simulation summary</span></div>
+      <section className="rail-metrics" aria-label={messages.summaryAria}>
+        <div className="rail-heading"><span>{messages.summary}</span></div>
         <article className="rail-metric">
-          <span>Latest sample mean</span>
+          <span>{messages.latestMean}</span>
           <strong data-role="latest-mean">—</strong>
         </article>
         <article className="rail-metric">
-          <span>Repeated samples</span>
+          <span>{messages.repeatedSamples}</span>
           <strong data-role="sample-count">0</strong>
         </article>
         <article className="rail-metric">
-          <span>Empirical SE</span>
+          <span>{messages.empiricalSe}</span>
           <strong data-role="empirical-se">—</strong>
         </article>
       </section>

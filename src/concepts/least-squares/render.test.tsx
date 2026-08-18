@@ -4,13 +4,14 @@ import { fitLeastSquares } from "./model";
 import { RegressionControls } from "./RegressionControls";
 import { RegressionStage } from "./RegressionStage";
 import { regressionScenarios } from "./scenarios";
+import { LocaleProvider } from "../../i18n/LocaleContext";
 
 describe("least-squares visualization", () => {
   it("renders every teaching scenario with an error landscape", () => {
     regressionScenarios.forEach((scenario) => {
       const fit = fitLeastSquares(scenario.points);
       const markup = renderToStaticMarkup(
-        <RegressionStage
+        <LocaleProvider><RegressionStage
           scenario={scenario}
           line={{ slope: scenario.initialSlope, intercept: scenario.initialIntercept }}
           fit={fit}
@@ -20,13 +21,13 @@ describe("least-squares visualization", () => {
           residualCollectionProgress={0}
           sseCollected={false}
           status="Ready"
-        />,
+        /></LocaleProvider>,
       );
 
       expect(markup).toContain("Interactive least-squares regression");
       expect(markup).toContain("Squared-error landscape");
-      expect(markup).toContain(scenario.xLabel);
-      expect(markup).toContain(scenario.yLabel);
+      expect(markup).toContain(scenario.copy.en.xLabel);
+      expect(markup).toContain(scenario.copy.en.yLabel);
       expect(markup).toContain("outcome-mean-line");
       expect(markup.match(/class="observation-point"/g)).toHaveLength(scenario.points.length);
       expect(markup).not.toContain('class="residual-square"');
@@ -37,7 +38,7 @@ describe("least-squares visualization", () => {
     const scenario = regressionScenarios[0];
     const fit = fitLeastSquares(scenario.points);
     const stage = renderToStaticMarkup(
-      <RegressionStage
+      <LocaleProvider><RegressionStage
         scenario={scenario}
         line={fit}
         fit={fit}
@@ -47,10 +48,10 @@ describe("least-squares visualization", () => {
         residualCollectionProgress={1}
         sseCollected
         status="Minimum found"
-      />,
+      /></LocaleProvider>,
     );
     const controls = renderToStaticMarkup(
-      <RegressionControls
+      <LocaleProvider><RegressionControls
         scenario={scenario}
         line={fit}
         fit={fit}
@@ -67,7 +68,7 @@ describe("least-squares visualization", () => {
         onEvaluate={() => undefined}
         onFit={() => undefined}
         onReset={() => undefined}
-      />,
+      /></LocaleProvider>,
     );
 
     expect(stage).toContain("candidate-line-at-fit");
@@ -83,5 +84,28 @@ describe("least-squares visualization", () => {
     expect(controls).not.toContain("Collect current residuals");
     expect(controls).toContain("Line evaluated");
     expect(controls).toContain("Minimum SSE");
+  });
+
+  it("renders Dutch teaching copy and decimal commas", () => {
+    const scenario = regressionScenarios[1];
+    const fit = fitLeastSquares(scenario.points);
+    const markup = renderToStaticMarkup(
+      <LocaleProvider initial="nl"><RegressionStage
+        scenario={scenario}
+        line={fit}
+        fit={fit}
+        hasRevealedFit
+        squareRevealProgress={1}
+        sseCollectionProgress={1}
+        residualCollectionProgress={1}
+        sseCollected
+        status="Minimum gevonden"
+      /></LocaleProvider>,
+    );
+
+    expect(markup).toContain("Interactieve kleinste-kwadratenregressie");
+    expect(markup).toContain("Residuen van de huidige lijn");
+    expect(markup).toContain(scenario.copy.nl.xLabel);
+    expect(markup).toMatch(/\d,\d/);
   });
 });

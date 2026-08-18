@@ -11,7 +11,8 @@ The current concept library includes:
   reference, residual squares, an animated SSE accumulator, the slope–intercept error landscape,
   and a residual dot plot for the current candidate line.
 
-Both explorations support presentation mode and reduced motion. The sampling journey also supports
+The library and both explorations support English and Dutch, presentation mode, and reduced motion.
+The language choice persists between pages and visits. The sampling journey also supports
 deterministic replay and fast batch generation.
 
 ## Run locally
@@ -37,6 +38,7 @@ npm run test:e2e
 
 - `src/app`: application shell and the small concept registry
 - `src/concepts`: self-contained concept features with their own model, controls, stage, and styles
+- `src/i18n`: global locale state, persistence, and locale-aware number formatting
 - `src/domain`: pure probability, random-number, and statistical functions
 - `src/runtime`: concept-independent animation and simulation lifecycle utilities
 - `src/visualization`: low-level SVG helpers shared only when concepts genuinely need them

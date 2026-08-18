@@ -2,6 +2,7 @@ import { normalDensity } from "../../domain/distributions/normal";
 import { createRng, randomSeed, type RNG } from "../../domain/rng";
 import { AnimationRuntime } from "../../runtime/AnimationRuntime";
 import { appendSvgText, clearSvg, svgElement } from "../../visualization/svg";
+import { formatNumber, localeTag, type Locale } from "../../i18n/LocaleContext";
 import {
   createHistogramPlan,
   histogramBin,
@@ -15,6 +16,7 @@ import {
   theoreticalStandardError,
   type SamplingConfiguration,
 } from "./model";
+import { samplingMessages, type SamplingMessages } from "./messages";
 
 const LEFT = 92;
 const RIGHT = 1140;
@@ -42,6 +44,7 @@ interface HistogramBar {
 }
 
 export class SamplingJourneyController {
+  private readonly messages: SamplingMessages;
   private configuration: SamplingConfiguration;
   private seed = 314159;
   private rng: RNG;
@@ -80,7 +83,8 @@ export class SamplingJourneyController {
   private readonly empiricalSeOutput: HTMLElement;
   private readonly runtime: AnimationRuntime;
 
-  constructor(private readonly root: HTMLElement) {
+  constructor(private readonly root: HTMLElement, private readonly locale: Locale) {
+    this.messages = samplingMessages[locale];
     this.populationLayer = this.layer("population");
     this.populationSampleLayer = this.layer("population-sample");
     this.sampleLayer = this.layer("sample");
@@ -159,22 +163,22 @@ export class SamplingJourneyController {
     this.listen(this.generateHundredButton, "click", () => this.generateBatch(100));
     this.listen(this.pauseButton, "click", () => this.togglePause());
     this.listen(this.resetButton, "click", () =>
-      this.resetSimulation("Reset complete. The same seed will replay the same samples."),
+      this.resetSimulation(this.messages.status.resetReplay),
     );
     this.listen(this.newSeedButton, "click", () => {
       this.seed = randomSeed();
-      this.resetSimulation("A new random seed is ready. Draw one sample to begin.");
+      this.resetSimulation(this.messages.status.newSeed);
     });
     this.listen(this.fullscreenButton, "click", () => void this.toggleFullscreen());
     this.listen(document, "fullscreenchange", () => {
       this.fullscreenButton.textContent =
-        document.fullscreenElement === null ? "Presentation mode" : "Exit presentation";
+        document.fullscreenElement === null ? this.messages.presentation : this.messages.exitPresentation;
     });
 
     [this.meanInput, this.sdInput, this.sampleSizeInput].forEach((control) => {
       this.listen(control, "change", () =>
         this.resetSimulation(
-          "The population or sample size changed, so the sampling distribution has been reset.",
+          this.messages.status.configurationReset,
         ),
       );
     });
@@ -183,7 +187,7 @@ export class SamplingJourneyController {
       if (this.reduceMotionInput.checked) {
         this.runtime.finishActiveAnimations();
         this.setStatus(
-          "Reduced motion is enabled. The same conceptual steps will appear without long movement.",
+          this.messages.status.reducedMotion,
         );
       }
     });
@@ -243,7 +247,7 @@ export class SamplingJourneyController {
       .forEach((value) => {
         const x = this.scale(value);
         parent.append(svgElement("line", { x1: x, y1: y, x2: x, y2: y + 7, class: "tick-line" }));
-        appendSvgText(parent, value.toFixed(1), x, y + 24, "axis-label", "middle");
+        appendSvgText(parent, this.format(value, 1), x, y + 24, "axis-label", "middle");
       });
   }
 
@@ -252,10 +256,10 @@ export class SamplingJourneyController {
     clearSvg(this.distributionReferenceLayer);
     clearSvg(this.annotationLayer);
 
-    appendSvgText(this.populationLayer, "1  Population model", 58, 62, "zone-title");
+    appendSvgText(this.populationLayer, this.messages.stage.populationTitle, 58, 62, "zone-title");
     appendSvgText(
       this.populationLayer,
-      "The population is fixed. Outlined orange points retain values from the latest sample.",
+      this.messages.stage.populationSubtitle,
       58,
       84,
       "zone-subtitle",
@@ -263,10 +267,10 @@ export class SamplingJourneyController {
     this.populationLayer.append(svgElement("path", { d: this.densityPath(), class: "population-curve" }));
     this.renderAxis(this.populationLayer, POPULATION_AXIS_Y);
 
-    appendSvgText(this.annotationLayer, "2  One random sample", 58, 306, "zone-title");
+    appendSvgText(this.annotationLayer, this.messages.stage.sampleTitle, 58, 306, "zone-title");
     appendSvgText(
       this.annotationLayer,
-      `The observations vary from sample to sample, even though n = ${this.configuration.sampleSize} stays fixed.`,
+      this.messages.stage.sampleSubtitle(this.configuration.sampleSize),
       58,
       328,
       "zone-subtitle",
@@ -275,14 +279,14 @@ export class SamplingJourneyController {
 
     appendSvgText(
       this.distributionReferenceLayer,
-      "3  Sampling distribution of the sample mean",
+      this.messages.stage.distributionTitle,
       58,
       530,
       "zone-title",
     );
     appendSvgText(
       this.distributionReferenceLayer,
-      `Bars count sample means in intervals of width ${this.formatCompact(this.histogramPlan().binWidth)}. All panels share the same x-axis.`,
+      this.messages.stage.distributionSubtitle(this.formatCompact(this.histogramPlan().binWidth)),
       58,
       552,
       "zone-subtitle",
@@ -294,7 +298,7 @@ export class SamplingJourneyController {
       this.populationLayer.append(
         svgElement("line", { x1: meanX, y1: 76, x2: meanX, y2: POPULATION_AXIS_Y, class: "true-mean-line" }),
       );
-      appendSvgText(this.populationLayer, "true mean", meanX + 8, 96, "true-mean-label");
+      appendSvgText(this.populationLayer, this.messages.stage.trueMean, meanX + 8, 96, "true-mean-label");
       this.distributionReferenceLayer.append(
         svgElement("line", {
           x1: meanX,
@@ -372,16 +376,22 @@ export class SamplingJourneyController {
       });
       const title = svgElement("title");
       const percentage = this.estimates.length === 0 ? 0 : (100 * bar.count) / this.estimates.length;
-      title.textContent = `${this.formatCompact(bar.lower)} to ${this.formatCompact(bar.upper)}: ${bar.count.toLocaleString()} sample mean${bar.count === 1 ? "" : "s"} (${percentage.toFixed(1)}%)`;
+      title.textContent = this.messages.stage.squaredRangeTitle(
+        this.formatCompact(bar.lower),
+        this.formatCompact(bar.upper),
+        this.formatCount(bar.count),
+        this.format(percentage, 1),
+        bar.count === 1,
+      );
       rectangle.append(title);
       this.histogramLayer.append(rectangle);
     });
     this.histogramLayer.append(
       svgElement("line", { x1: LEFT, y1: HISTOGRAM_TOP_Y, x2: LEFT, y2: HISTOGRAM_BOTTOM_Y, class: "histogram-count-axis" }),
     );
-    appendSvgText(this.histogramLayer, layout.yMaximum.toLocaleString(), LEFT - 9, HISTOGRAM_TOP_Y + 4, "histogram-count-label", "end");
+    appendSvgText(this.histogramLayer, this.formatCount(layout.yMaximum), LEFT - 9, HISTOGRAM_TOP_Y + 4, "histogram-count-label", "end");
     appendSvgText(this.histogramLayer, "0", LEFT - 9, HISTOGRAM_BOTTOM_Y + 4, "histogram-count-label", "end");
-    appendSvgText(this.histogramLayer, "count", LEFT - 9, HISTOGRAM_TOP_Y - 8, "histogram-count-title", "end");
+    appendSvgText(this.histogramLayer, this.messages.stage.count, LEFT - 9, HISTOGRAM_TOP_Y - 8, "histogram-count-title", "end");
   }
 
   private renderMeanMarker(estimate: number) {
@@ -389,7 +399,7 @@ export class SamplingJourneyController {
     const x = this.scale(estimate);
     const line = svgElement("line", { x1: x, y1: 338, x2: x, y2: SAMPLE_AXIS_Y, class: "sample-mean-line" });
     this.meanLayer.append(line);
-    const label = appendSvgText(this.meanLayer, `sample mean = ${this.format(estimate)}`, x, 355, "sample-mean-label", "middle");
+    const label = appendSvgText(this.meanLayer, `${this.messages.stage.sampleMean} = ${this.format(estimate)}`, x, 355, "sample-mean-label", "middle");
     return { line, label };
   }
 
@@ -431,7 +441,7 @@ export class SamplingJourneyController {
 
   private renderMetrics() {
     this.latestMeanOutput.textContent = this.format(this.latestEstimate);
-    this.sampleCountOutput.textContent = this.estimates.length.toLocaleString();
+    this.sampleCountOutput.textContent = this.formatCount(this.estimates.length);
     this.empiricalSeOutput.textContent = this.format(empiricalStandardError(this.estimates));
     this.seedOutput.textContent = String(this.seed);
   }
@@ -442,7 +452,7 @@ export class SamplingJourneyController {
     clearSvg(this.populationSampleLayer);
     clearSvg(this.meanLayer);
     clearSvg(this.transitionLayer);
-    this.setStatus(`Step 1 of 4: draw ${this.configuration.sampleSize} random observations from the population.`);
+    this.setStatus(this.messages.status.step1(this.configuration.sampleSize));
 
     const circles = sample.map((value, index) => {
       const origin = { x: this.scale(value), y: this.populationCurveY(value) };
@@ -485,7 +495,7 @@ export class SamplingJourneyController {
         }),
       );
     });
-    this.setStatus("Step 2 of 4: retain the sampled values above and place the observations in panel 2.");
+    this.setStatus(this.messages.status.step2);
 
     await Promise.all(
       circles.map(async ({ circle, origin, target, index }) => {
@@ -514,7 +524,7 @@ export class SamplingJourneyController {
     this.latestSample = sample;
     this.latestEstimate = estimate;
     this.renderMetrics();
-    this.setStatus(`Step 3 of 4: calculate the mean and mark its value, ${this.format(estimate)}.`);
+    this.setStatus(this.messages.status.step3(this.format(estimate)));
     await this.animateMeanMarker(estimate);
     await this.runtime.delay(600, token);
     if (!this.runtime.isCurrent(token)) return;
@@ -525,14 +535,14 @@ export class SamplingJourneyController {
     movingMean.append(svgElement("circle", { cx: start.x, cy: start.y, r: 8, class: "moving-estimate" }));
     appendSvgText(
       movingMean,
-      `mean ${this.format(estimate)}`,
+      `${this.messages.stage.mean} ${this.format(estimate)}`,
       start.x + (start.x > RIGHT - 150 ? -14 : 14),
       start.y + 5,
       "moving-mean-label",
       start.x > RIGHT - 150 ? "end" : "start",
     );
     this.transitionLayer.append(movingMean);
-    this.setStatus("Step 4 of 4: move only the calculated mean into the sampling distribution.");
+    this.setStatus(this.messages.status.step4);
     await this.runtime.animate(
       movingMean,
       [
@@ -547,9 +557,7 @@ export class SamplingJourneyController {
     this.estimates.push(estimate);
     this.renderHistogram(histogramBin(estimate, this.histogramPlan()));
     this.renderMetrics();
-    this.setStatus(
-      `${this.estimates.length.toLocaleString()} sample${this.estimates.length === 1 ? " has" : "s have"} produced ${this.estimates.length.toLocaleString()} mean${this.estimates.length === 1 ? "" : "s"}.`,
-    );
+    this.setStatus(this.messages.status.sampleSummary(this.formatCount(this.estimates.length), this.estimates.length === 1));
     await this.runtime.delay(220, token);
   }
 
@@ -581,17 +589,17 @@ export class SamplingJourneyController {
     this.renderLatestSampleImmediately();
     this.renderHistogram(histogramBin(latest.estimate, this.histogramPlan()));
     this.renderMetrics();
-    this.setStatus(`${count} samples were generated quickly. Every sample contributed exactly one mean.`);
+    this.setStatus(this.messages.status.batch(this.formatCount(count)));
   }
 
   private togglePause() {
     if (!this.busy) return;
     const paused = this.runtime.togglePaused();
-    this.pauseButton.textContent = paused ? "Resume" : "Pause";
-    this.setStatus(paused ? "Animation paused." : "Animation resumed.");
+    this.pauseButton.textContent = paused ? this.messages.controls.resume : this.messages.controls.pause;
+    this.setStatus(paused ? this.messages.status.paused : this.messages.status.resumed);
   }
 
-  private resetSimulation(message = "Draw one sample to begin.") {
+  private resetSimulation(message = this.messages.status.initial) {
     this.runtime.cancel();
     this.busy = false;
     this.configuration = this.readConfiguration();
@@ -617,7 +625,7 @@ export class SamplingJourneyController {
       control.disabled = this.busy;
     });
     this.pauseButton.disabled = !this.busy;
-    this.pauseButton.textContent = this.runtime.isPaused ? "Resume" : "Pause";
+    this.pauseButton.textContent = this.runtime.isPaused ? this.messages.controls.resume : this.messages.controls.pause;
   }
 
   private async toggleFullscreen() {
@@ -628,7 +636,7 @@ export class SamplingJourneyController {
         await document.exitFullscreen();
       }
     } catch {
-      this.setStatus("Fullscreen mode is not available in this browser.");
+      this.setStatus(this.messages.status.fullscreenUnavailable);
     }
   }
 
@@ -637,11 +645,17 @@ export class SamplingJourneyController {
   }
 
   private format(value: number | null, digits = 2) {
-    return value === null || !Number.isFinite(value) ? "—" : value.toFixed(digits);
+    return value === null || !Number.isFinite(value)
+      ? "—"
+      : formatNumber(value, this.locale, digits, digits);
   }
 
   private formatCompact(value: number) {
-    return Number(value.toPrecision(3)).toString();
+    return new Intl.NumberFormat(localeTag(this.locale), { maximumSignificantDigits: 3 }).format(value);
+  }
+
+  private formatCount(value: number) {
+    return value.toLocaleString(localeTag(this.locale));
   }
 
   private niceCountMaximum(value: number) {

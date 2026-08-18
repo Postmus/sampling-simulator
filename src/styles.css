@@ -63,6 +63,9 @@ h1, h2, h3, p { margin-top: 0; }
   margin: 0 auto;
   padding: clamp(3rem, 8vw, 7rem) 0;
 }
+.library-toolbar { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+.language-selector { display: flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.72rem; font-weight: 750; white-space: nowrap; }
+.language-selector select { min-height: 36px; padding: 0.35rem 1.8rem 0.35rem 0.55rem; }
 .library-header { max-width: 760px; }
 .library-header h1 {
   margin-bottom: 1rem;

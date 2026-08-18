@@ -34,6 +34,7 @@
 .regression-title h1 { margin: 0; font-size: clamp(1.2rem, 1.7vw, 1.6rem); line-height: 1.1; letter-spacing: -0.025em; }
 .regression-title > p:last-child { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.75rem; }
 .regression-header-actions { display: flex; align-items: center; gap: 0.7rem; }
+.regression-header-actions .language-selector span { display: none; }
 .regression-motion-toggle { display: flex; align-items: center; gap: 0.35rem; color: var(--muted); font-size: 0.7rem; font-weight: 750; white-space: nowrap; }
 .regression-motion-toggle input { min-height: auto; margin: 0; accent-color: var(--blue); }
 .regression-presentation-button { min-height: 36px; padding: 0.45rem 0.75rem; font-size: 0.78rem; }

@@ -1,5 +1,7 @@
 import { regressionScenarios, type RegressionScenario } from "./scenarios";
 import type { RegressionFit, RegressionLine } from "./model";
+import { formatNumber, useLocale, type Locale } from "../../i18n/LocaleContext";
+import { leastSquaresMessages } from "./messages";
 
 interface RegressionControlsProps {
   scenario: RegressionScenario;
@@ -20,52 +22,55 @@ interface RegressionControlsProps {
   onReset: () => void;
 }
 
-function format(value: number) {
-  return Number(value.toFixed(2)).toString();
+function format(value: number, locale: Locale) {
+  return formatNumber(value, locale, 2);
 }
 
-function equation(line: RegressionLine) {
+function equation(line: RegressionLine, locale: Locale) {
   const sign = line.slope < 0 ? "−" : "+";
-  return `ŷ = ${format(line.intercept)} ${sign} ${format(Math.abs(line.slope))}x`;
+  return `ŷ = ${format(line.intercept, locale)} ${sign} ${format(Math.abs(line.slope), locale)}x`;
 }
 
 export function RegressionControls(props: RegressionControlsProps) {
+  const { locale } = useLocale();
+  const messages = leastSquaresMessages[locale];
+  const scenarioCopy = props.scenario.copy[locale];
   const atBestFit =
     Math.abs(props.line.slope - props.fit.slope) < props.scenario.slopeStep / 2 &&
     Math.abs(props.line.intercept - props.fit.intercept) < props.scenario.interceptStep / 2;
   const busy = props.fitting || props.collectingSse || props.collectingResiduals;
 
   return (
-    <aside className="regression-control-rail" aria-label="Regression exploration controls">
+    <aside className="regression-control-rail" aria-label={messages.controls.aria}>
       <section className="regression-rail-section">
         <div className="regression-rail-heading">
-          <span>Dataset</span>
+          <span>{messages.controls.dataset}</span>
         </div>
         <label className="regression-field">
-          <span>Teaching scenario</span>
+          <span>{messages.controls.teachingScenario}</span>
           <select
             value={props.scenario.id}
             disabled={busy}
             onChange={(event) => props.onScenarioChange(event.target.value)}
           >
             {regressionScenarios.map((scenario) => (
-              <option value={scenario.id} key={scenario.id}>{scenario.title}</option>
+              <option value={scenario.id} key={scenario.id}>{scenario.copy[locale].title}</option>
             ))}
           </select>
         </label>
-        <p className="scenario-description">{props.scenario.description}</p>
+        <p className="scenario-description">{scenarioCopy.description}</p>
       </section>
 
       <section className="regression-rail-section">
         <div className="regression-rail-heading">
-          <span>Candidate line</span>
-          <small>Move either parameter</small>
+          <span>{messages.controls.candidateLine}</span>
+          <small>{messages.controls.moveParameter}</small>
         </div>
         <label className="slider-field">
-          <span><span>Slope</span><output>{format(props.line.slope)}</output></span>
+          <span><span>{messages.controls.slope}</span><output>{format(props.line.slope, locale)}</output></span>
           <input
             type="range"
-            aria-label="Slope"
+            aria-label={messages.controls.slope}
             min={props.scenario.slopeDomain[0]}
             max={props.scenario.slopeDomain[1]}
             step={props.scenario.slopeStep}
@@ -75,10 +80,10 @@ export function RegressionControls(props: RegressionControlsProps) {
           />
         </label>
         <label className="slider-field">
-          <span><span>Intercept</span><output>{format(props.line.intercept)}</output></span>
+          <span><span>{messages.controls.intercept}</span><output>{format(props.line.intercept, locale)}</output></span>
           <input
             type="range"
-            aria-label="Intercept"
+            aria-label={messages.controls.intercept}
             min={props.scenario.interceptDomain[0]}
             max={props.scenario.interceptDomain[1]}
             step={props.scenario.interceptStep}
@@ -95,38 +100,38 @@ export function RegressionControls(props: RegressionControlsProps) {
             onClick={props.onEvaluate}
           >
             {props.collectingSse || props.collectingResiduals
-              ? "Evaluating line…"
+              ? messages.controls.evaluating
               : props.sseCollected && props.residualsCollected
-                ? "Line evaluated"
-                : "Evaluate this line"}
+                ? messages.controls.evaluated
+                : messages.controls.evaluate}
           </button>
           <button className="primary" type="button" disabled={busy || (atBestFit && props.hasRevealedFit)} onClick={props.onFit}>
             {props.fitting
-              ? "Finding the minimum…"
+              ? messages.controls.findingMinimum
               : atBestFit && props.hasRevealedFit
-                ? "Best fit found"
+                ? messages.controls.bestFitFound
                 : atBestFit
-                  ? "Confirm best-fitting line"
-                  : "Find best-fitting line"}
+                  ? messages.controls.confirmBestFit
+                  : messages.controls.findBestFit}
           </button>
           <button className="secondary reset-line-button" type="button" disabled={busy} onClick={props.onReset}>
-            Reset line
+            {messages.controls.reset}
           </button>
         </div>
       </section>
 
-      <section className="regression-metrics" aria-label="Regression metrics">
-        <div className="regression-rail-heading"><span>Line and error</span></div>
+      <section className="regression-metrics" aria-label={messages.controls.metricsAria}>
+        <div className="regression-rail-heading"><span>{messages.controls.lineAndError}</span></div>
         <article className="equation-metric">
-          <span>Candidate equation</span>
-          <strong>{equation(props.line)}</strong>
+          <span>{messages.controls.candidateEquation}</span>
+          <strong>{equation(props.line, locale)}</strong>
         </article>
         <article className="equation-metric">
-          <span>Candidate SSE</span>
-          <strong>{format(props.candidateSse)}</strong>
+          <span>{messages.controls.candidateSse}</span>
+          <strong>{format(props.candidateSse, locale)}</strong>
         </article>
         {props.hasRevealedFit && (
-          <p className="minimum-sse-note">Minimum SSE: <strong>{format(props.fit.sse)}</strong></p>
+          <p className="minimum-sse-note">{messages.controls.minimumSse}: <strong>{format(props.fit.sse, locale)}</strong></p>
         )}
       </section>
     </aside>

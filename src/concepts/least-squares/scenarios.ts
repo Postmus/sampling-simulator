@@ -1,11 +1,16 @@
 import type { RegressionPoint } from "./model";
+import type { Locale } from "../../i18n/LocaleContext";
 
-export interface RegressionScenario {
-  id: string;
+export interface RegressionScenarioCopy {
   title: string;
   description: string;
   xLabel: string;
   yLabel: string;
+}
+
+export interface RegressionScenario {
+  id: string;
+  copy: Record<Locale, RegressionScenarioCopy>;
   xDomain: [number, number];
   yDomain: [number, number];
   slopeDomain: [number, number];
@@ -20,10 +25,10 @@ export interface RegressionScenario {
 export const regressionScenarios: RegressionScenario[] = [
   {
     id: "study-hours",
-    title: "Study hours and exam score",
-    description: "A clear positive linear relationship with ordinary sample-to-sample variation.",
-    xLabel: "Study hours per week",
-    yLabel: "Exam score",
+    copy: {
+      en: { title: "Study hours and exam score", description: "A clear positive linear relationship with ordinary sample-to-sample variation.", xLabel: "Study hours per week", yLabel: "Exam score" },
+      nl: { title: "Studie-uren en tentamencijfer", description: "Een duidelijk positief lineair verband met normale variatie tussen steekproeven.", xLabel: "Studie-uren per week", yLabel: "Tentamencijfer" },
+    },
     xDomain: [0, 10],
     yDomain: [40, 100],
     slopeDomain: [-2, 10],
@@ -46,10 +51,10 @@ export const regressionScenarios: RegressionScenario[] = [
   },
   {
     id: "screen-sleep",
-    title: "Screen time and sleep",
-    description: "A negative relationship with modest noise around the fitted line.",
-    xLabel: "Evening screen time (hours)",
-    yLabel: "Sleep duration (hours)",
+    copy: {
+      en: { title: "Screen time and sleep", description: "A negative relationship with modest noise around the fitted line.", xLabel: "Evening screen time (hours)", yLabel: "Sleep duration (hours)" },
+      nl: { title: "Schermtijd en slaap", description: "Een negatief verband met beperkte ruis rond de best passende lijn.", xLabel: "Schermtijd in de avond (uren)", yLabel: "Slaapduur (uren)" },
+    },
     xDomain: [0, 10],
     yDomain: [4.5, 10],
     slopeDomain: [-1, 0.5],
@@ -72,10 +77,10 @@ export const regressionScenarios: RegressionScenario[] = [
   },
   {
     id: "leverage",
-    title: "A high-leverage observation",
-    description: "One observation far from the others in x has unusual power to rotate the line.",
-    xLabel: "Practice sessions",
-    yLabel: "Performance score",
+    copy: {
+      en: { title: "A high-leverage observation", description: "One observation far from the others in x has unusual power to rotate the line.", xLabel: "Practice sessions", yLabel: "Performance score" },
+      nl: { title: "Een waarneming met grote invloed", description: "Eén waarneming ver van de overige x-waarden kan de lijn uitzonderlijk sterk draaien.", xLabel: "Oefensessies", yLabel: "Prestatiescore" },
+    },
     xDomain: [0, 13],
     yDomain: [40, 100],
     slopeDomain: [-2, 8],
@@ -96,10 +101,10 @@ export const regressionScenarios: RegressionScenario[] = [
   },
   {
     id: "curved",
-    title: "A relationship that is not linear",
-    description: "A fitted line can miss a strong relationship when the underlying pattern is curved.",
-    xLabel: "Temperature deviation",
-    yLabel: "Energy use",
+    copy: {
+      en: { title: "A relationship that is not linear", description: "A fitted line can miss a strong relationship when the underlying pattern is curved.", xLabel: "Temperature deviation", yLabel: "Energy use" },
+      nl: { title: "Een verband dat niet lineair is", description: "Een best passende lijn kan een sterk verband missen wanneer het onderliggende patroon gebogen is.", xLabel: "Temperatuurafwijking", yLabel: "Energieverbruik" },
+    },
     xDomain: [-5.5, 5.5],
     yDomain: [25, 100],
     slopeDomain: [-8, 8],

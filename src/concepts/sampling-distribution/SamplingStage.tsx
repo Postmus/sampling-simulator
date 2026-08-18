@@ -1,18 +1,20 @@
+import { useLocale } from "../../i18n/LocaleContext";
+import { samplingMessages } from "./messages";
+
 export function SamplingStage() {
+  const { locale } = useLocale();
+  const messages = samplingMessages[locale].stage;
   return (
-    <section className="stage-card" aria-label="Animated sampling process">
+    <section className="stage-card" aria-label={messages.aria}>
       <div className="stage-heading-row">
         <p data-role="status" className="status" role="status" aria-live="polite">
-          Draw one sample to begin.
+          {messages.initialStatus}
         </p>
       </div>
       <div className="svg-wrap">
         <svg data-role="stage" viewBox="0 0 1200 760" role="img" aria-labelledby="svg-title svg-description">
-          <title id="svg-title">Animated sampling journey</title>
-          <desc id="svg-description">
-            A random sample appears in the population panel and moves to the sample panel. Its mean
-            then moves into a histogram of means from repeated samples.
-          </desc>
+          <title id="svg-title">{messages.svgTitle}</title>
+          <desc id="svg-description">{messages.svgDescription}</desc>
           <rect className="zone-background population-zone" x="30" y="28" width="1140" height="225" rx="24" />
           <rect className="zone-background sample-zone" x="30" y="272" width="1140" height="205" rx="24" />
           <rect className="zone-background distribution-zone" x="30" y="496" width="1140" height="235" rx="24" />

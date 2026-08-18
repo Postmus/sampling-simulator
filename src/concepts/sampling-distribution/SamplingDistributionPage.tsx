@@ -2,31 +2,37 @@ import { useEffect, useRef } from "react";
 import { SamplingControls } from "./SamplingControls";
 import { SamplingJourneyController } from "./SamplingJourneyController";
 import { SamplingStage } from "./SamplingStage";
+import { LanguageSelector } from "../../app/LanguageSelector";
+import { useLocale } from "../../i18n/LocaleContext";
+import { samplingMessages } from "./messages";
 import "./sampling-distribution.css";
 
 export default function SamplingDistributionPage() {
+  const { locale } = useLocale();
+  const messages = samplingMessages[locale];
   const rootRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (rootRef.current === null) {
       return;
     }
-    const controller = new SamplingJourneyController(rootRef.current);
+    const controller = new SamplingJourneyController(rootRef.current, locale);
     return () => controller.destroy();
-  }, []);
+  }, [locale]);
 
   return (
     <main className="sampling-journey" ref={rootRef}>
       <header className="compact-header">
-        <a className="back-link" href="#/" aria-label="Back to concept library">← Library</a>
+        <a className="back-link" href="#/" aria-label={messages.backAria}>← {messages.library}</a>
         <div className="compact-title">
-          <p className="eyebrow">Sampling and estimation</p>
-          <h1>Sampling distribution of the sample mean</h1>
-          <p className="header-subtitle">Variation across repeated samples from a normal population</p>
+          <p className="eyebrow">{messages.eyebrow}</p>
+          <h1>{messages.title}</h1>
+          <p className="header-subtitle">{messages.subtitle}</p>
         </div>
-        <button data-role="fullscreen" className="secondary compact-button" type="button">
-          Presentation mode
-        </button>
+        <div className="compact-header-actions">
+          <LanguageSelector />
+          <button data-role="fullscreen" className="secondary compact-button" type="button">{messages.presentation}</button>
+        </div>
       </header>
 
       <div className="workspace-layout">

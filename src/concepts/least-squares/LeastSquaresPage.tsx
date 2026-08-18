@@ -4,6 +4,9 @@ import { fitLeastSquares, sumSquaredErrors, type RegressionLine } from "./model"
 import { RegressionControls } from "./RegressionControls";
 import { RegressionStage } from "./RegressionStage";
 import { getRegressionScenario } from "./scenarios";
+import { LanguageSelector } from "../../app/LanguageSelector";
+import { useLocale } from "../../i18n/LocaleContext";
+import { leastSquaresMessages, type LeastSquaresMessages } from "./messages";
 import "./least-squares.css";
 
 function initialReducedMotion() {
@@ -11,6 +14,8 @@ function initialReducedMotion() {
 }
 
 export default function LeastSquaresPage() {
+  const { locale } = useLocale();
+  const messages = leastSquaresMessages[locale];
   const rootRef = useRef<HTMLElement>(null);
   const [scenarioId, setScenarioId] = useState("study-hours");
   const scenario = getRegressionScenario(scenarioId);
@@ -30,9 +35,7 @@ export default function LeastSquaresPage() {
   const [sseCollected, setSseCollected] = useState(false);
   const [residualsCollected, setResidualsCollected] = useState(false);
   const [hasRevealedFit, setHasRevealedFit] = useState(false);
-  const [status, setStatus] = useState(
-    "Move the candidate line, then evaluate it to collect its squared and signed residuals.",
-  );
+  const [status, setStatus] = useState<keyof LeastSquaresMessages["status"]>("initial");
   const [fullscreen, setFullscreen] = useState(false);
   const runtimeRef = useRef<AnimationRuntime | null>(null);
 
@@ -76,7 +79,7 @@ export default function LeastSquaresPage() {
     setFitting(false);
     clearCollections();
     setHasRevealedFit(false);
-    setStatus("A new dataset is ready. Move the candidate line, then evaluate it.");
+    setStatus("newDataset");
   }
 
   function changeLine(nextLine: RegressionLine) {
@@ -85,7 +88,7 @@ export default function LeastSquaresPage() {
     clearCollections();
     setHasRevealedFit(false);
     setLine(nextLine);
-    setStatus("The candidate line moved. Choose “Evaluate this line” when you are satisfied with it.");
+    setStatus("lineMoved");
   }
 
   async function evaluateCurrentLine(isBestFit = hasRevealedFit) {
@@ -101,7 +104,7 @@ export default function LeastSquaresPage() {
     setSseCollected(false);
     setResidualsCollected(false);
     setCollectingSse(true);
-    setStatus("Each vertical residual is expanding into a square with side length |residual|.");
+    setStatus("revealSquares");
 
     await runtime.tween(560, token, setSquareRevealProgress);
     if (!runtime.isCurrent(token)) {
@@ -111,7 +114,7 @@ export default function LeastSquaresPage() {
     setSquareRevealProgress(1);
     setCollectingSse(false);
     setCollectingResiduals(true);
-    setStatus("The current line’s signed residuals are moving onto the residual axis.");
+    setStatus("collectResiduals");
 
     await runtime.tween(1050, token, setResidualCollectionProgress);
     if (!runtime.isCurrent(token)) {
@@ -122,18 +125,14 @@ export default function LeastSquaresPage() {
     setResidualsCollected(true);
     setCollectingResiduals(false);
     setCollectingSse(true);
-    setStatus("The residual squares are collecting into the current line’s total SSE.");
+    setStatus("collectSse");
 
     await runtime.tween(1050, token, setSseCollectionProgress);
     if (runtime.isCurrent(token)) {
       setSseCollectionProgress(1);
       setSseCollected(true);
       setCollectingSse(false);
-      setStatus(
-        isBestFit
-          ? "Best fit complete: the residual plot shows its signed errors, and the bar is the minimum SSE."
-          : "The lower panels now summarize the current candidate line.",
-      );
+      setStatus(isBestFit ? "fitComplete" : "candidateComplete");
     }
   }
 
@@ -150,7 +149,7 @@ export default function LeastSquaresPage() {
     setSseCollected(false);
     setResidualsCollected(false);
     setSquareRevealProgress(0);
-    setStatus("Searching the slope–intercept landscape for the smallest sum of squared residuals.");
+    setStatus("search");
 
     await runtime.tween(1150, token, (progress) => {
       const eased = 1 - (1 - progress) ** 3;
@@ -167,7 +166,7 @@ export default function LeastSquaresPage() {
     setLine({ slope: fit.slope, intercept: fit.intercept });
     setFitting(false);
     setHasRevealedFit(true);
-    setStatus("Minimum found. Its squared and signed residuals will now be collected automatically.");
+    setStatus("minimumFound");
     await evaluateCurrentLine(true);
   }
 
@@ -177,7 +176,7 @@ export default function LeastSquaresPage() {
     setFitting(false);
     clearCollections();
     setHasRevealedFit(false);
-    setStatus("The candidate line is reset. Adjust it, then choose “Evaluate this line”.");
+    setStatus("reset");
   }
 
   async function toggleFullscreen() {
@@ -188,30 +187,31 @@ export default function LeastSquaresPage() {
         await document.exitFullscreen();
       }
     } catch {
-      setStatus("Fullscreen mode is not available in this browser.");
+      setStatus("fullscreenUnavailable");
     }
   }
 
   return (
     <main className="least-squares-journey" ref={rootRef}>
       <header className="regression-header">
-        <a className="back-link" href="#/" aria-label="Back to concept library">← Library</a>
+        <a className="back-link" href="#/" aria-label={messages.backAria}>← {messages.library}</a>
         <div className="regression-title">
-          <p className="eyebrow">Relationships and regression</p>
-          <h1>How does least squares choose a line?</h1>
-          <p>Move a candidate line, inspect its errors, and follow it to the unique minimum.</p>
+          <p className="eyebrow">{messages.eyebrow}</p>
+          <h1>{messages.title}</h1>
+          <p>{messages.subtitle}</p>
         </div>
         <div className="regression-header-actions">
+          <LanguageSelector />
           <label className="regression-motion-toggle">
             <input
               type="checkbox"
               checked={reducedMotion}
               onChange={(event) => setReducedMotion(event.target.checked)}
             />
-            <span>Reduce motion</span>
+            <span>{messages.reduceMotion}</span>
           </label>
           <button className="secondary regression-presentation-button" type="button" onClick={() => void toggleFullscreen()}>
-            {fullscreen ? "Exit presentation" : "Presentation mode"}
+            {fullscreen ? messages.exitPresentation : messages.presentation}
           </button>
         </div>
       </header>
@@ -244,7 +244,7 @@ export default function LeastSquaresPage() {
           sseCollectionProgress={sseCollectionProgress}
           residualCollectionProgress={residualCollectionProgress}
           sseCollected={sseCollected}
-          status={status}
+          status={messages.status[status]}
         />
       </div>
     </main>

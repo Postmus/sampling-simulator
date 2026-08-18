@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { predict, residuals, sumSquaredErrors, type RegressionFit, type RegressionLine } from "./model";
 import type { RegressionScenario } from "./scenarios";
+import { formatNumber, useLocale, type Locale } from "../../i18n/LocaleContext";
+import { leastSquaresMessages } from "./messages";
 
 interface RegressionStageProps {
   scenario: RegressionScenario;
@@ -31,14 +33,15 @@ function ticks(domain: readonly [number, number], count = 5) {
   return Array.from({ length: count }, (_, index) => domain[0] + ((domain[1] - domain[0]) * index) / (count - 1));
 }
 
-function format(value: number) {
+function format(value: number, locale: Locale) {
   const magnitude = Math.abs(value);
-  return magnitude >= 100 ? value.toFixed(0) : magnitude >= 10 ? value.toFixed(1) : value.toFixed(2);
+  const digits = magnitude >= 100 ? 0 : magnitude >= 10 ? 1 : 2;
+  return formatNumber(value, locale, digits, digits);
 }
 
-function lineEquation(line: RegressionLine) {
+function lineEquation(line: RegressionLine, locale: Locale) {
   const sign = line.slope < 0 ? "−" : "+";
-  return `ŷ = ${format(line.intercept)} ${sign} ${format(Math.abs(line.slope))}x`;
+  return `ŷ = ${format(line.intercept, locale)} ${sign} ${format(Math.abs(line.slope), locale)}x`;
 }
 
 function staggeredProgress(progress: number, index: number, count: number) {
@@ -55,6 +58,10 @@ function residualColor(value: number) {
 }
 
 export function RegressionStage(props: RegressionStageProps) {
+  const { locale } = useLocale();
+  const messages = leastSquaresMessages[locale];
+  const scenarioCopy = props.scenario.copy[locale];
+  const formatValue = (value: number) => format(value, locale);
   const x = (value: number) => scale(value, props.scenario.xDomain, [PLOT.x, PLOT.x + PLOT.width]);
   const y = (value: number) => scale(value, props.scenario.yDomain, [PLOT.y + PLOT.height, PLOT.y]);
   const slopeX = (value: number) => scale(value, props.scenario.slopeDomain, [MAP.x, MAP.x + MAP.width]);
@@ -168,22 +175,19 @@ export function RegressionStage(props: RegressionStageProps) {
   });
 
   return (
-    <section className="regression-stage-card" aria-label="Least-squares visualization">
+    <section className="regression-stage-card" aria-label={messages.stage.aria}>
       <div className="regression-stage-heading">
         <div>
-          <span>{props.scenario.points.length} observations</span>
-          <strong>{lineEquation(props.line)}</strong>
+          <span>{messages.stage.observations(props.scenario.points.length)}</span>
+          <strong>{lineEquation(props.line, locale)}</strong>
         </div>
         <p role="status" aria-live="polite">{props.status}</p>
       </div>
 
       <div className="regression-svg-wrap">
         <svg viewBox="0 0 1200 750" role="img" aria-labelledby="regression-title regression-description">
-          <title id="regression-title">Interactive least-squares regression</title>
-          <desc id="regression-description">
-            A scatterplot with a mean line, candidate regression line, residual squares, an animated
-            squared-error accumulator, a slope-intercept error map, and a residual plot for the current line.
-          </desc>
+          <title id="regression-title">{messages.stage.svgTitle}</title>
+          <desc id="regression-description">{messages.stage.svgDescription}</desc>
           <defs>
             <clipPath id="regression-plot-clip">
               <rect x={PLOT.x} y={PLOT.y} width={PLOT.width} height={PLOT.height} rx="8" />
@@ -194,27 +198,27 @@ export function RegressionStage(props: RegressionStageProps) {
           </defs>
 
           <rect className="regression-panel-background" x="34" y="30" width="760" height="495" rx="24" />
-          <text className="regression-zone-title" x="62" y="65">Data, deviations, and squared errors</text>
+          <text className="regression-zone-title" x="62" y="65">{messages.stage.dataTitle}</text>
           <text className="regression-zone-subtitle" x="62" y="84">
-            The dashed mean line is the reference model; every square has side length |residual|.
+            {messages.stage.dataSubtitle}
           </text>
 
           {ticks(props.scenario.yDomain).map((value) => (
             <g key={`y-${value}`}>
               <line className="regression-grid-line" x1={PLOT.x} x2={PLOT.x + PLOT.width} y1={y(value)} y2={y(value)} />
-              <text className="regression-axis-label" x={PLOT.x - 12} y={y(value) + 4} textAnchor="end">{format(value)}</text>
+              <text className="regression-axis-label" x={PLOT.x - 12} y={y(value) + 4} textAnchor="end">{formatValue(value)}</text>
             </g>
           ))}
           {ticks(props.scenario.xDomain).map((value) => (
             <g key={`x-${value}`}>
               <line className="regression-grid-line vertical" y1={PLOT.y} y2={PLOT.y + PLOT.height} x1={x(value)} x2={x(value)} />
-              <text className="regression-axis-label" x={x(value)} y={PLOT.y + PLOT.height + 21} textAnchor="middle">{format(value)}</text>
+              <text className="regression-axis-label" x={x(value)} y={PLOT.y + PLOT.height + 21} textAnchor="middle">{formatValue(value)}</text>
             </g>
           ))}
           <line className="regression-axis-line" x1={PLOT.x} x2={PLOT.x} y1={PLOT.y} y2={PLOT.y + PLOT.height} />
           <line className="regression-axis-line" x1={PLOT.x} x2={PLOT.x + PLOT.width} y1={PLOT.y + PLOT.height} y2={PLOT.y + PLOT.height} />
-          <text className="regression-axis-title" x={PLOT.x + PLOT.width / 2} y="495" textAnchor="middle">{props.scenario.xLabel}</text>
-          <text className="regression-axis-title" transform={`translate(${PLOT.x - 50} ${PLOT.y + PLOT.height / 2}) rotate(-90)`} textAnchor="middle">{props.scenario.yLabel}</text>
+          <text className="regression-axis-title" x={PLOT.x + PLOT.width / 2} y="495" textAnchor="middle">{scenarioCopy.xLabel}</text>
+          <text className="regression-axis-title" transform={`translate(${PLOT.x - 50} ${PLOT.y + PLOT.height / 2}) rotate(-90)`} textAnchor="middle">{scenarioCopy.yLabel}</text>
 
           <g clipPath="url(#regression-plot-clip)">
             <line
@@ -225,7 +229,7 @@ export function RegressionStage(props: RegressionStageProps) {
               y2={y(props.fit.yMean)}
             />
             <text className="outcome-mean-label" x={PLOT.x + PLOT.width - 8} y={y(props.fit.yMean) - 8} textAnchor="end">
-              mean of y = {format(props.fit.yMean)}
+              {messages.stage.meanOfY} = {formatValue(props.fit.yMean)}
             </text>
 
             {props.squareRevealProgress > 0 && squareGeometry.map((item, index) => {
@@ -280,7 +284,7 @@ export function RegressionStage(props: RegressionStageProps) {
               <g key={point.id}>
                 <circle className="observation-halo" cx={x(point.x)} cy={y(point.y)} r="9" />
                 <circle className="observation-point" cx={x(point.x)} cy={y(point.y)} r="5.5">
-                  <title>{`${props.scenario.xLabel}: ${format(point.x)}; ${props.scenario.yLabel}: ${format(point.y)}`}</title>
+                  <title>{`${scenarioCopy.xLabel}: ${formatValue(point.x)}; ${scenarioCopy.yLabel}: ${formatValue(point.y)}`}</title>
                 </circle>
               </g>
             ))}
@@ -288,9 +292,9 @@ export function RegressionStage(props: RegressionStageProps) {
 
           <g>
               <rect className="regression-panel-background" x="814" y="30" width="354" height="495" rx="24" />
-              <text className="regression-zone-title" x="838" y="65">Squared-error landscape</text>
-              <text className="regression-zone-subtitle" x="838" y="84">Every location represents one line.</text>
-              <text className="regression-zone-subtitle" x="838" y="103">Darker green means a smaller SSE.</text>
+              <text className="regression-zone-title" x="838" y="65">{messages.stage.landscapeTitle}</text>
+              <text className="regression-zone-subtitle" x="838" y="84">{messages.stage.landscapeLine}</text>
+              <text className="regression-zone-subtitle" x="838" y="103">{messages.stage.landscapeColor}</text>
 
               {errorCells.map((cell) => {
                 const hue = 166 - cell.intensity * 125;
@@ -307,37 +311,37 @@ export function RegressionStage(props: RegressionStageProps) {
                 );
               })}
               <rect className="error-map-border" x={MAP.x} y={MAP.y} width={MAP.width} height={MAP.height} />
-              <text className="regression-axis-title" x={MAP.x + MAP.width / 2} y={MAP.y + MAP.height + 42} textAnchor="middle">slope</text>
-              <text className="regression-axis-label" x={MAP.x} y={MAP.y + MAP.height + 19} textAnchor="middle">{format(props.scenario.slopeDomain[0])}</text>
-              <text className="regression-axis-label" x={MAP.x + MAP.width} y={MAP.y + MAP.height + 19} textAnchor="middle">{format(props.scenario.slopeDomain[1])}</text>
-              <text className="regression-axis-title" transform={`translate(${MAP.x - 48} ${MAP.y + MAP.height / 2}) rotate(-90)`} textAnchor="middle">intercept</text>
-              <text className="regression-axis-label" x={MAP.x - 10} y={MAP.y + 4} textAnchor="end">{format(props.scenario.interceptDomain[1])}</text>
-              <text className="regression-axis-label" x={MAP.x - 10} y={MAP.y + MAP.height + 4} textAnchor="end">{format(props.scenario.interceptDomain[0])}</text>
+              <text className="regression-axis-title" x={MAP.x + MAP.width / 2} y={MAP.y + MAP.height + 42} textAnchor="middle">{messages.stage.slope}</text>
+              <text className="regression-axis-label" x={MAP.x} y={MAP.y + MAP.height + 19} textAnchor="middle">{formatValue(props.scenario.slopeDomain[0])}</text>
+              <text className="regression-axis-label" x={MAP.x + MAP.width} y={MAP.y + MAP.height + 19} textAnchor="middle">{formatValue(props.scenario.slopeDomain[1])}</text>
+              <text className="regression-axis-title" transform={`translate(${MAP.x - 48} ${MAP.y + MAP.height / 2}) rotate(-90)`} textAnchor="middle">{messages.stage.intercept}</text>
+              <text className="regression-axis-label" x={MAP.x - 10} y={MAP.y + 4} textAnchor="end">{formatValue(props.scenario.interceptDomain[1])}</text>
+              <text className="regression-axis-label" x={MAP.x - 10} y={MAP.y + MAP.height + 4} textAnchor="end">{formatValue(props.scenario.interceptDomain[0])}</text>
 
               {props.hasRevealedFit && (
                 <g className="error-optimum-marker" transform={`translate(${slopeX(props.fit.slope)} ${interceptY(props.fit.intercept)})`}>
                   <circle r="10" />
                   <circle r="3" />
-                  <text x="14" y="-12">minimum</text>
+                  <text x="14" y="-12">{messages.stage.minimum}</text>
                 </g>
               )}
               <g className="error-candidate-marker" transform={`translate(${slopeX(props.line.slope)} ${interceptY(props.line.intercept)})`}>
                 <circle r="8" />
                 <line x1="-13" x2="13" />
                 <line y1="-13" y2="13" />
-                <text x="13" y="21">candidate</text>
+                <text x="13" y="21">{messages.stage.candidate}</text>
               </g>
               <text className="error-map-help" x={MAP.x + MAP.width / 2} y="487" textAnchor="middle">
-                Move either slider to travel across this map.
+                {messages.stage.mapHelp}
               </text>
           </g>
 
           <rect className="regression-panel-background" x="34" y="545" width="1134" height="178" rx="24" />
           <line className="lower-panel-divider" x1="603" x2="603" y1="565" y2="704" />
 
-          <text className="regression-zone-title lower-title" x="630" y="575">Sum of squared errors</text>
+          <text className="regression-zone-title lower-title" x="630" y="575">{messages.stage.sseTitle}</text>
           <text className="regression-zone-subtitle" x="630" y="594">
-            Each colored segment contributes one eᵢ² to the running total.
+            {messages.stage.sseSubtitle}
           </text>
           <rect className="sse-accumulator-track" x={ACCUMULATOR.x} y={ACCUMULATOR.y} width={ACCUMULATOR.width} height={ACCUMULATOR.height} rx="5" />
           <g clipPath="url(#sse-accumulator-clip)">
@@ -358,24 +362,24 @@ export function RegressionStage(props: RegressionStageProps) {
                   fill={item.color}
                   opacity={0.82}
                 >
-                  <title>{`Squared residual ${item.squaredError.toFixed(2)}`}</title>
+                  <title>{`${messages.stage.squaredResidual} ${formatNumber(item.squaredError, locale, 2, 2)}`}</title>
                 </rect>
               );
             })}
           </g>
           <text className="sse-total-label" x={ACCUMULATOR.x + ACCUMULATOR.width} y="659" textAnchor="end">
-            {props.sseCollectionProgress > 0 ? `running SSE = ${format(runningSse)}` : "Choose “Evaluate this line”"}
+            {props.sseCollectionProgress > 0 ? `${messages.stage.runningSse} = ${formatValue(runningSse)}` : messages.stage.chooseEvaluate}
           </text>
           {props.sseCollected && (
             <text className="sigma-label" x={ACCUMULATOR.x + ACCUMULATOR.width} y="702" textAnchor="end">SSE = Σeᵢ²</text>
           )}
 
-          <text className="regression-zone-title lower-title" x="62" y="575">Residuals from the current line</text>
+          <text className="regression-zone-title lower-title" x="62" y="575">{messages.stage.residualTitle}</text>
           <text className="regression-zone-subtitle" x="62" y="594">
-            Residual = observed value − predicted value.
+            {messages.stage.residualDefinition}
           </text>
           <text className="regression-zone-subtitle" x="62" y="610">
-            Negative means below the line; positive means above the line.
+            {messages.stage.residualDirection}
           </text>
           <line className="residual-histogram-axis" x1={HISTOGRAM.x} x2={HISTOGRAM.x + HISTOGRAM.width} y1={HISTOGRAM.baseline} y2={HISTOGRAM.baseline} />
           <line
@@ -385,9 +389,9 @@ export function RegressionStage(props: RegressionStageProps) {
             y1={HISTOGRAM.y}
             y2={HISTOGRAM.baseline + 5}
           />
-          <text className="regression-axis-label" x={HISTOGRAM.x} y="709" textAnchor="middle">{format(residualDomain[0])}</text>
+          <text className="regression-axis-label" x={HISTOGRAM.x} y="709" textAnchor="middle">{formatValue(residualDomain[0])}</text>
           <text className="regression-axis-label" x={HISTOGRAM.x + HISTOGRAM.width / 2} y="709" textAnchor="middle">0</text>
-          <text className="regression-axis-label" x={HISTOGRAM.x + HISTOGRAM.width} y="709" textAnchor="middle">{format(residualDomain[1])}</text>
+          <text className="regression-axis-label" x={HISTOGRAM.x + HISTOGRAM.width} y="709" textAnchor="middle">{formatValue(residualDomain[1])}</text>
           {residualTokens.map((item) => {
             if (item.progress <= 0) return null;
             const tokenX = item.sourceX + (item.targetX - item.sourceX) * item.progress;
@@ -401,13 +405,13 @@ export function RegressionStage(props: RegressionStageProps) {
                 r={4 + item.progress * 2}
                 fill={item.color}
               >
-                <title>{`Residual ${item.residual.toFixed(2)}`}</title>
+                <title>{`${messages.stage.residual} ${formatNumber(item.residual, locale, 2, 2)}`}</title>
               </circle>
             );
           })}
           {props.residualCollectionProgress === 0 && (
             <text className="residual-placeholder" x={HISTOGRAM.x + HISTOGRAM.width / 2} y="662" textAnchor="middle">
-              Evaluate the candidate line to collect its signed residuals.
+              {messages.stage.residualPlaceholder}
             </text>
           )}
         </svg>

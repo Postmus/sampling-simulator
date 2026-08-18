@@ -29,6 +29,8 @@
 .sampling-journey .compact-title .eyebrow { margin-bottom: 0.1rem; font-size: 0.58rem; }
 .sampling-journey h1 { margin: 0; font-size: clamp(1.2rem, 1.7vw, 1.6rem); line-height: 1.1; letter-spacing: -0.025em; }
 .sampling-journey .header-subtitle { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.75rem; }
+.sampling-journey .compact-header-actions { display: flex; align-items: center; gap: 0.7rem; }
+.sampling-journey .compact-header-actions .language-selector span { display: none; }
 .sampling-journey .compact-button { min-height: 36px; padding: 0.45rem 0.75rem; font-size: 0.78rem; }
 .sampling-journey button.primary { border-color: var(--blue); background: var(--blue); color: white; }
 .sampling-journey button.secondary { background: #f7fafb; }
@@ -147,7 +149,7 @@
 @media (max-width: 760px) {
   .sampling-journey .compact-header { grid-template-columns: auto 1fr; }
   .sampling-journey .compact-title { grid-column: 1 / -1; grid-row: 2; }
-  .sampling-journey .compact-button { justify-self: end; }
+  .sampling-journey .compact-header-actions { justify-self: end; }
   .sampling-journey .control-rail { display: flex; }
   .sampling-journey .rail-metrics,
   .sampling-journey .advanced-options { width: 100%; }

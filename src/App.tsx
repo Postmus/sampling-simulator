@@ -1,5 +1,8 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { conceptRegistry, findConcept } from "./app/conceptRegistry";
+import { LanguageSelector } from "./app/LanguageSelector";
+import { appMessages } from "./app/messages";
+import { useLocale } from "./i18n/LocaleContext";
 
 function conceptIdFromLocation() {
   const match = window.location.hash.match(/^#\/concepts\/([^/?]+)/);
@@ -7,6 +10,8 @@ function conceptIdFromLocation() {
 }
 
 function App() {
+  const { locale } = useLocale();
+  const messages = appMessages[locale];
   const [conceptId, setConceptId] = useState(conceptIdFromLocation);
 
   useEffect(() => {
@@ -20,7 +25,7 @@ function App() {
   if (concept !== null) {
     const ConceptPage = concept.component;
     return (
-      <Suspense fallback={<main className="loading-screen">Loading concept…</main>}>
+      <Suspense fallback={<main className="loading-screen">{messages.loading}</main>}>
         <ConceptPage />
       </Suspense>
     );
@@ -28,39 +33,40 @@ function App() {
 
   return (
     <main className="library-shell">
+      <div className="library-toolbar"><LanguageSelector /></div>
       <header className="library-header">
-        <p className="eyebrow">Interactive statistics</p>
-        <h1>Statistical Concepts Lab</h1>
-        <p>
-          Explore statistical ideas by changing a model, watching each step, and comparing a
-          single run with its long-run behavior.
-        </p>
+        <p className="eyebrow">{messages.eyebrow}</p>
+        <h1>{messages.title}</h1>
+        <p>{messages.intro}</p>
       </header>
 
       <section className="concept-library" aria-labelledby="concept-library-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Concept library</p>
-            <h2 id="concept-library-title">Available explorations</h2>
+            <p className="eyebrow">{messages.libraryEyebrow}</p>
+            <h2 id="concept-library-title">{messages.available}</h2>
           </div>
-          <span>{conceptRegistry.length} concept</span>
+          <span>{messages.conceptCount(conceptRegistry.length)}</span>
         </div>
 
         <div className="concept-grid">
-          {conceptRegistry.map((entry) => (
-            <a className="concept-card" href={`#/concepts/${entry.id}`} key={entry.id}>
-              <span className="concept-category">{entry.category}</span>
-              <h3>{entry.title}</h3>
-              <p>{entry.description}</p>
-              <span className="concept-link">Open exploration <span aria-hidden="true">→</span></span>
-            </a>
-          ))}
+          {conceptRegistry.map((entry) => {
+            const copy = entry.copy[locale];
+            return (
+              <a className="concept-card" href={`#/concepts/${entry.id}`} key={entry.id}>
+                <span className="concept-category">{copy.category}</span>
+                <h3>{copy.title}</h3>
+                <p>{copy.description}</p>
+                <span className="concept-link">{messages.open} <span aria-hidden="true">→</span></span>
+              </a>
+            );
+          })}
 
-          <article className="concept-card concept-card-coming-soon" aria-label="More concepts coming soon">
-            <span className="concept-category">Next</span>
-            <h3>Confidence interval coverage</h3>
-            <p>Watch repeated intervals succeed and fail to capture a fixed population value.</p>
-            <span className="concept-link">Planned</span>
+          <article className="concept-card concept-card-coming-soon" aria-label={messages.moreSoon}>
+            <span className="concept-category">{messages.next}</span>
+            <h3>{messages.coverageTitle}</h3>
+            <p>{messages.coverageDescription}</p>
+            <span className="concept-link">{messages.planned}</span>
           </article>
         </div>
       </section>

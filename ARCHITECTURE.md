@@ -12,6 +12,15 @@ must not be added to `App.tsx` or to the registry.
 
 `src/app/conceptRegistry.ts` is the catalogue. `src/App.tsx` handles the library and hash routing.
 Hash routes keep static deployments and direct links working without server-side rewrites.
+The registry stores English and Dutch metadata for every concept.
+
+### Localization
+
+`src/i18n` owns the global `en`/`nl` locale, browser-language fallback, local persistence, the
+document language attribute, and locale-aware number formatting. Shared shell copy lives in
+`src/app/messages.ts`; teaching copy stays in each concept's `messages.ts`. This keeps a future
+concept's terminology close to its visualization while maintaining one language choice across the
+lab. Message interfaces and parity tests prevent one locale from silently losing a key.
 
 ### Concepts
 
@@ -48,8 +57,9 @@ concepts need the same behavior; concept-specific geometry stays with its concep
 2. Put mathematical transformations in pure model functions and test them.
 3. Build the page and visualization inside the concept directory.
 4. Reuse the animation runtime for cancellation and reduced-motion behavior.
-5. Add one lazy-loaded entry to `conceptRegistry.ts`.
-6. Verify `npm test` and `npm run build`.
+5. Provide complete English and Dutch concept copy, including SVG and accessibility text.
+6. Add one localized lazy-loaded entry to `conceptRegistry.ts`.
+7. Verify `npm test`, `npm run build`, and `npm run test:e2e`.
 
 The least-squares exploration is the second implemented concept and demonstrates that the shell,
 animation runtime, presentation behavior, and design language can be shared without forcing its
