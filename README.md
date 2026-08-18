@@ -25,6 +25,21 @@ npm run dev
 Open the local Vite URL. The concept library is the home page; concepts use static-host-friendly
 hash routes such as `#/concepts/sampling-distribution` and `#/concepts/least-squares`.
 
+## Deploy to GitHub Pages
+
+The [Pages workflow](./.github/workflows/deploy-pages.yml) runs the unit tests, builds the app, and
+deploys `dist` whenever `main` is updated. It can also be started manually from the repository's
+**Actions** tab.
+
+Before the first deployment, open **Settings → Pages** in the GitHub repository and select
+**GitHub Actions** as the build and deployment source. After the workflow completes, this
+repository will normally be available at:
+
+<https://postmus.github.io/sampling-simulator/>
+
+The app uses relative asset paths and hash routes, so it works from the repository subdirectory
+without a separate Pages-specific build configuration.
+
 ## Validate
 
 ```bash
