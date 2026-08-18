@@ -1,16 +1,11 @@
-# Sampling Simulator
+# Statistical Concepts Lab
 
-A frontend-only teaching app for illustrating:
+An extensible, frontend-only teaching app for explaining statistical ideas through animated,
+interactive visualizations.
 
-- population distributions
-- one observed sample
-- sampling distributions of estimators
-- empirical versus theoretical standard error
-
-The current MVP supports:
-
-- sample mean from normal, uniform, and right-skewed populations
-- sample proportion from a Bernoulli population
+The first concept follows observations from a fixed normal population into one random sample,
+calculates its mean, and then moves that single estimate into a sampling distribution. It supports
+deterministic replay, fast batch generation, pause/resume, presentation mode, and reduced motion.
 
 ## Run locally
 
@@ -19,17 +14,26 @@ npm install
 npm run dev
 ```
 
-Open the local Vite URL that the command prints. Do not open `index.html` directly from disk.
+Open the local Vite URL. The concept library is the home page; concepts use static-host-friendly
+hash routes such as `#/concepts/sampling-distribution`.
+
+## Validate
+
+```bash
+npm test
+npm run build
+```
 
 ## Architecture
 
-- `src/core`: pure statistical logic
-- `src/components`: reusable UI panels and simple SVG-based charts
-- `src/presets`: lecture-ready example scenarios
-- `src/App.tsx`: top-level teaching flow and state
+- `src/app`: application shell and the small concept registry
+- `src/concepts`: self-contained concept features with their own model, controls, stage, and styles
+- `src/domain`: pure probability, random-number, and statistical functions
+- `src/runtime`: concept-independent animation and simulation lifecycle utilities
+- `src/visualization`: low-level SVG helpers shared only when concepts genuinely need them
 
-The app is frontend-only and suitable for local use during lectures or deployment as a static site such as GitHub Pages.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for module boundaries and instructions for adding a
+concept.
 
-## GitHub Pages
-
-This repository is set up to deploy the built `dist/` output with GitHub Actions. After pushing to the default branch, the workflow will build the app and publish it to GitHub Pages.
+The previous all-in-one sampling simulator is retained in Git history at the local tag
+`sampling-simulator-v0.1`.
