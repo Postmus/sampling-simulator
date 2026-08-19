@@ -6,7 +6,7 @@ import { DiagnosticsControls } from "./DiagnosticsControls";
 import { DiagnosticsStage } from "./DiagnosticsStage";
 import { diagnosticsMessages, type DiagnosticsMessages } from "./messages";
 import { fitDiagnosticModel, type PredictorKind } from "./model";
-import { getDiagnosticScenario } from "./scenarios";
+import { DEFAULT_DIAGNOSTIC_SCENARIO_ID, getDiagnosticScenario } from "./scenarios";
 import "./regression-diagnostics.css";
 
 interface VisualState {
@@ -52,7 +52,7 @@ export default function RegressionDiagnosticsPage() {
   const { locale } = useLocale();
   const messages = diagnosticsMessages[locale];
   const rootRef = useRef<HTMLElement>(null);
-  const [scenarioId, setScenarioId] = useState("well-behaved");
+  const [scenarioId, setScenarioId] = useState(DEFAULT_DIAGNOSTIC_SCENARIO_ID);
   const scenario = getDiagnosticScenario(scenarioId);
   const [predictor, setPredictor] = useState<PredictorKind>("raw");
   const [modelMix, setModelMix] = useState(0);

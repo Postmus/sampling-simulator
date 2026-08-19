@@ -9,12 +9,15 @@ test("builds both diagnostic plots and transforms the predictor", async ({ page 
   await expect(page.getByText("Residuals versus fitted values", { exact: true })).toBeVisible();
   await expect(page.getByText("Residual distribution", { exact: true })).toBeVisible();
   await expect(page.getByText("Independence and study design", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Teaching example").locator("option")).toHaveCount(4);
+  await expect(page.getByLabel("Teaching example")).toHaveValue("masseter-bite-force");
+  await expect(page.getByLabel("Teaching example").locator("option")).toHaveCount(5);
+  await expect(page.getByText("Average masseter thickness (mm)", { exact: true })).toBeVisible();
+  await expect(page.getByText("Maximum bite force (N)", { exact: true })).toBeVisible();
   await expect(page.locator(".diagnostics-residual-token")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect(page.locator(".diagnostics-residual-token")).toHaveCount(64);
-  await expect(page.getByText(/unstructured band with stable spread/)).toBeVisible();
+  await expect(page.locator(".diagnostics-residual-token")).toHaveCount(60);
+  await expect(page.getByText(/no strong curved or funnel-shaped pattern/)).toBeVisible();
 
   await page.getByLabel("Teaching example").selectOption("log-relationship");
   await page.getByRole("button", { name: "Play", exact: true }).click();

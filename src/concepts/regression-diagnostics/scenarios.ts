@@ -2,6 +2,7 @@ import type { Locale } from "../../i18n/LocaleContext";
 import type { RegressionPoint } from "../../domain/regression";
 import { createRng } from "../../domain/rng";
 import { drawNormal } from "../../domain/distributions/normal";
+import { masseterBiteForcePoints } from "../../domain/examples/masseterBiteForce";
 
 export type DiagnosticFocus = "linearity" | "variance" | "normality";
 
@@ -75,7 +76,34 @@ const logModelXs = logXs.map((value) => Math.log2(value));
 // Fixed seeds make the lecture demonstration repeatable. The observations are nevertheless
 // direct draws from the stated error models rather than hand-positioned residual patterns.
 
+export const DEFAULT_DIAGNOSTIC_SCENARIO_ID = "masseter-bite-force";
+
 export const diagnosticScenarios: DiagnosticScenario[] = [
+  {
+    id: "masseter-bite-force",
+    focus: "normality",
+    supportsLog: false,
+    copy: {
+      en: {
+        title: "Masseter thickness and maximum bite force",
+        description: "Continue with the same 30 adults and fitted equation from the least-squares demonstration.",
+        xLabel: "Average masseter thickness (mm)",
+        yLabel: "Maximum bite force (N)",
+        finding: "There is no strong curved or funnel-shaped pattern. The residual distribution is broadly compatible with the normal reference, although a small sample need not follow it perfectly.",
+      },
+      nl: {
+        title: "Masseterdikte en maximale bijtkracht",
+        description: "Ga verder met dezelfde 30 volwassenen en regressievergelijking uit de demonstratie van kleinste kwadraten.",
+        xLabel: "Gemiddelde masseterdikte (mm)",
+        yLabel: "Maximale bijtkracht (N)",
+        finding: "Er is geen sterk gebogen of trechtervormig patroon. De residuverdeling past globaal bij de normale referentie, al hoeft een kleine steekproef die niet perfect te volgen.",
+      },
+    },
+    points: masseterBiteForcePoints,
+    xDomain: [8, 16],
+    yDomain: [250, 600],
+    residualDomain: [-125, 125],
+  },
   {
     id: "well-behaved",
     focus: "normality",
@@ -182,5 +210,7 @@ export const diagnosticScenarios: DiagnosticScenario[] = [
 ];
 
 export function getDiagnosticScenario(id: string) {
-  return diagnosticScenarios.find((scenario) => scenario.id === id) ?? diagnosticScenarios[0];
+  return diagnosticScenarios.find((scenario) => scenario.id === id) ??
+    diagnosticScenarios.find((scenario) => scenario.id === DEFAULT_DIAGNOSTIC_SCENARIO_ID) ??
+    diagnosticScenarios[0];
 }

@@ -23,19 +23,31 @@ function excessKurtosis(values: readonly number[]) {
 }
 
 describe("regression diagnostic models", () => {
-  it("offers one reference case and one focused departure per visual assumption", () => {
+  it("offers the lecture case followed by one reference case and focused departures", () => {
     expect(diagnosticScenarios.map((entry) => entry.id)).toEqual([
+      "masseter-bite-force",
       "well-behaved",
       "log-relationship",
       "increasing-spread",
       "skewed-errors",
     ]);
-    expect(new Set(diagnosticScenarios.map((entry) => entry.copy.en.xLabel))).toEqual(
+    const controlledExamples = diagnosticScenarios.filter((entry) => entry.id !== "masseter-bite-force");
+    expect(new Set(controlledExamples.map((entry) => entry.copy.en.xLabel))).toEqual(
       new Set(["Analgesic dose (mg/day)"]),
     );
-    expect(new Set(diagnosticScenarios.map((entry) => entry.copy.en.yLabel))).toEqual(
+    expect(new Set(controlledExamples.map((entry) => entry.copy.en.yLabel))).toEqual(
       new Set(["Pain reduction score (0–100)"]),
     );
+  });
+
+  it("carries the lecture fit into the diagnostic module unchanged", () => {
+    const lecture = scenario("masseter-bite-force");
+    const fit = fitDiagnosticModel(lecture.points, "raw").fit;
+
+    expect(lecture.points).toHaveLength(30);
+    expect(fit.intercept).toBeCloseTo(83.1, 0);
+    expect(fit.slope).toBeCloseTo(29.1, 0);
+    expect(fit.rSquared).toBeCloseTo(0.72, 1);
   });
 
   it("fits every teaching dataset with residuals summing to zero", () => {
