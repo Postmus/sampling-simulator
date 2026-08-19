@@ -8,8 +8,8 @@ The current concept library includes:
 - a sampling journey that follows observations into one sample and then builds a sampling
   distribution from repeated sample means;
 - a least-squares exploration that links a movable regression line, an always-visible mean
-  reference, residual squares, an animated SSE accumulator, the slope–intercept error landscape,
-  and a residual dot plot for the current candidate line.
+  reference, residual squares, a full-width animated SSE accumulator, and the slope–intercept
+  error landscape.
 - a regression-diagnostics demonstrator that releases residuals from a fitted equation into an
   always-visible residual-versus-fitted plot and residual distribution, including an animated
   comparison of models using `x` and `log₂(x)`.

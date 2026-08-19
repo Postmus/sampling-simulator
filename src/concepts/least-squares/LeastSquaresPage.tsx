@@ -28,12 +28,9 @@ export default function LeastSquaresPage() {
   const reducedMotionRef = useRef(reducedMotion);
   const [fitting, setFitting] = useState(false);
   const [collectingSse, setCollectingSse] = useState(false);
-  const [collectingResiduals, setCollectingResiduals] = useState(false);
   const [squareRevealProgress, setSquareRevealProgress] = useState(0);
   const [sseCollectionProgress, setSseCollectionProgress] = useState(0);
-  const [residualCollectionProgress, setResidualCollectionProgress] = useState(0);
   const [sseCollected, setSseCollected] = useState(false);
-  const [residualsCollected, setResidualsCollected] = useState(false);
   const [hasRevealedFit, setHasRevealedFit] = useState(false);
   const [status, setStatus] = useState<keyof LeastSquaresMessages["status"]>("initial");
   const [fullscreen, setFullscreen] = useState(false);
@@ -63,12 +60,9 @@ export default function LeastSquaresPage() {
 
   function clearCollections() {
     setCollectingSse(false);
-    setCollectingResiduals(false);
     setSquareRevealProgress(0);
     setSseCollectionProgress(0);
-    setResidualCollectionProgress(0);
     setSseCollected(false);
-    setResidualsCollected(false);
   }
 
   function changeScenario(id: string) {
@@ -93,16 +87,14 @@ export default function LeastSquaresPage() {
 
   async function evaluateCurrentLine(isBestFit = hasRevealedFit) {
     const runtime = runtimeRef.current;
-    if (runtime === null || fitting || collectingSse || collectingResiduals) {
+    if (runtime === null || fitting || collectingSse) {
       return;
     }
 
     const token = runtime.beginRun();
     setSquareRevealProgress(0);
     setSseCollectionProgress(0);
-    setResidualCollectionProgress(0);
     setSseCollected(false);
-    setResidualsCollected(false);
     setCollectingSse(true);
     setStatus("revealSquares");
 
@@ -112,19 +104,6 @@ export default function LeastSquaresPage() {
     }
 
     setSquareRevealProgress(1);
-    setCollectingSse(false);
-    setCollectingResiduals(true);
-    setStatus("collectResiduals");
-
-    await runtime.tween(1050, token, setResidualCollectionProgress);
-    if (!runtime.isCurrent(token)) {
-      return;
-    }
-
-    setResidualCollectionProgress(1);
-    setResidualsCollected(true);
-    setCollectingResiduals(false);
-    setCollectingSse(true);
     setStatus("collectSse");
 
     await runtime.tween(1050, token, setSseCollectionProgress);
@@ -138,16 +117,14 @@ export default function LeastSquaresPage() {
 
   async function animateToFit() {
     const runtime = runtimeRef.current;
-    if (runtime === null || fitting || collectingSse || collectingResiduals) {
+    if (runtime === null || fitting || collectingSse) {
       return;
     }
     const start = line;
     const token = runtime.beginRun();
     setFitting(true);
     setSseCollectionProgress(0);
-    setResidualCollectionProgress(0);
     setSseCollected(false);
-    setResidualsCollected(false);
     setSquareRevealProgress(0);
     setStatus("search");
 
@@ -224,9 +201,7 @@ export default function LeastSquaresPage() {
           candidateSse={candidateSse}
           fitting={fitting}
           collectingSse={collectingSse}
-          collectingResiduals={collectingResiduals}
           sseCollected={sseCollected}
-          residualsCollected={residualsCollected}
           hasRevealedFit={hasRevealedFit}
           onScenarioChange={changeScenario}
           onSlopeChange={(slope) => changeLine({ ...line, slope })}
@@ -242,7 +217,6 @@ export default function LeastSquaresPage() {
           hasRevealedFit={hasRevealedFit}
           squareRevealProgress={squareRevealProgress}
           sseCollectionProgress={sseCollectionProgress}
-          residualCollectionProgress={residualCollectionProgress}
           sseCollected={sseCollected}
           status={messages.status[status]}
         />

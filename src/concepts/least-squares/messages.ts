@@ -52,17 +52,12 @@ export interface LeastSquaresMessages {
     squaredResidual: string;
     runningSse: string;
     chooseEvaluate: string;
-    residualTitle: string;
-    residualDefinition: string;
-    residual: string;
-    residualPlaceholder: string;
   };
   status: {
     initial: string;
     newDataset: string;
     lineMoved: string;
     revealSquares: string;
-    collectResiduals: string;
     collectSse: string;
     fitComplete: string;
     candidateComplete: string;
@@ -95,29 +90,25 @@ export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
     stage: {
       aria: "Least-squares visualization", observations: (count) => `${count} observations`,
       svgTitle: "Interactive least-squares regression",
-      svgDescription: "A scatterplot with a mean line, candidate regression line, residual squares, an animated squared-error accumulator, a slope-intercept error map, and a residual plot for the current line.",
+      svgDescription: "A scatterplot with a mean line, candidate regression line, residual squares, an animated full-width squared-error accumulator, and a slope-intercept error map.",
       dataTitle: "Data, deviations, and squared errors",
       dataSubtitle: "The dashed mean line is the reference model; every square has side length |residual|.",
       meanOfY: "mean of y", landscapeTitle: "Squared-error landscape", landscapeLine: "Every location represents one line.",
       landscapeColor: "Darker green means a smaller SSE.", slope: "slope", intercept: "intercept", minimum: "minimum",
       candidate: "candidate", mapHelp: "Move either slider to travel across this map.", sseTitle: "Sum of squared errors",
       sseSubtitle: "Each colored segment contributes one eᵢ² to the running total.", squaredResidual: "Squared residual",
-      runningSse: "running SSE", chooseEvaluate: "Choose “Evaluate this line”", residualTitle: "Residuals from the current line",
-      residualDefinition: "Residual = observed value − predicted value.",
-      residual: "Residual",
-      residualPlaceholder: "Evaluate the candidate line to collect its signed residuals.",
+      runningSse: "running SSE", chooseEvaluate: "Choose “Evaluate this line”",
     },
     status: {
-      initial: "Move the candidate line, then evaluate it to collect its squared and signed residuals.",
+      initial: "Move the candidate line, then evaluate it to collect its squared residuals.",
       newDataset: "A new dataset is ready. Move the candidate line, then evaluate it.",
       lineMoved: "The candidate line moved. Choose “Evaluate this line” when you are satisfied with it.",
       revealSquares: "Each vertical residual is expanding into a square with side length |residual|.",
-      collectResiduals: "The current line’s signed residuals are moving onto the residual axis.",
       collectSse: "The residual squares are collecting into the current line’s total SSE.",
-      fitComplete: "Best fit complete: the residual plot shows its signed errors, and the bar is the minimum SSE.",
-      candidateComplete: "The lower panels now summarize the current candidate line.",
+      fitComplete: "Best fit complete: the full-width bar shows the minimum SSE.",
+      candidateComplete: "The lower panel now shows the total SSE for the current candidate line.",
       search: "Searching the slope–intercept landscape for the smallest sum of squared residuals.",
-      minimumFound: "Minimum found. Its squared and signed residuals will now be collected automatically.",
+      minimumFound: "Minimum found. Its squared residuals will now be collected automatically.",
       reset: "The candidate line is reset. Adjust it, then choose “Evaluate this line”.",
       fullscreenUnavailable: "Fullscreen mode is not available in this browser.",
     },
@@ -139,7 +130,7 @@ export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
     stage: {
       aria: "Visualisatie van kleinste kwadraten", observations: (count) => `${count} waarnemingen`,
       svgTitle: "Interactieve kleinste-kwadratenregressie",
-      svgDescription: "Een spreidingsdiagram met een gemiddelde lijn, kandidaatlijn, residukwadraten, een geanimeerde SSE-balk, een foutenlandschap en een residuplot voor de huidige lijn.",
+      svgDescription: "Een spreidingsdiagram met een gemiddelde lijn, kandidaatlijn, residukwadraten, een geanimeerde SSE-balk over de volle breedte en een foutenlandschap.",
       dataTitle: "Data, afwijkingen en gekwadrateerde fouten",
       dataSubtitle: "De gestreepte gemiddelde lijn is het referentiemodel; ieder vierkant heeft zijde |residu|.",
       meanOfY: "gemiddelde van y", landscapeTitle: "SSE-landschap", landscapeLine: "Iedere positie stelt één lijn voor.",
@@ -147,21 +138,17 @@ export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
       candidate: "kandidaat", mapHelp: "Verplaats een schuifregelaar om door deze kaart te bewegen.",
       sseTitle: "Som van gekwadrateerde fouten", sseSubtitle: "Ieder gekleurd segment draagt één eᵢ² bij aan het totaal.",
       squaredResidual: "Gekwadrateerd residu", runningSse: "lopende SSE", chooseEvaluate: "Kies ‘Evalueer deze lijn’",
-      residualTitle: "Residuen van de huidige lijn", residualDefinition: "Residu = waargenomen waarde − voorspelde waarde.",
-      residual: "Residu",
-      residualPlaceholder: "Evalueer de kandidaatlijn om de residuen te verzamelen.",
     },
     status: {
-      initial: "Verplaats de kandidaatlijn en evalueer deze daarna om de gekwadrateerde residuen en de residuen met teken te verzamelen.",
+      initial: "Verplaats de kandidaatlijn en evalueer deze daarna om de gekwadrateerde residuen te verzamelen.",
       newDataset: "Een nieuwe dataset staat klaar. Verplaats de kandidaatlijn en evalueer deze daarna.",
       lineMoved: "De kandidaatlijn is verplaatst. Kies ‘Evalueer deze lijn’ wanneer u tevreden bent.",
       revealSquares: "Ieder verticaal residu wordt een vierkant met zijde |residu|.",
-      collectResiduals: "De residuen met teken van de huidige lijn bewegen naar de residuas.",
       collectSse: "De residukwadraten worden verzameld in de totale SSE van de huidige lijn.",
-      fitComplete: "Beste lijn voltooid: de residuplot toont de fouten met teken en de balk is de minimale SSE.",
-      candidateComplete: "De onderste panelen vatten nu de huidige kandidaatlijn samen.",
+      fitComplete: "Beste lijn voltooid: de balk over de volle breedte toont de minimale SSE.",
+      candidateComplete: "Het onderste paneel toont nu de totale SSE voor de huidige kandidaatlijn.",
       search: "Zoeken in het helling-interceptlandschap naar de kleinste som van gekwadrateerde residuen.",
-      minimumFound: "Minimum gevonden. De gekwadrateerde residuen en de residuen met teken worden nu automatisch verzameld.",
+      minimumFound: "Minimum gevonden. De gekwadrateerde residuen worden nu automatisch verzameld.",
       reset: "De kandidaatlijn is hersteld. Pas haar aan en kies daarna ‘Evalueer deze lijn’.",
       fullscreenUnavailable: "Volledig scherm is niet beschikbaar in deze browser.",
     },

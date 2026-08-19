@@ -145,16 +145,11 @@
 .error-optimum-marker circle:nth-child(2) { fill: #0d5d49; }
 .error-optimum-marker text { fill: #0d5d49; font-size: 11px; font-weight: 850; paint-order: stroke; stroke: #fff; stroke-width: 4px; }
 .error-map-help { fill: var(--muted); font-size: 11px; font-weight: 650; }
-.lower-panel-divider { stroke: #dbe5e8; stroke-width: 1.5; }
 .lower-title { font-size: 15px; }
 .sse-accumulator-track { fill: #f1f5f6; stroke: #afc1c8; stroke-width: 1.2; }
 .moving-squared-error { stroke: #fff; stroke-width: 0.8; }
 .sse-total-label { fill: #34495a; font-size: 12px; font-weight: 850; font-variant-numeric: tabular-nums; }
 .sigma-label { fill: #9e4f1d; font-size: 11px; font-weight: 850; }
-.residual-histogram-axis { stroke: #718c96; stroke-width: 1.5; }
-.residual-zero-line { stroke: #718c96; stroke-width: 1.5; stroke-dasharray: 4 4; }
-.moving-residual-token { stroke: #fff; stroke-width: 1.5; filter: drop-shadow(0 2px 2px rgba(30, 56, 70, 0.18)); }
-.residual-placeholder { fill: #7d9098; font-size: 11px; font-weight: 650; }
 
 @media (max-width: 1120px) {
   .least-squares-journey { width: 100%; height: auto; min-height: 100dvh; overflow: visible; }

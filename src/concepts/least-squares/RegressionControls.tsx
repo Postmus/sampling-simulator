@@ -10,9 +10,7 @@ interface RegressionControlsProps {
   candidateSse: number;
   fitting: boolean;
   collectingSse: boolean;
-  collectingResiduals: boolean;
   sseCollected: boolean;
-  residualsCollected: boolean;
   hasRevealedFit: boolean;
   onScenarioChange: (id: string) => void;
   onSlopeChange: (value: number) => void;
@@ -38,7 +36,7 @@ export function RegressionControls(props: RegressionControlsProps) {
   const atBestFit =
     Math.abs(props.line.slope - props.fit.slope) < props.scenario.slopeStep / 2 &&
     Math.abs(props.line.intercept - props.fit.intercept) < props.scenario.interceptStep / 2;
-  const busy = props.fitting || props.collectingSse || props.collectingResiduals;
+  const busy = props.fitting || props.collectingSse;
 
   return (
     <aside className="regression-control-rail" aria-label={messages.controls.aria}>
@@ -96,12 +94,12 @@ export function RegressionControls(props: RegressionControlsProps) {
           <button
             className="evaluate-line-button"
             type="button"
-            disabled={busy || (props.sseCollected && props.residualsCollected)}
+            disabled={busy || props.sseCollected}
             onClick={props.onEvaluate}
           >
-            {props.collectingSse || props.collectingResiduals
+            {props.collectingSse
               ? messages.controls.evaluating
-              : props.sseCollected && props.residualsCollected
+              : props.sseCollected
                 ? messages.controls.evaluated
                 : messages.controls.evaluate}
           </button>

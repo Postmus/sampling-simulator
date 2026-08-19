@@ -25,22 +25,21 @@ test("waits for evaluation before collecting a user-defined line", async ({ page
   await expect(page.getByRole("button", { name: "Add squared errors" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Collect .*residuals/ })).toHaveCount(0);
   await expect(page.locator(".residual-square")).toHaveCount(0);
-  await expect(page.locator(".moving-residual-token")).toHaveCount(0);
 
   const slope = page.getByRole("slider", { name: "Slope" });
   await slope.fill("8");
   await page.waitForTimeout(500);
   await expect(page.locator(".residual-square")).toHaveCount(0);
   await expect(page.locator(".moving-squared-error")).toHaveCount(0);
-  await expect(page.locator(".moving-residual-token")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Evaluate this line" }).click();
   await expect(page.getByRole("button", { name: "Line evaluated" })).toBeDisabled();
   await expect(page.locator(".residual-square")).toHaveCount(30);
   await expect(page.locator(".moving-squared-error")).toHaveCount(30);
-  await expect(page.locator(".moving-residual-token")).toHaveCount(30);
-  await expect(page.getByText("Residuals from the current line")).toHaveAttribute("x", "62");
-  await expect(page.getByText("Sum of squared errors", { exact: true })).toHaveAttribute("x", "630");
+  await expect(page.locator(".moving-residual-token")).toHaveCount(0);
+  await expect(page.getByText("Residuals from the current line")).toHaveCount(0);
+  await expect(page.getByText("Sum of squared errors", { exact: true })).toHaveAttribute("x", "62");
+  await expect(page.locator(".sse-accumulator-track")).toHaveAttribute("width", "1078");
   await expect(page.getByText("Negative means below the line; positive means above the line.")).toHaveCount(0);
 });
 
@@ -51,13 +50,10 @@ test("runs the automatic sequence at normal animation speed", async ({ page }) =
   await page.getByRole("button", { name: "Find best-fitting line" }).click();
   await expect(page.getByRole("button", { name: "Evaluating line…" })).toBeDisabled({ timeout: 5_000 });
   await expect(page.getByRole("button", { name: "Best fit found" })).toBeDisabled({ timeout: 5_000 });
-  await expect(page.getByText("The current line’s signed residuals are moving onto the residual axis.")).toBeVisible({ timeout: 5_000 });
-  await expect(page.locator(".moving-squared-error")).toHaveCount(0);
   await expect(page.getByText("The residual squares are collecting into the current line’s total SSE.")).toBeVisible({ timeout: 5_000 });
-  await expect(page.locator(".moving-residual-token")).toHaveCount(30);
   await expect(page.getByRole("button", { name: "Line evaluated" })).toBeDisabled({ timeout: 5_000 });
   await expect(page.locator(".moving-squared-error")).toHaveCount(30);
-  await expect(page.locator(".moving-residual-token")).toHaveCount(30);
+  await expect(page.locator(".moving-residual-token")).toHaveCount(0);
 });
 
 test("uses the lecture-aligned masseter and bite-force example by default", async ({ page }) => {

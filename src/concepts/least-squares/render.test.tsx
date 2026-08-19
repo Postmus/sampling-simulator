@@ -18,7 +18,6 @@ describe("least-squares visualization", () => {
           hasRevealedFit={false}
           squareRevealProgress={0}
           sseCollectionProgress={0}
-          residualCollectionProgress={0}
           sseCollected={false}
           status="Ready"
         /></LocaleProvider>,
@@ -45,7 +44,6 @@ describe("least-squares visualization", () => {
         hasRevealedFit
         squareRevealProgress={1}
         sseCollectionProgress={1}
-        residualCollectionProgress={1}
         sseCollected
         status="Minimum found"
       /></LocaleProvider>,
@@ -58,9 +56,7 @@ describe("least-squares visualization", () => {
         candidateSse={fit.sse}
         fitting={false}
         collectingSse={false}
-        collectingResiduals={false}
         sseCollected
-        residualsCollected
         hasRevealedFit
         onScenarioChange={() => undefined}
         onSlopeChange={() => undefined}
@@ -74,7 +70,10 @@ describe("least-squares visualization", () => {
     expect(stage).toContain("candidate-line-at-fit");
     expect(stage).toContain("minimum");
     expect(stage.match(/class="moving-squared-error"/g)).toHaveLength(scenario.points.length);
-    expect(stage.match(/class="moving-residual-token"/g)).toHaveLength(scenario.points.length);
+    expect(stage).not.toContain("moving-residual-token");
+    expect(stage).not.toContain("Residuals from the current line");
+    expect(stage).toContain('x="62" y="575">Sum of squared errors');
+    expect(stage).toContain('class="sse-accumulator-track" x="62" y="620" width="1078"');
     expect(stage).toContain("SSE = Σeᵢ²");
     expect(stage).not.toContain("Negative means below the line; positive means above the line.");
     expect(stage).not.toContain("mean residual");
@@ -97,14 +96,14 @@ describe("least-squares visualization", () => {
         hasRevealedFit
         squareRevealProgress={1}
         sseCollectionProgress={1}
-        residualCollectionProgress={1}
         sseCollected
         status="Minimum gevonden"
       /></LocaleProvider>,
     );
 
     expect(markup).toContain("Interactieve kleinste-kwadratenregressie");
-    expect(markup).toContain("Residuen van de huidige lijn");
+    expect(markup).toContain("Som van gekwadrateerde fouten");
+    expect(markup).not.toContain("Residuen van de huidige lijn");
     expect(markup).toContain(scenario.copy.nl.xLabel);
     expect(markup).toMatch(/\d,\d/);
   });

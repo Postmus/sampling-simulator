@@ -11,15 +11,13 @@ interface RegressionStageProps {
   hasRevealedFit: boolean;
   squareRevealProgress: number;
   sseCollectionProgress: number;
-  residualCollectionProgress: number;
   sseCollected: boolean;
   status: string;
 }
 
 const PLOT = { x: 100, y: 92, width: 658, height: 350 };
 const MAP = { x: 882, y: 150, width: 260, height: 240 };
-const HISTOGRAM = { x: 62, y: 620, width: 490, baseline: 690 };
-const ACCUMULATOR = { x: 650, y: 620, width: 482, height: 23 };
+const ACCUMULATOR = { x: 62, y: 620, width: 1078, height: 23 };
 
 function scale(value: number, domain: readonly [number, number], range: readonly [number, number]) {
   return range[0] + ((value - domain[0]) / (domain[1] - domain[0])) * (range[1] - range[0]);
@@ -144,36 +142,6 @@ export function RegressionStage(props: RegressionStageProps) {
     0,
   );
 
-  const largestResidual = Math.max(1, ...residualItems.map((item) => Math.abs(item.residual))) * 1.2;
-  const residualDomain: [number, number] = [-largestResidual, largestResidual];
-  const residualLevels = new Map<string, { targetX: number; level: number }>();
-  const lastXByLevel: number[] = [];
-  [...residualItems]
-    .sort((first, second) => first.residual - second.residual)
-    .forEach((item) => {
-      const targetX = scale(item.residual, residualDomain, [HISTOGRAM.x, HISTOGRAM.x + HISTOGRAM.width]);
-      let level = lastXByLevel.findIndex((lastX) => targetX - lastX >= 15);
-      if (level === -1) {
-        level = lastXByLevel.length;
-      }
-      lastXByLevel[level] = targetX;
-      residualLevels.set(item.point.id, { targetX, level });
-    });
-  const residualTokens = residualItems.map((item, index) => {
-    const position = residualLevels.get(item.point.id)!;
-    const sourceX = x(item.point.x);
-    const sourceY = (y(item.point.y) + y(item.predicted)) / 2;
-    return {
-      ...item,
-      sourceX,
-      sourceY,
-      targetX: position.targetX,
-      targetY: HISTOGRAM.baseline - 12 - position.level * 15,
-      progress: staggeredProgress(props.residualCollectionProgress, index, residualItems.length),
-      color: residualColor(item.residual),
-    };
-  });
-
   return (
     <section className="regression-stage-card" aria-label={messages.stage.aria}>
       <div className="regression-stage-heading">
@@ -250,11 +218,7 @@ export function RegressionStage(props: RegressionStageProps) {
             })}
 
             {residualItems.map((item, index) => {
-              const localProgress = staggeredProgress(
-                props.residualCollectionProgress,
-                index,
-                residualItems.length,
-              );
+              const localProgress = accumulatorSegments[index].progress;
               return (
                 <line
                   className="residual-line"
@@ -337,10 +301,9 @@ export function RegressionStage(props: RegressionStageProps) {
           </g>
 
           <rect className="regression-panel-background" x="34" y="545" width="1134" height="178" rx="24" />
-          <line className="lower-panel-divider" x1="603" x2="603" y1="565" y2="704" />
 
-          <text className="regression-zone-title lower-title" x="630" y="575">{messages.stage.sseTitle}</text>
-          <text className="regression-zone-subtitle" x="630" y="594">
+          <text className="regression-zone-title lower-title" x="62" y="575">{messages.stage.sseTitle}</text>
+          <text className="regression-zone-subtitle" x="62" y="594">
             {messages.stage.sseSubtitle}
           </text>
           <rect className="sse-accumulator-track" x={ACCUMULATOR.x} y={ACCUMULATOR.y} width={ACCUMULATOR.width} height={ACCUMULATOR.height} rx="5" />
@@ -372,44 +335,6 @@ export function RegressionStage(props: RegressionStageProps) {
           </text>
           {props.sseCollected && (
             <text className="sigma-label" x={ACCUMULATOR.x + ACCUMULATOR.width} y="702" textAnchor="end">SSE = Σeᵢ²</text>
-          )}
-
-          <text className="regression-zone-title lower-title" x="62" y="575">{messages.stage.residualTitle}</text>
-          <text className="regression-zone-subtitle" x="62" y="594">
-            {messages.stage.residualDefinition}
-          </text>
-          <line className="residual-histogram-axis" x1={HISTOGRAM.x} x2={HISTOGRAM.x + HISTOGRAM.width} y1={HISTOGRAM.baseline} y2={HISTOGRAM.baseline} />
-          <line
-            className="residual-zero-line"
-            x1={HISTOGRAM.x + HISTOGRAM.width / 2}
-            x2={HISTOGRAM.x + HISTOGRAM.width / 2}
-            y1={HISTOGRAM.y}
-            y2={HISTOGRAM.baseline + 5}
-          />
-          <text className="regression-axis-label" x={HISTOGRAM.x} y="709" textAnchor="middle">{formatValue(residualDomain[0])}</text>
-          <text className="regression-axis-label" x={HISTOGRAM.x + HISTOGRAM.width / 2} y="709" textAnchor="middle">0</text>
-          <text className="regression-axis-label" x={HISTOGRAM.x + HISTOGRAM.width} y="709" textAnchor="middle">{formatValue(residualDomain[1])}</text>
-          {residualTokens.map((item) => {
-            if (item.progress <= 0) return null;
-            const tokenX = item.sourceX + (item.targetX - item.sourceX) * item.progress;
-            const tokenY = item.sourceY + (item.targetY - item.sourceY) * item.progress;
-            return (
-              <circle
-                className="moving-residual-token"
-                key={`residual-token-${item.point.id}`}
-                cx={tokenX}
-                cy={tokenY}
-                r={4 + item.progress * 2}
-                fill={item.color}
-              >
-                <title>{`${messages.stage.residual} ${formatNumber(item.residual, locale, 2, 2)}`}</title>
-              </circle>
-            );
-          })}
-          {props.residualCollectionProgress === 0 && (
-            <text className="residual-placeholder" x={HISTOGRAM.x + HISTOGRAM.width / 2} y="662" textAnchor="middle">
-              {messages.stage.residualPlaceholder}
-            </text>
           )}
         </svg>
       </div>
