@@ -63,11 +63,14 @@ describe("least-squares model", () => {
     });
   });
 
-  it("shows that a symmetric curved relationship can have almost no linear fit", () => {
-    const curved = regressionScenarios.find((scenario) => scenario.id === "curved");
-    expect(curved).toBeDefined();
-    const fit = fitLeastSquares(curved!.points);
-    expect(Math.abs(fit.slope)).toBeLessThan(1);
-    expect(fit.rSquared).toBeLessThan(0.05);
+  it("includes the lecture-aligned masseter and bite-force example", () => {
+    const masseter = regressionScenarios.find((scenario) => scenario.id === "masseter-bite-force");
+    expect(masseter).toBeDefined();
+    expect(masseter!.points).toHaveLength(30);
+
+    const fit = fitLeastSquares(masseter!.points);
+    expect(fit.intercept).toBeCloseTo(83.1, 0);
+    expect(fit.slope).toBeCloseTo(29.1, 0);
+    expect(fit.rSquared).toBeCloseTo(0.72, 1);
   });
 });

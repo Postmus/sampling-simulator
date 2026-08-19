@@ -378,9 +378,6 @@ export function RegressionStage(props: RegressionStageProps) {
           <text className="regression-zone-subtitle" x="62" y="594">
             {messages.stage.residualDefinition}
           </text>
-          <text className="regression-zone-subtitle" x="62" y="610">
-            {messages.stage.residualDirection}
-          </text>
           <line className="residual-histogram-axis" x1={HISTOGRAM.x} x2={HISTOGRAM.x + HISTOGRAM.width} y1={HISTOGRAM.baseline} y2={HISTOGRAM.baseline} />
           <line
             className="residual-zero-line"

@@ -76,7 +76,7 @@ describe("least-squares visualization", () => {
     expect(stage.match(/class="moving-squared-error"/g)).toHaveLength(scenario.points.length);
     expect(stage.match(/class="moving-residual-token"/g)).toHaveLength(scenario.points.length);
     expect(stage).toContain("SSE = Σeᵢ²");
-    expect(stage).toContain("Negative means below the line; positive means above the line.");
+    expect(stage).not.toContain("Negative means below the line; positive means above the line.");
     expect(stage).not.toContain("mean residual");
     expect(stage).not.toContain("line passes through");
     expect(controls).toContain("Best fit found");

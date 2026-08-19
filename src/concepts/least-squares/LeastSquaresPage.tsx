@@ -3,7 +3,7 @@ import { AnimationRuntime } from "../../runtime/AnimationRuntime";
 import { fitLeastSquares, sumSquaredErrors, type RegressionLine } from "./model";
 import { RegressionControls } from "./RegressionControls";
 import { RegressionStage } from "./RegressionStage";
-import { getRegressionScenario } from "./scenarios";
+import { DEFAULT_REGRESSION_SCENARIO_ID, getRegressionScenario } from "./scenarios";
 import { LanguageSelector } from "../../app/LanguageSelector";
 import { useLocale } from "../../i18n/LocaleContext";
 import { leastSquaresMessages, type LeastSquaresMessages } from "./messages";
@@ -17,7 +17,7 @@ export default function LeastSquaresPage() {
   const { locale } = useLocale();
   const messages = leastSquaresMessages[locale];
   const rootRef = useRef<HTMLElement>(null);
-  const [scenarioId, setScenarioId] = useState("study-hours");
+  const [scenarioId, setScenarioId] = useState(DEFAULT_REGRESSION_SCENARIO_ID);
   const scenario = getRegressionScenario(scenarioId);
   const fit = useMemo(() => fitLeastSquares(scenario.points), [scenario]);
   const [line, setLine] = useState<RegressionLine>({

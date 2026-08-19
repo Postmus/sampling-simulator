@@ -13,7 +13,7 @@ test("switches the complete lab to Dutch and persists the choice", async ({ page
   await page.getByRole("link").filter({ hasText: "Hoe kleinste kwadraten een lijn kiest" }).click();
   await expect(page.getByRole("heading", { name: "Hoe kiest de kleinste-kwadratenmethode een lijn?" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Evalueer deze lijn" })).toBeEnabled();
-  await expect(page.getByText("gemiddelde van y = 70,0", { exact: true })).toBeVisible();
+  await expect(page.getByText("gemiddelde van y = 438", { exact: true })).toBeVisible();
   await expect(page.getByRole("slider", { name: "Helling" })).toBeVisible();
 
   await page.reload();

@@ -54,7 +54,6 @@ export interface LeastSquaresMessages {
     chooseEvaluate: string;
     residualTitle: string;
     residualDefinition: string;
-    residualDirection: string;
     residual: string;
     residualPlaceholder: string;
   };
@@ -105,7 +104,7 @@ export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
       sseSubtitle: "Each colored segment contributes one eᵢ² to the running total.", squaredResidual: "Squared residual",
       runningSse: "running SSE", chooseEvaluate: "Choose “Evaluate this line”", residualTitle: "Residuals from the current line",
       residualDefinition: "Residual = observed value − predicted value.",
-      residualDirection: "Negative means below the line; positive means above the line.", residual: "Residual",
+      residual: "Residual",
       residualPlaceholder: "Evaluate the candidate line to collect its signed residuals.",
     },
     status: {
@@ -149,7 +148,7 @@ export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
       sseTitle: "Som van gekwadrateerde fouten", sseSubtitle: "Ieder gekleurd segment draagt één eᵢ² bij aan het totaal.",
       squaredResidual: "Gekwadrateerd residu", runningSse: "lopende SSE", chooseEvaluate: "Kies ‘Evalueer deze lijn’",
       residualTitle: "Residuen van de huidige lijn", residualDefinition: "Residu = waargenomen waarde − voorspelde waarde.",
-      residualDirection: "Negatief betekent onder de lijn; positief betekent erboven.", residual: "Residu",
+      residual: "Residu",
       residualPlaceholder: "Evalueer de kandidaatlijn om de residuen te verzamelen.",
     },
     status: {
