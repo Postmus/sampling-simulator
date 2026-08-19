@@ -10,8 +10,11 @@ The current concept library includes:
 - a least-squares exploration that links a movable regression line, an always-visible mean
   reference, residual squares, an animated SSE accumulator, the slope–intercept error landscape,
   and a residual dot plot for the current candidate line.
+- a regression-diagnostics demonstrator that releases residuals from a fitted equation into an
+  always-visible residual-versus-fitted plot and residual distribution, including an animated
+  comparison of models using `x` and `log₂(x)`.
 
-The library and both explorations support English and Dutch, presentation mode, and reduced motion.
+The library and all explorations support English and Dutch, presentation mode, and reduced motion.
 The language choice persists between pages and visits. The sampling journey also supports
 deterministic replay and fast batch generation.
 
@@ -23,7 +26,8 @@ npm run dev
 ```
 
 Open the local Vite URL. The concept library is the home page; concepts use static-host-friendly
-hash routes such as `#/concepts/sampling-distribution` and `#/concepts/least-squares`.
+hash routes such as `#/concepts/sampling-distribution`, `#/concepts/least-squares`, and
+`#/concepts/regression-diagnostics`.
 
 ## Deploy to GitHub Pages
 

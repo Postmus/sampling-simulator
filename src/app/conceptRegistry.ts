@@ -46,6 +46,22 @@ export const conceptRegistry: ConceptDefinition[] = [
     },
     component: lazy(() => import("../concepts/least-squares/LeastSquaresPage")),
   },
+  {
+    id: "regression-diagnostics",
+    copy: {
+      en: {
+        title: "Can we trust the fitted line?",
+        category: "Relationships and regression",
+        description: "Release residuals into two diagnostic plots, compare their patterns, and see how using log₂(x) can reveal a linear relationship.",
+      },
+      nl: {
+        title: "Kunnen we de regressielijn vertrouwen?",
+        category: "Samenhang en regressie",
+        description: "Verplaats residuen naar twee diagnostische plots, vergelijk hun patronen en zie hoe log₂(x) een lineair verband zichtbaar kan maken.",
+      },
+    },
+    component: lazy(() => import("../concepts/regression-diagnostics/RegressionDiagnosticsPage")),
+  },
 ];
 
 export function findConcept(id: string | null) {

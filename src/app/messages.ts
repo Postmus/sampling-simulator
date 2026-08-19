@@ -9,11 +9,6 @@ interface AppMessages {
   available: string;
   conceptCount: (count: number) => string;
   open: string;
-  moreSoon: string;
-  next: string;
-  coverageTitle: string;
-  coverageDescription: string;
-  planned: string;
 }
 
 export const appMessages: Record<Locale, AppMessages> = {
@@ -26,11 +21,6 @@ export const appMessages: Record<Locale, AppMessages> = {
     available: "Available explorations",
     conceptCount: (count) => `${count} ${count === 1 ? "concept" : "concepts"}`,
     open: "Open exploration",
-    moreSoon: "More concepts coming soon",
-    next: "Next",
-    coverageTitle: "Confidence interval coverage",
-    coverageDescription: "Watch repeated intervals succeed and fail to capture a fixed population value.",
-    planned: "Planned",
   },
   nl: {
     loading: "Concept laden…",
@@ -41,10 +31,5 @@ export const appMessages: Record<Locale, AppMessages> = {
     available: "Beschikbare verkenningen",
     conceptCount: (count) => `${count} ${count === 1 ? "concept" : "concepten"}`,
     open: "Open verkenning",
-    moreSoon: "Binnenkort meer concepten",
-    next: "Volgende",
-    coverageTitle: "Dekkingsgraad van betrouwbaarheidsintervallen",
-    coverageDescription: "Bekijk hoe herhaalde intervallen een vaste populatiewaarde soms wel en soms niet omvatten.",
-    planned: "Gepland",
   },
 };

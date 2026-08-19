@@ -4,6 +4,8 @@ import { conceptRegistry } from "../app/conceptRegistry";
 import { leastSquaresMessages } from "../concepts/least-squares/messages";
 import { regressionScenarios } from "../concepts/least-squares/scenarios";
 import { samplingMessages } from "../concepts/sampling-distribution/messages";
+import { diagnosticsMessages } from "../concepts/regression-diagnostics/messages";
+import { diagnosticScenarios } from "../concepts/regression-diagnostics/scenarios";
 import { formatNumber } from "./LocaleContext";
 
 function messageShape(value: unknown): unknown {
@@ -22,6 +24,7 @@ describe("localization", () => {
     expect(messageShape(appMessages.nl)).toEqual(messageShape(appMessages.en));
     expect(messageShape(leastSquaresMessages.nl)).toEqual(messageShape(leastSquaresMessages.en));
     expect(messageShape(samplingMessages.nl)).toEqual(messageShape(samplingMessages.en));
+    expect(messageShape(diagnosticsMessages.nl)).toEqual(messageShape(diagnosticsMessages.en));
   });
 
   it("provides localized metadata for every concept and regression scenario", () => {
@@ -30,6 +33,10 @@ describe("localization", () => {
       expect(concept.copy.nl.title).not.toBe("");
     });
     regressionScenarios.forEach((scenario) => {
+      expect(scenario.copy.en.xLabel).not.toBe("");
+      expect(scenario.copy.nl.xLabel).not.toBe("");
+    });
+    diagnosticScenarios.forEach((scenario) => {
       expect(scenario.copy.en.xLabel).not.toBe("");
       expect(scenario.copy.nl.xLabel).not.toBe("");
     });

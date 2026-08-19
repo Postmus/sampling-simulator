@@ -107,8 +107,6 @@ a.concept-card:hover { transform: translateY(-3px); border-color: var(--blue); }
 .concept-card h3 { max-width: 500px; margin: 1.4rem 0 0.75rem; font-size: clamp(1.35rem, 3vw, 2.1rem); line-height: 1.05; }
 .concept-card p { max-width: 550px; color: var(--muted); line-height: 1.55; }
 .concept-link { margin-top: auto; color: var(--blue-dark); font-weight: 800; }
-.concept-card-coming-soon { border-style: dashed; background: rgba(247, 250, 251, 0.72); box-shadow: none; }
-.concept-card-coming-soon .concept-link { color: var(--muted); }
 .loading-screen { display: grid; min-height: 100vh; place-items: center; color: var(--muted); font-weight: 750; }
 
 @media (max-width: 720px) {

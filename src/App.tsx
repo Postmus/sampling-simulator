@@ -61,13 +61,6 @@ function App() {
               </a>
             );
           })}
-
-          <article className="concept-card concept-card-coming-soon" aria-label={messages.moreSoon}>
-            <span className="concept-category">{messages.next}</span>
-            <h3>{messages.coverageTitle}</h3>
-            <p>{messages.coverageDescription}</p>
-            <span className="concept-link">{messages.planned}</span>
-          </article>
         </div>
       </section>
     </main>

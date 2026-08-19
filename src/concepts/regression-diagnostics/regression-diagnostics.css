@@ -1,0 +1,150 @@
+.diagnostics-journey {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.65rem;
+  width: min(1640px, 100%);
+  height: 100dvh;
+  margin: 0 auto;
+  padding: 0.65rem;
+  overflow: hidden;
+}
+
+.diagnostics-journey:fullscreen { background: #eef3f5; }
+
+.diagnostics-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 58px;
+  padding: 0.15rem 0.35rem;
+}
+
+.diagnostics-back-link {
+  padding: 0.45rem 0.65rem;
+  border-radius: 9px;
+  color: var(--blue-dark);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.diagnostics-title { min-width: 0; }
+.diagnostics-title .eyebrow { margin-bottom: 0.1rem; font-size: 0.58rem; }
+.diagnostics-title h1 { margin: 0; font-size: clamp(1.2rem, 1.7vw, 1.6rem); line-height: 1.1; letter-spacing: -0.025em; }
+.diagnostics-title > p:last-child { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.75rem; }
+.diagnostics-header-actions { display: flex; align-items: center; gap: 0.7rem; }
+.diagnostics-header-actions .language-selector span { display: none; }
+.diagnostics-motion-toggle { display: flex; align-items: center; gap: 0.35rem; color: var(--muted); font-size: 0.7rem; font-weight: 750; white-space: nowrap; }
+.diagnostics-motion-toggle input { min-height: auto; margin: 0; accent-color: var(--blue); }
+.diagnostics-presentation-button { min-height: 36px; padding: 0.45rem 0.75rem; font-size: 0.78rem; }
+
+.diagnostics-workspace {
+  display: grid;
+  grid-template-columns: 292px minmax(0, 1fr);
+  gap: 0.65rem;
+  min-height: 0;
+}
+
+.diagnostics-control-rail,
+.diagnostics-stage-card {
+  border: 1px solid rgba(177, 197, 205, 0.75);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.diagnostics-control-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.72rem;
+  min-height: 0;
+  padding: 0.85rem;
+  border-radius: 18px;
+  overflow-y: auto;
+}
+
+.diagnostics-rail-section { padding-bottom: 0.72rem; border-bottom: 1px solid #dbe5e8; }
+.diagnostics-rail-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.55rem; }
+.diagnostics-rail-heading > span { font-size: 0.75rem; font-weight: 850; letter-spacing: 0.04em; text-transform: uppercase; }
+.diagnostics-rail-heading small { color: var(--muted); font-size: 0.65rem; font-variant-numeric: tabular-nums; }
+.diagnostics-field { display: grid; gap: 0.3rem; }
+.diagnostics-field > span { color: var(--muted); font-size: 0.67rem; font-weight: 750; }
+.diagnostics-field select { width: 100%; min-height: 40px; padding: 0.4rem 0.5rem; }
+.diagnostics-description { margin: 0.45rem 0 0; color: var(--muted); font-size: 0.7rem; line-height: 1.45; }
+
+.predictor-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin: 0 0 0.55rem; padding: 0; border: 0; }
+.predictor-choice legend { grid-column: 1 / -1; margin-bottom: 0.3rem; color: var(--muted); font-size: 0.67rem; font-weight: 750; }
+.predictor-choice label { display: grid; min-height: 40px; place-items: center; border: 1px solid #b7c8cf; border-radius: 9px; background: #fff; color: var(--muted); cursor: pointer; font-size: 0.78rem; font-weight: 800; }
+.predictor-choice label.selected { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+.predictor-choice input { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; }
+.predictor-choice label:has(input:focus-visible) { outline: 3px solid rgba(228, 138, 58, 0.4); outline-offset: 2px; }
+.predictor-choice label:has(input:disabled) { cursor: not-allowed; opacity: 0.55; }
+
+.diagnostics-equation { display: grid; gap: 0.18rem; padding: 0.58rem 0.65rem; border: 1px solid #d8e4e7; border-radius: 11px; background: #f7fafb; }
+.diagnostics-equation span { color: var(--muted); font-size: 0.61rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
+.diagnostics-equation strong { font-size: 0.94rem; font-variant-numeric: tabular-nums; }
+
+.diagnostics-playback { display: grid; grid-template-columns: 1fr 0.8fr 1fr; gap: 0.4rem; }
+.diagnostics-playback button { min-height: 41px; padding: 0.4rem; font-size: 0.68rem; }
+.diagnostics-playback .primary { border-color: var(--blue); background: var(--blue); color: #fff; }
+.diagnostics-playback .replay { grid-column: 1 / -1; background: #f7fafb; }
+
+.independence-note { margin-top: auto; padding: 0.78rem; border: 1px solid #c8dce2; border-radius: 13px; background: var(--blue-soft); }
+.independence-note strong { display: block; margin-bottom: 0.3rem; color: var(--blue-dark); font-size: 0.72rem; }
+.independence-note p { margin: 0; color: #405b67; font-size: 0.67rem; line-height: 1.48; }
+
+.diagnostics-stage-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.75rem;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.diagnostics-stage-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem; }
+.diagnostics-stage-heading > div { display: flex; align-items: baseline; gap: 0.75rem; }
+.diagnostics-stage-heading > div span { color: var(--muted); font-size: 0.68rem; font-weight: 750; text-transform: uppercase; }
+.diagnostics-stage-heading > div strong { font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+.diagnostics-stage-heading p { max-width: 620px; margin: 0; padding: 0.48rem 0.65rem; border-radius: 10px; background: var(--orange-soft); color: #7a4518; font-size: 0.73rem; font-weight: 700; line-height: 1.4; }
+
+.diagnostics-svg-wrap { flex: 1; min-height: 0; margin-top: 0.45rem; overflow: hidden; border-radius: 14px; background: #f7fafb; }
+.diagnostics-svg-wrap svg { display: block; width: 100%; height: 100%; }
+.diagnostics-panel-background { fill: #fff; stroke: #dbe5e8; stroke-width: 1.5; }
+.diagnostics-zone-title { fill: var(--ink); font-size: 17px; font-weight: 850; }
+.diagnostics-zone-title.lower { font-size: 15px; }
+.diagnostics-zone-subtitle { fill: var(--muted); font-size: 11px; font-weight: 600; }
+.diagnostics-grid-line { stroke: #e0e9ec; stroke-width: 1; }
+.diagnostics-grid-line.vertical { stroke-dasharray: 3 5; }
+.diagnostics-axis-line, .diagnostics-axis-tick { stroke: #8ea6af; stroke-width: 1.4; }
+.diagnostics-axis-label { fill: var(--muted); font-size: 10px; font-weight: 650; }
+.diagnostics-axis-title { fill: #34495a; font-size: 11px; font-weight: 800; }
+.diagnostics-fitted-line { stroke: #16785f; stroke-width: 4.5; stroke-linecap: round; }
+.diagnostics-residual-line { stroke-width: 2; stroke-dasharray: 4 3; }
+.diagnostics-observation-halo { fill: rgba(255, 255, 255, 0.94); }
+.diagnostics-observation-point { fill: var(--blue); stroke: #fff; stroke-width: 1.4; }
+.diagnostics-zero-line { stroke: #708b96; stroke-width: 1.5; stroke-dasharray: 6 5; }
+.diagnostics-zero-line.vertical { stroke-width: 1.2; stroke-dasharray: 4 4; }
+.diagnostics-residual-token { stroke: #fff; stroke-width: 1.4; filter: drop-shadow(0 2px 2px rgba(30, 56, 70, 0.16)); }
+.diagnostics-normal-reference { fill: none; stroke: #7e5aa6; stroke-width: 2.5; stroke-dasharray: 7 5; }
+.diagnostics-normal-key line { stroke: #7e5aa6; stroke-width: 2.5; stroke-dasharray: 7 5; }
+.diagnostics-normal-key text { fill: #6a4b8c; font-size: 10px; font-weight: 750; }
+
+@media (max-width: 1120px) {
+  .diagnostics-journey { width: 100%; height: auto; min-height: 100dvh; overflow: visible; }
+  .diagnostics-workspace { grid-template-columns: 1fr; }
+  .diagnostics-control-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+  .independence-note { margin-top: 0; }
+  .diagnostics-stage-card { min-height: 780px; }
+}
+
+@media (max-width: 760px) {
+  .diagnostics-header { grid-template-columns: auto 1fr; }
+  .diagnostics-title { grid-column: 1 / -1; grid-row: 2; }
+  .diagnostics-header-actions { justify-self: end; }
+  .diagnostics-control-rail { display: flex; }
+  .diagnostics-stage-heading { flex-direction: column; gap: 0.5rem; }
+  .diagnostics-svg-wrap { overflow-x: auto; }
+  .diagnostics-svg-wrap svg { width: auto; min-width: 1050px; }
+}
