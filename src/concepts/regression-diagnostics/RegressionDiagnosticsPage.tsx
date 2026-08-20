@@ -191,6 +191,14 @@ export default function RegressionDiagnosticsPage() {
     void runSequence(0);
   }
 
+  function reset() {
+    runtimeRef.current?.cancel();
+    setPlaying(false);
+    setPaused(false);
+    setTransforming(false);
+    snapToPhase(0, "reset");
+  }
+
   function changeScenario(id: string) {
     runtimeRef.current?.cancel();
     const nextScenario = getDiagnosticScenario(id);
@@ -212,8 +220,8 @@ export default function RegressionDiagnosticsPage() {
     setPlaying(false);
     setPaused(false);
     setTransforming(true);
+    snapToPhase(0, "transforming");
     setPredictor(nextPredictor);
-    setStatusMode("transforming");
     const start = modelMixRef.current;
     const target = nextPredictor === "log" ? 1 : 0;
     const token = runtime.beginRun();
@@ -227,9 +235,7 @@ export default function RegressionDiagnosticsPage() {
     modelMixRef.current = target;
     setModelMix(target);
     setTransforming(false);
-    setStatusMode(phaseRef.current === MAXIMUM_PHASE
-      ? "finding"
-      : nextPredictor === "log" ? "transformed" : statusForPhase(phaseRef.current));
+    void runSequence(0);
   }
 
   async function toggleFullscreen() {
@@ -287,6 +293,7 @@ export default function RegressionDiagnosticsPage() {
           onNext={() => void nextPhase()}
           onPlayPause={playPause}
           onReplay={replay}
+          onReset={reset}
         />
         <DiagnosticsStage
           scenario={scenario}

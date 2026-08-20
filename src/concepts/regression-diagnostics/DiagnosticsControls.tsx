@@ -19,6 +19,7 @@ interface DiagnosticsControlsProps {
   onNext: () => void;
   onPlayPause: () => void;
   onReplay: () => void;
+  onReset: () => void;
 }
 
 function format(value: number, locale: Locale) {
@@ -105,6 +106,7 @@ export function DiagnosticsControls(props: DiagnosticsControlsProps) {
             {messages.controls.next} →
           </button>
           <button className="replay" type="button" disabled={props.transforming} onClick={props.onReplay}>{messages.controls.replay}</button>
+          <button className="reset" type="button" disabled={props.transforming} onClick={props.onReset}>{messages.controls.reset}</button>
         </div>
       </section>
 

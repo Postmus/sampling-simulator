@@ -87,7 +87,8 @@
 .diagnostics-playback { display: grid; grid-template-columns: 1fr 0.8fr 1fr; gap: 0.4rem; }
 .diagnostics-playback button { min-height: 41px; padding: 0.4rem; font-size: 0.68rem; }
 .diagnostics-playback .primary { border-color: var(--blue); background: var(--blue); color: #fff; }
-.diagnostics-playback .replay { grid-column: 1 / -1; background: #f7fafb; }
+.diagnostics-playback .replay,
+.diagnostics-playback .reset { grid-column: 1 / -1; background: #f7fafb; }
 
 .independence-note { margin-top: auto; padding: 0.78rem; border: 1px solid #c8dce2; border-radius: 13px; background: var(--blue-soft); }
 .independence-note strong { display: block; margin-bottom: 0.3rem; color: var(--blue-dark); font-size: 0.72rem; }

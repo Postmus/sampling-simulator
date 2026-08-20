@@ -83,6 +83,7 @@ describe("regression diagnostics visualization", () => {
           onNext={() => undefined}
           onPlayPause={() => undefined}
           onReplay={() => undefined}
+          onReset={() => undefined}
         />
       </LocaleProvider>,
     );
@@ -90,6 +91,7 @@ describe("regression diagnostics visualization", () => {
     expect(markup).toContain("log₂(x)");
     expect(markup).toContain("Independence and study design");
     expect(markup).toContain("A residual plot cannot establish that observations are independent.");
+    expect(markup).toContain(">Reset</button>");
     expect(markup).not.toContain("assumption satisfied");
   });
 
