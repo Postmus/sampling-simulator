@@ -2,37 +2,38 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LanguageSelector } from "../../app/LanguageSelector";
 import { useLocale } from "../../i18n/LocaleContext";
 import { AnimationRuntime } from "../../runtime/AnimationRuntime";
-import { AncovaControls } from "./AncovaControls";
-import { AncovaStage } from "./AncovaStage";
-import { periodontalData } from "./data";
-import { ancovaMessages } from "./messages";
-import { fitAncova, type AncovaModelKind } from "./model";
-import "./ancova-additive.css";
+import { InteractionControls } from "./InteractionControls";
+import { InteractionStage } from "./InteractionStage";
+import { implantData } from "./data";
+import { interactionMessages } from "./messages";
+import { fitInteractionModel, type InteractionModelKind } from "./model";
+import "../ancova-additive/ancova-additive.css";
+import "./interaction-model.css";
 
 function initialReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export default function AncovaAdditivePage() {
+export default function InteractionModelPage() {
   const { locale } = useLocale();
-  const messages = ancovaMessages[locale];
+  const messages = interactionMessages[locale];
   const rootRef = useRef<HTMLElement>(null);
   const fits = useMemo(() => ({
-    unadjusted: fitAncova(periodontalData, "unadjusted"),
-    adjusted: fitAncova(periodontalData, "adjusted"),
+    additive: fitInteractionModel(implantData, "additive"),
+    interaction: fitInteractionModel(implantData, "interaction"),
   }), []);
-  const [activeModel, setActiveModel] = useState<AncovaModelKind | null>(null);
-  const [adjustedRevealed, setAdjustedRevealed] = useState(false);
+  const [activeModel, setActiveModel] = useState<InteractionModelKind | null>(null);
+  const [interactionRevealed, setInteractionRevealed] = useState(false);
   const [lineRevealProgress, setLineRevealProgress] = useState(0);
   const [modelMix, setModelMix] = useState(0);
-  const [baselineComparisonOpen, setBaselineComparisonOpen] = useState(false);
-  const [baselineA, setBaselineA] = useState(4.5);
-  const [baselineB, setBaselineB] = useState(7);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [torqueA, setTorqueA] = useState(25);
+  const [torqueB, setTorqueB] = useState(45);
   const [busy, setBusy] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(initialReducedMotion);
   const reducedMotionRef = useRef(reducedMotion);
   const [fullscreen, setFullscreen] = useState(false);
-  const [statusKey, setStatusKey] = useState<"statusInitial" | "statusUnadjusted" | "statusAdjusted" | "fullscreenUnavailable">("statusInitial");
+  const [statusKey, setStatusKey] = useState<"statusInitial" | "statusAdditive" | "statusInteraction" | "fullscreenUnavailable">("statusInitial");
   const runtimeRef = useRef<AnimationRuntime | null>(null);
 
   if (runtimeRef.current === null) {
@@ -49,50 +50,51 @@ export default function AncovaAdditivePage() {
     };
   }, []);
 
-  async function showUnadjusted() {
+  async function showAdditive() {
     const runtime = runtimeRef.current;
-    if (runtime === null || busy || activeModel === "unadjusted") return;
+    if (runtime === null || busy || activeModel === "additive") return;
     const token = runtime.beginRun();
     setBusy(true);
-    setActiveModel("unadjusted");
+    setActiveModel("additive");
     if (lineRevealProgress < 1) {
       await runtime.tween(850, token, setLineRevealProgress);
     } else {
       const start = modelMix;
-      await runtime.tween(650, token, (progress) => setModelMix(start * (1 - progress)));
+      await runtime.tween(750, token, (progress) => setModelMix(start * (1 - progress)));
     }
     if (!runtime.isCurrent(token)) return;
     setLineRevealProgress(1);
     setModelMix(0);
+    setComparisonOpen(true);
     setBusy(false);
-    setStatusKey("statusUnadjusted");
+    setStatusKey("statusAdditive");
   }
 
-  async function showAdjusted() {
+  async function showInteraction() {
     const runtime = runtimeRef.current;
-    if (runtime === null || busy || activeModel === null || activeModel === "adjusted") return;
+    if (runtime === null || busy || activeModel === null || activeModel === "interaction") return;
     const token = runtime.beginRun();
     setBusy(true);
-    setActiveModel("adjusted");
+    setActiveModel("interaction");
     const start = modelMix;
     await runtime.tween(950, token, (progress) => setModelMix(start + (1 - start) * progress));
     if (!runtime.isCurrent(token)) return;
     setModelMix(1);
-    if (!adjustedRevealed) setBaselineComparisonOpen(true);
-    setAdjustedRevealed(true);
+    setInteractionRevealed(true);
+    setComparisonOpen(true);
     setBusy(false);
-    setStatusKey("statusAdjusted");
+    setStatusKey("statusInteraction");
   }
 
   function reset() {
     runtimeRef.current?.cancel();
     setActiveModel(null);
-    setAdjustedRevealed(false);
+    setInteractionRevealed(false);
     setLineRevealProgress(0);
     setModelMix(0);
-    setBaselineComparisonOpen(false);
-    setBaselineA(4.5);
-    setBaselineB(7);
+    setComparisonOpen(false);
+    setTorqueA(25);
+    setTorqueB(45);
     setBusy(false);
     setStatusKey("statusInitial");
   }
@@ -107,7 +109,7 @@ export default function AncovaAdditivePage() {
   }
 
   return (
-    <main className="ancova-journey" ref={rootRef}>
+    <main className="ancova-journey interaction-journey" ref={rootRef}>
       <header className="ancova-header">
         <a className="ancova-back-link" href="#/themes/linear-regression" aria-label={messages.backAria}>← {messages.library}</a>
         <div className="ancova-title">
@@ -128,27 +130,27 @@ export default function AncovaAdditivePage() {
       </header>
 
       <div className="ancova-workspace">
-        <AncovaControls
+        <InteractionControls
           activeModel={activeModel}
-          adjustedRevealed={adjustedRevealed}
+          interactionRevealed={interactionRevealed}
           busy={busy}
-          onUnadjusted={() => void showUnadjusted()}
-          onAdjusted={() => void showAdjusted()}
+          onAdditive={() => void showAdditive()}
+          onInteraction={() => void showInteraction()}
           onReset={reset}
         />
-        <AncovaStage
-          unadjusted={fits.unadjusted}
-          adjusted={fits.adjusted}
+        <InteractionStage
+          additive={fits.additive}
+          interaction={fits.interaction}
           activeModel={activeModel}
-          adjustedRevealed={adjustedRevealed}
+          interactionRevealed={interactionRevealed}
           lineRevealProgress={lineRevealProgress}
           modelMix={modelMix}
-          baselineComparisonOpen={baselineComparisonOpen}
-          baselineA={baselineA}
-          baselineB={baselineB}
-          onBaselineComparisonToggle={() => setBaselineComparisonOpen((open) => !open)}
-          onBaselineAChange={setBaselineA}
-          onBaselineBChange={setBaselineB}
+          comparisonOpen={comparisonOpen}
+          torqueA={torqueA}
+          torqueB={torqueB}
+          onComparisonToggle={() => setComparisonOpen((open) => !open)}
+          onTorqueAChange={setTorqueA}
+          onTorqueBChange={setTorqueB}
           status={messages.stage[statusKey]}
         />
       </div>

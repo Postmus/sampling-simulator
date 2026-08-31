@@ -171,7 +171,7 @@ export default function LeastSquaresPage() {
   return (
     <main className="least-squares-journey" ref={rootRef}>
       <header className="regression-header">
-        <a className="back-link" href="#/" aria-label={messages.backAria}>← {messages.library}</a>
+        <a className="back-link" href="#/themes/linear-regression" aria-label={messages.backAria}>← {messages.library}</a>
         <div className="regression-title">
           <p className="eyebrow">{messages.eyebrow}</p>
           <h1>{messages.title}</h1>

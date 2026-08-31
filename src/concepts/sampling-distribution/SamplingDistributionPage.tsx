@@ -23,7 +23,7 @@ export default function SamplingDistributionPage() {
   return (
     <main className="sampling-journey" ref={rootRef}>
       <header className="compact-header">
-        <a className="back-link" href="#/" aria-label={messages.backAria}>← {messages.library}</a>
+        <a className="back-link" href="#/themes/sampling-estimation" aria-label={messages.backAria}>← {messages.library}</a>
         <div className="compact-title">
           <p className="eyebrow">{messages.eyebrow}</p>
           <h1>{messages.title}</h1>

@@ -8,8 +8,14 @@ test("switches the complete lab to Dutch and persists the choice", async ({ page
   await page.getByLabel("Language").selectOption("nl");
   await expect(page.locator("html")).toHaveAttribute("lang", "nl");
   await expect(page.getByRole("heading", { name: "Statistieklab" })).toBeVisible();
-  await expect(page.getByText("Beschikbare verkenningen")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kies een thema" })).toBeVisible();
+  await expect(page.locator(".theme-card")).toHaveCount(2);
+  await expect(page.getByRole("link").filter({ hasText: "Hoe kleinste kwadraten een lijn kiest" })).toHaveCount(0);
 
+  await page.getByRole("link").filter({ hasText: "Lineaire regressie" }).click();
+  await expect(page.getByRole("heading", { name: "Lineaire regressie" })).toBeVisible();
+  await expect(page.locator(".concept-card")).toHaveCount(4);
+  await expect(page.locator(".concept-category")).toHaveCount(0);
   await page.getByRole("link").filter({ hasText: "Hoe kleinste kwadraten een lijn kiest" }).click();
   await expect(page.getByRole("heading", { name: "Hoe kiest de kleinste-kwadratenmethode een lijn?" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Evalueer deze lijn" })).toBeEnabled();
@@ -19,6 +25,7 @@ test("switches the complete lab to Dutch and persists the choice", async ({ page
   await page.reload();
   await expect(page.getByLabel("Taal")).toHaveValue("nl");
   await expect(page.getByRole("heading", { name: "Hoe kiest de kleinste-kwadratenmethode een lijn?" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Terug naar Lineaire regressie" })).toHaveAttribute("href", "#/themes/linear-regression");
 
   await page.goto("/#/concepts/sampling-distribution");
   await expect(page.getByRole("heading", { name: "Steekproevenverdeling van het steekproefgemiddelde" })).toBeVisible();

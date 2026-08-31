@@ -87,8 +87,8 @@ export interface AncovaMessages {
 
 export const ancovaMessages: Record<Locale, AncovaMessages> = {
   en: {
-    backAria: "Back to concept library",
-    library: "Library",
+    backAria: "Back to Linear regression",
+    library: "Linear regression",
     eyebrow: "Multiple-predictor models",
     title: "ANCOVA: comparing at the same baseline",
     subtitle: "Fit a treatment-only model, add baseline pocket depth, and watch the treatment comparisons change.",
@@ -182,8 +182,8 @@ export const ancovaMessages: Record<Locale, AncovaMessages> = {
     },
   },
   nl: {
-    backAria: "Terug naar de conceptbibliotheek",
-    library: "Bibliotheek",
+    backAria: "Terug naar Lineaire regressie",
+    library: "Lineaire regressie",
     eyebrow: "Modellen met meerdere voorspellers",
     title: "ANCOVA: vergelijken bij dezelfde beginwaarde",
     subtitle: "Schat eerst een model met alleen behandeling, voeg de beginwaarde toe en zie hoe de behandelingsvergelijkingen veranderen.",

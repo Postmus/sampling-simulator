@@ -259,7 +259,7 @@ export default function RegressionDiagnosticsPage() {
   return (
     <main className="diagnostics-journey" ref={rootRef}>
       <header className="diagnostics-header">
-        <a className="diagnostics-back-link" href="#/" aria-label={messages.backAria}>← {messages.library}</a>
+        <a className="diagnostics-back-link" href="#/themes/linear-regression" aria-label={messages.backAria}>← {messages.library}</a>
         <div className="diagnostics-title">
           <p className="eyebrow">{messages.eyebrow}</p>
           <h1>{messages.title}</h1>

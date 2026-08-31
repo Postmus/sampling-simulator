@@ -64,8 +64,8 @@ export interface DiagnosticsMessages {
 
 export const diagnosticsMessages: Record<Locale, DiagnosticsMessages> = {
   en: {
-    backAria: "Back to concept library",
-    library: "Library",
+    backAria: "Back to Linear regression",
+    library: "Linear regression",
     eyebrow: "Relationships and regression",
     title: "Can we trust the fitted line?",
     subtitle: "Fit the model, release its residuals, and inspect the patterns they form.",
@@ -125,8 +125,8 @@ export const diagnosticsMessages: Record<Locale, DiagnosticsMessages> = {
     },
   },
   nl: {
-    backAria: "Terug naar de conceptbibliotheek",
-    library: "Bibliotheek",
+    backAria: "Terug naar Lineaire regressie",
+    library: "Lineaire regressie",
     eyebrow: "Samenhang en regressie",
     title: "Kunnen we de regressielijn vertrouwen?",
     subtitle: "Pas het model, maak de residuen zichtbaar en onderzoek de patronen die ze vormen.",

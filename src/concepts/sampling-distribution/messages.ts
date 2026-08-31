@@ -75,7 +75,7 @@ export interface SamplingMessages {
 
 export const samplingMessages: Record<Locale, SamplingMessages> = {
   en: {
-    backAria: "Back to concept library", library: "Library", eyebrow: "Sampling and estimation",
+    backAria: "Back to Sampling distributions", library: "Sampling distributions", eyebrow: "Sampling and estimation",
     title: "Sampling distribution of the sample mean", subtitle: "Variation across repeated samples from a normal population",
     presentation: "Presentation mode", exitPresentation: "Exit presentation",
     controls: {
@@ -112,7 +112,7 @@ export const samplingMessages: Record<Locale, SamplingMessages> = {
     },
   },
   nl: {
-    backAria: "Terug naar de conceptbibliotheek", library: "Bibliotheek", eyebrow: "Steekproeven en schatten",
+    backAria: "Terug naar Steekproevenverdelingen", library: "Steekproevenverdelingen", eyebrow: "Steekproeven en schatten",
     title: "Steekproevenverdeling van het steekproefgemiddelde", subtitle: "Variatie tussen herhaalde steekproeven uit een normale populatie",
     presentation: "Presentatiemodus", exitPresentation: "Presentatie afsluiten",
     controls: {

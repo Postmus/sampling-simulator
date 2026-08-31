@@ -4,10 +4,12 @@ interface AppMessages {
   loading: string;
   eyebrow: string;
   title: string;
-  intro: string;
-  libraryEyebrow: string;
-  available: string;
-  conceptCount: (count: number) => string;
+  chooseTheme: string;
+  explorationCount: (count: number) => string;
+  openTheme: string;
+  backToThemes: string;
+  explorationsEyebrow: string;
+  availableExplorations: string;
   open: string;
 }
 
@@ -16,20 +18,24 @@ export const appMessages: Record<Locale, AppMessages> = {
     loading: "Loading concept…",
     eyebrow: "Interactive statistics",
     title: "Statistical Concepts Lab",
-    intro: "Explore statistical ideas by changing a model, watching each step, and comparing a single run with its long-run behavior.",
-    libraryEyebrow: "Concept library",
-    available: "Available explorations",
-    conceptCount: (count) => `${count} ${count === 1 ? "concept" : "concepts"}`,
+    chooseTheme: "Choose a theme",
+    explorationCount: (count) => `${count} ${count === 1 ? "exploration" : "explorations"}`,
+    openTheme: "View theme",
+    backToThemes: "All themes",
+    explorationsEyebrow: "Teaching sequence",
+    availableExplorations: "Explorations",
     open: "Open exploration",
   },
   nl: {
     loading: "Concept laden…",
     eyebrow: "Interactieve statistiek",
     title: "Statistieklab",
-    intro: "Verken statistische ideeën door een model te veranderen, elke stap te volgen en één simulatie te vergelijken met het gedrag op de lange termijn.",
-    libraryEyebrow: "Conceptbibliotheek",
-    available: "Beschikbare verkenningen",
-    conceptCount: (count) => `${count} ${count === 1 ? "concept" : "concepten"}`,
+    chooseTheme: "Kies een thema",
+    explorationCount: (count) => `${count} ${count === 1 ? "verkenning" : "verkenningen"}`,
+    openTheme: "Bekijk thema",
+    backToThemes: "Alle thema's",
+    explorationsEyebrow: "Onderwijsvolgorde",
+    availableExplorations: "Verkenningen",
     open: "Open verkenning",
   },
 };

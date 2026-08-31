@@ -70,8 +70,8 @@ export interface LeastSquaresMessages {
 
 export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
   en: {
-    backAria: "Back to concept library",
-    library: "Library",
+    backAria: "Back to Linear regression",
+    library: "Linear regression",
     eyebrow: "Relationships and regression",
     title: "How does least squares choose a line?",
     subtitle: "Move a candidate line, inspect its errors, and follow it to the unique minimum.",
@@ -114,7 +114,7 @@ export const leastSquaresMessages: Record<Locale, LeastSquaresMessages> = {
     },
   },
   nl: {
-    backAria: "Terug naar de conceptbibliotheek", library: "Bibliotheek", eyebrow: "Samenhang en regressie",
+    backAria: "Terug naar Lineaire regressie", library: "Lineaire regressie", eyebrow: "Samenhang en regressie",
     title: "Hoe kiest de kleinste-kwadratenmethode een lijn?",
     subtitle: "Verplaats een kandidaatlijn, bekijk de fouten en volg de lijn naar het unieke minimum.",
     reduceMotion: "Verminder beweging", presentation: "Presentatiemodus", exitPresentation: "Presentatie afsluiten",

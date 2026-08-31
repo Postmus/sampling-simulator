@@ -16,6 +16,8 @@ The current concept library includes:
 - an additive ANCOVA exploration that moves from three horizontal group-mean fits to three
   parallel regression lines and compares treatment coefficients, standard errors, confidence
   intervals, and p-values before and after baseline adjustment.
+- an interaction-model exploration that moves from parallel to non-parallel implant-stability
+  regression lines and compares the jaw difference at two selected insertion-torque values.
 
 The library and all explorations support English and Dutch, presentation mode, and reduced motion.
 The language choice persists between pages and visits. The sampling journey also supports

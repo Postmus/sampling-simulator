@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { appMessages } from "../app/messages";
-import { conceptRegistry } from "../app/conceptRegistry";
+import { conceptRegistry, conceptsForTheme, themeRegistry } from "../app/conceptRegistry";
 import { leastSquaresMessages } from "../concepts/least-squares/messages";
 import { regressionScenarios } from "../concepts/least-squares/scenarios";
 import { samplingMessages } from "../concepts/sampling-distribution/messages";
 import { diagnosticsMessages } from "../concepts/regression-diagnostics/messages";
 import { diagnosticScenarios } from "../concepts/regression-diagnostics/scenarios";
 import { ancovaMessages } from "../concepts/ancova-additive/messages";
+import { interactionMessages } from "../concepts/interaction-model/messages";
 import { formatNumber } from "./LocaleContext";
 
 function messageShape(value: unknown): unknown {
@@ -27,12 +28,19 @@ describe("localization", () => {
     expect(messageShape(samplingMessages.nl)).toEqual(messageShape(samplingMessages.en));
     expect(messageShape(diagnosticsMessages.nl)).toEqual(messageShape(diagnosticsMessages.en));
     expect(messageShape(ancovaMessages.nl)).toEqual(messageShape(ancovaMessages.en));
+    expect(messageShape(interactionMessages.nl)).toEqual(messageShape(interactionMessages.en));
   });
 
-  it("provides localized metadata for every concept and regression scenario", () => {
+  it("provides localized metadata for every theme, concept, and regression scenario", () => {
+    themeRegistry.forEach((theme) => {
+      expect(theme.copy.en.title).not.toBe("");
+      expect(theme.copy.nl.title).not.toBe("");
+      expect(conceptsForTheme(theme.id).length).toBeGreaterThan(0);
+    });
     conceptRegistry.forEach((concept) => {
       expect(concept.copy.en.title).not.toBe("");
       expect(concept.copy.nl.title).not.toBe("");
+      expect(themeRegistry.some((theme) => theme.id === concept.themeId)).toBe(true);
     });
     regressionScenarios.forEach((scenario) => {
       expect(scenario.copy.en.xLabel).not.toBe("");
