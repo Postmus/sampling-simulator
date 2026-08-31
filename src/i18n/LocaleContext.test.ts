@@ -6,6 +6,7 @@ import { regressionScenarios } from "../concepts/least-squares/scenarios";
 import { samplingMessages } from "../concepts/sampling-distribution/messages";
 import { diagnosticsMessages } from "../concepts/regression-diagnostics/messages";
 import { diagnosticScenarios } from "../concepts/regression-diagnostics/scenarios";
+import { ancovaMessages } from "../concepts/ancova-additive/messages";
 import { formatNumber } from "./LocaleContext";
 
 function messageShape(value: unknown): unknown {
@@ -25,6 +26,7 @@ describe("localization", () => {
     expect(messageShape(leastSquaresMessages.nl)).toEqual(messageShape(leastSquaresMessages.en));
     expect(messageShape(samplingMessages.nl)).toEqual(messageShape(samplingMessages.en));
     expect(messageShape(diagnosticsMessages.nl)).toEqual(messageShape(diagnosticsMessages.en));
+    expect(messageShape(ancovaMessages.nl)).toEqual(messageShape(ancovaMessages.en));
   });
 
   it("provides localized metadata for every concept and regression scenario", () => {

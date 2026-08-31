@@ -39,6 +39,7 @@ test("builds both diagnostic plots and transforms the predictor", async ({ page 
   await page.getByLabel("Teaching example").selectOption("increasing-spread");
   await expect(page.getByRole("radio", { name: "log₂(x)" })).toHaveCount(0);
   await expect(page.locator(".diagnostics-residual-token")).toHaveCount(0);
+  await page.getByLabel("Reduce motion").check();
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.getByText(/widening funnel/)).toBeVisible();
 });

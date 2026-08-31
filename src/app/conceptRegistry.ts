@@ -62,6 +62,22 @@ export const conceptRegistry: ConceptDefinition[] = [
     },
     component: lazy(() => import("../concepts/regression-diagnostics/RegressionDiagnosticsPage")),
   },
+  {
+    id: "ancova-additive",
+    copy: {
+      en: {
+        title: "ANCOVA: comparing at the same baseline",
+        category: "Multiple-predictor models",
+        description: "Fit three group means, add a shared baseline slope, and compare how adjustment changes treatment estimates, SEs, confidence intervals, and p-values.",
+      },
+      nl: {
+        title: "ANCOVA: vergelijken bij dezelfde beginwaarde",
+        category: "Modellen met meerdere voorspellers",
+        description: "Schat drie groepsgemiddelden, voeg een gedeelde helling voor de beginwaarde toe en vergelijk wat de correctie doet met schattingen, standaardfouten, betrouwbaarheidsintervallen en p-waarden.",
+      },
+    },
+    component: lazy(() => import("../concepts/ancova-additive/AncovaAdditivePage")),
+  },
 ];
 
 export function findConcept(id: string | null) {

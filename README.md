@@ -13,6 +13,9 @@ The current concept library includes:
 - a regression-diagnostics demonstrator that releases residuals from a fitted equation into an
   always-visible residual-versus-fitted plot and residual distribution, including an animated
   comparison of models using `x` and `log₂(x)`.
+- an additive ANCOVA exploration that moves from three horizontal group-mean fits to three
+  parallel regression lines and compares treatment coefficients, standard errors, confidence
+  intervals, and p-values before and after baseline adjustment.
 
 The library and all explorations support English and Dutch, presentation mode, and reduced motion.
 The language choice persists between pages and visits. The sampling journey also supports
