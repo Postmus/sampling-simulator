@@ -30,11 +30,11 @@ export const themeRegistry: ThemeDefinition[] = [
     copy: {
       en: {
         title: "Sampling distributions",
-        description: "See how repeated samples turn individual sample means into a sampling distribution.",
+        description: "See how repeated samples and experiments turn estimates into sampling distributions.",
       },
       nl: {
         title: "Steekproevenverdelingen",
-        description: "Zie hoe herhaalde steekproeven afzonderlijke steekproefgemiddelden vormen tot een steekproevenverdeling.",
+        description: "Zie hoe herhaalde steekproeven en experimenten schattingen vormen tot steekproevenverdelingen.",
       },
     },
   },
@@ -69,6 +69,22 @@ export const conceptRegistry: ConceptDefinition[] = [
       },
     },
     component: lazy(() => import("../concepts/sampling-distribution/SamplingDistributionPage")),
+  },
+  {
+    id: "mean-difference-sampling",
+    themeId: "sampling-estimation",
+    order: 2,
+    copy: {
+      en: {
+        title: "Sampling distribution of a mean difference",
+        description: "Repeat the 12-versus-12 Gel X animal experiment and watch each difference between treatment-group means build a sampling distribution.",
+      },
+      nl: {
+        title: "Steekproevenverdeling van een verschil tussen gemiddelden",
+        description: "Herhaal het Gel X-dierexperiment met twee groepen van 12 en zie hoe elk verschil tussen de groepsgemiddelden een steekproevenverdeling opbouwt.",
+      },
+    },
+    component: lazy(() => import("../concepts/mean-difference-sampling/MeanDifferenceSamplingPage")),
   },
   {
     id: "least-squares",

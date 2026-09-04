@@ -4,10 +4,10 @@ test("switches the complete lab to Dutch and persists the choice", async ({ page
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/#/");
 
-  await expect(page.getByRole("heading", { name: "Statistical Concepts Lab" })).toBeVisible();
+  await expect(page.getByText("Statistical Concepts Lab", { exact: true })).toBeVisible();
   await page.getByLabel("Language").selectOption("nl");
   await expect(page.locator("html")).toHaveAttribute("lang", "nl");
-  await expect(page.getByRole("heading", { name: "Statistieklab" })).toBeVisible();
+  await expect(page.getByText("Statistieklab", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Kies een thema" })).toBeVisible();
   await expect(page.locator(".theme-card")).toHaveCount(2);
   await expect(page.getByRole("link").filter({ hasText: "Hoe kleinste kwadraten een lijn kiest" })).toHaveCount(0);

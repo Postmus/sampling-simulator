@@ -61,6 +61,33 @@ concepts need the same behavior; concept-specific geometry stays with its concep
 6. Add one localized lazy-loaded entry to `conceptRegistry.ts`.
 7. Verify `npm test`, `npm run build`, and `npm run test:e2e`.
 
+## Readable exploration layout
+
+Treat laptop and classroom readability as an acceptance criterion for every new exploration. The
+mean-difference sampling exploration is the current reference implementation.
+
+- Design and visually inspect both the initial and populated states at the shared Playwright
+  baseline of 1366 × 768 pixels.
+- Prefer vertical page scrolling over shrinking an entire visualization to fit a short viewport.
+  Preserve the intended type sizes when content needs more vertical room.
+- Keep explanatory SVG text effectively about 16 pixels or larger after the SVG has been placed
+  and scaled. Panel headings should remain visibly larger than annotations, axes, and labels.
+- Use the `--exploration-*` tokens in `src/styles.css` as the starting point for control dimensions,
+  control text, status text, panel headings, explanatory text, labels, and axes. A concept may use
+  larger values when its content benefits from them.
+- Give panels enough vertical space that data, formulas, and annotations do not compete for the
+  same area. Do not solve collisions by making instructional text smaller.
+- Keep the primary controls and summary values readable without requiring tiny uppercase labels.
+  Less frequently used controls, such as animation speed and replay options, may live in a clearly
+  labelled expandable section.
+- Do not rely on Unicode combining marks for mathematical notation in SVG when browser or font
+  placement is inconsistent. Draw the notation explicitly or use another robust representation.
+- Verify responsive behavior separately. Horizontal scrolling is acceptable for a complex SVG on
+  a narrow phone when further compression would make the content unreadable.
+
+When an existing exploration is revised substantially, apply this convention during the same
+change rather than preserving an unnecessarily compressed layout.
+
 The least-squares exploration is the second implemented concept and demonstrates that the shell,
 animation runtime, presentation behavior, and design language can be shared without forcing its
 state into the sampling model. Future inference concepts should remain separate features and reuse

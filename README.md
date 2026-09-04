@@ -7,6 +7,8 @@ The current concept library includes:
 
 - a sampling journey that follows observations into one sample and then builds a sampling
   distribution from repeated sample means;
+- a Gel X animal-experiment journey that repeatedly samples 12 animals per treatment group and
+  builds the sampling distribution of the difference between the Gel X and vehicle means;
 - a least-squares exploration that links a movable regression line, an always-visible mean
   reference, residual squares, a full-width animated SSE accumulator, and the slope–intercept
   error landscape.

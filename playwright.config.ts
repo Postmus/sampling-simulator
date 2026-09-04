@@ -5,10 +5,11 @@ export default defineConfig({
   fullyParallel: true,
   reporter: "list",
   use: {
+    ...devices["Desktop Chrome"],
     baseURL: "http://127.0.0.1:5181",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    ...devices["Desktop Chrome"],
+    viewport: { width: 1366, height: 768 },
   },
   webServer: {
     command: "npm run dev -- --host 127.0.0.1 --port 5181",
