@@ -20,10 +20,8 @@ describe("interaction-model visualization", () => {
           interactionRevealed={false}
           lineRevealProgress={1}
           modelMix={0}
-          comparisonOpen
           torqueA={25}
           torqueB={45}
-          onComparisonToggle={() => undefined}
           onTorqueAChange={() => undefined}
           onTorqueBChange={() => undefined}
           status="Additive model fitted"
@@ -37,12 +35,17 @@ describe("interaction-model visualization", () => {
     expect(markup).toContain("β<sub>1</sub><var>T</var><sub>i</sub>");
     expect(markup).toContain("β<sub>2</sub> × d<sub>lower,i</sub>");
     expect(markup).not.toContain("β<sub>3</sub>");
-    expect(markup).toContain("65.41 - 63.32 = 2.08");
-    expect(markup).toContain("73.48 - 71.39 = 2.08");
+    expect(markup.match(/2.08 ISQ/g)).toHaveLength(2);
+    expect(markup.match(/class="ancova-model-result-block/g)).toHaveLength(1);
+    expect(markup.match(/type="range"/g)).toHaveLength(2);
+    expect(markup.match(/Estimated difference/g)).toHaveLength(2);
+    expect(markup).not.toContain("95% CI");
+    expect(markup).not.toContain(">SE<");
+    expect(markup).not.toContain("Collapse comparison");
     expect(markup).not.toContain("Does the product term improve the model?");
   });
 
-  it("renders different slopes, changing jaw differences, and the nested-model test", () => {
+  it("renders different slopes, a key interaction result, and changing jaw differences", () => {
     const markup = renderToStaticMarkup(
       <LocaleProvider>
         <InteractionStage
@@ -52,10 +55,8 @@ describe("interaction-model visualization", () => {
           interactionRevealed
           lineRevealProgress={1}
           modelMix={1}
-          comparisonOpen
           torqueA={25}
           torqueB={45}
-          onComparisonToggle={() => undefined}
           onTorqueAChange={() => undefined}
           onTorqueBChange={() => undefined}
           status="Interaction model fitted"
@@ -63,12 +64,16 @@ describe("interaction-model visualization", () => {
       </LocaleProvider>,
     );
     expect(markup).toContain("β<sub>3</sub> × (<var>T</var><sub>i</sub> × d<sub>lower,i</sub>)");
-    expect(markup).toContain("Torque × d_lower");
-    expect(markup).toContain("64.01 - 64.68 = -0.67");
-    expect(markup).toContain("74.95 - 70.40 = 4.55");
-    expect(markup).toContain("Does the product term improve the model?");
-    expect(markup).toContain("F(1, 92) = 7.60");
-    expect(markup).toContain("p = .007");
+    expect(markup).toContain("-0.67 ISQ");
+    expect(markup).toContain("4.55 ISQ");
+    expect(markup.match(/class="ancova-model-result-block/g)).toHaveLength(2);
+    expect(markup.match(/class="ancova-key-result"/g)).toHaveLength(4);
+    expect(markup.match(/type="range"/g)).toHaveLength(2);
+    expect(markup.match(/Estimated difference/g)).toHaveLength(4);
+    expect(markup).not.toContain("95% CI");
+    expect(markup).not.toContain("0.26 ISQ / Ncm");
+    expect(markup).not.toContain("Does the product term improve the model?");
+    expect(markup).not.toContain("interaction-coefficient-table");
   });
 
   it("renders the complete Dutch model path", () => {

@@ -1,5 +1,5 @@
 import type { Locale } from "../../i18n/LocaleContext";
-import type { InteractionModelKind, InteractionTerm } from "./model";
+import type { InteractionModelKind } from "./model";
 import type { JawGroup } from "./data";
 
 export interface InteractionMessages {
@@ -40,43 +40,20 @@ export interface InteractionMessages {
     yLabel: string;
     referenceGroup: string;
     legend: Record<JawGroup, string>;
-    modelSummary: string;
-    residualSe: string;
-    rSquared: string;
-    residualDf: string;
     modelFormula: Record<InteractionModelKind, string>;
     coefficientTitle: string;
     coefficientSubtitleInitial: string;
     coefficientSubtitleAdditive: string;
     coefficientSubtitleInteraction: string;
-    term: string;
-    estimate: string;
-    standardError: string;
-    confidenceInterval: string;
-    pValue: string;
-    coefficientTerms: Record<InteractionTerm, string>;
+    coefficientSubtitleComparison: string;
+    estimatedDifference: string;
     torquePanelTitle: string;
     torquePanelSubtitle: string;
-    openTorquePanel: string;
-    closeTorquePanel: string;
     torqueA: string;
     torqueB: string;
     evaluationNote: string;
-    predictionsTitle: string;
-    predictedIsq: string;
-    activePredictions: (model: string) => string;
-    jawDifference: string;
-    additiveDifference: string;
-    interactionDifference: string;
     constantDifference: string;
     changingDifference: string;
-    comparisonTitle: string;
-    comparisonSubtitle: string;
-    additiveModel: string;
-    interactionModel: string;
-    rSquaredChange: string;
-    partialF: string;
-    interactionTest: string;
     statusInitial: string;
     statusAdditive: string;
     statusInteraction: string;
@@ -123,36 +100,22 @@ export const interactionMessages: Record<Locale, InteractionMessages> = {
       yLabel: "Primary implant stability (ISQ)",
       referenceGroup: "Reference: upper jaw",
       legend: { upper: "Upper jaw", lower: "Lower jaw" },
-      modelSummary: "Model summary",
-      residualSe: "Residual SE",
-      rSquared: "R²",
-      residualDf: "Residual df",
       modelFormula: {
         additive: "ISQ_i = beta_0 + beta_1 T_i + beta_2 times d_lower,i + epsilon_i",
         interaction: "ISQ_i = beta_0 + beta_1 T_i + beta_2 times d_lower,i + beta_3 times open parenthesis T_i times d_lower,i close parenthesis + epsilon_i",
       },
-      coefficientTitle: "Estimated regression coefficients",
-      coefficientSubtitleInitial: "Fit the additive model to reveal its coefficients and uncertainty.",
-      coefficientSubtitleAdditive: "The additive model forces the insertion-torque slope to be equal in both jaws.",
-      coefficientSubtitleInteraction: "The product term estimates how much the lower-jaw slope differs from the upper-jaw slope.",
-      term: "Term", estimate: "Estimate", standardError: "SE", confidenceInterval: "95% CI", pValue: "p-value",
-      coefficientTerms: { intercept: "(Constant)", torque: "Insertion torque", lower: "d_lower", interaction: "Torque × d_lower" },
-      torquePanelTitle: "Compare two insertion-torque values",
+      coefficientTitle: "Jaw differences at A and B",
+      coefficientSubtitleInitial: "Fit the additive model to reveal the estimated jaw differences.",
+      coefficientSubtitleAdditive: "Model 1 compares the jaws at both selected torque values.",
+      coefficientSubtitleInteraction: "Model 2 lets the jaw difference change with insertion torque.",
+      coefficientSubtitleComparison: "Model 1 remains visible; Model 2 adds torque-dependent jaw differences underneath.",
+      estimatedDifference: "Estimated difference",
+      torquePanelTitle: "Choose two insertion-torque values",
       torquePanelSubtitle: "See whether the lower-versus-upper jaw difference stays constant or changes.",
-      openTorquePanel: "Open comparison", closeTorquePanel: "Collapse comparison",
       torqueA: "Torque A", torqueB: "Torque B",
       evaluationNote: "Changing the sliders evaluates the fitted models; it does not refit them.",
-      predictionsTitle: "Predicted ISQ and jaw differences",
-      predictedIsq: "Predicted ISQ",
-      activePredictions: (model) => `Predictions from the ${model.toLowerCase()} model`,
-      jawDifference: "Lower − upper jaw",
-      additiveDifference: "Additive model: lower − upper",
-      interactionDifference: "Interaction model: lower − upper",
       constantDifference: "Same at A and B: parallel lines imply a constant jaw difference",
       changingDifference: "Different at A and B: the interaction makes the jaw difference depend on torque",
-      comparisonTitle: "Does the product term improve the model?",
-      comparisonSubtitle: "The partial F-test compares the additive model with the model that also contains the interaction term.",
-      additiveModel: "Additive", interactionModel: "Interaction", rSquaredChange: "Change in R²", partialF: "Partial F-test", interactionTest: "Interaction term",
       statusInitial: "Fit the additive model to draw two parallel regression lines.",
       statusAdditive: "The fitted lines are parallel; compare their vertical gap at torque A and B.",
       statusInteraction: "The slopes now differ; compare how the jaw difference changes between torque A and B.",
@@ -197,36 +160,22 @@ export const interactionMessages: Record<Locale, InteractionMessages> = {
       yLabel: "Primaire implantaatstabiliteit (ISQ)",
       referenceGroup: "Referentie: bovenkaak",
       legend: { upper: "Bovenkaak", lower: "Onderkaak" },
-      modelSummary: "Modelsamenvatting",
-      residualSe: "Residuele SE",
-      rSquared: "R²",
-      residualDf: "Residuele df",
       modelFormula: {
         additive: "ISQ_i = beta_0 + beta_1 T_i + beta_2 maal d_onder,i + epsilon_i",
         interaction: "ISQ_i = beta_0 + beta_1 T_i + beta_2 maal d_onder,i + beta_3 maal open haakje T_i maal d_onder,i sluit haakje + epsilon_i",
       },
-      coefficientTitle: "Geschatte regressiecoëfficiënten",
-      coefficientSubtitleInitial: "Schat het additieve model om de coëfficiënten en hun onzekerheid zichtbaar te maken.",
-      coefficientSubtitleAdditive: "Het additieve model dwingt dezelfde helling voor insertiekoppel in beide kaken af.",
-      coefficientSubtitleInteraction: "De productterm schat hoeveel de helling in de onderkaak verschilt van die in de bovenkaak.",
-      term: "Term", estimate: "Schatting", standardError: "SE", confidenceInterval: "95%-BI", pValue: "p-waarde",
-      coefficientTerms: { intercept: "(Constante)", torque: "Insertiekoppel", lower: "d_onder", interaction: "Insertiekoppel × d_onder" },
-      torquePanelTitle: "Vergelijk twee waarden van het insertiekoppel",
+      coefficientTitle: "Kaakverschillen bij A en B",
+      coefficientSubtitleInitial: "Schat het additieve model om de geschatte kaakverschillen zichtbaar te maken.",
+      coefficientSubtitleAdditive: "Model 1 vergelijkt de kaken bij beide gekozen koppelwaarden.",
+      coefficientSubtitleInteraction: "Model 2 laat het kaakverschil veranderen met het insertiekoppel.",
+      coefficientSubtitleComparison: "Model 1 blijft zichtbaar; Model 2 voegt daaronder koppelafhankelijke kaakverschillen toe.",
+      estimatedDifference: "Geschat verschil",
+      torquePanelTitle: "Kies twee waarden van het insertiekoppel",
       torquePanelSubtitle: "Bekijk of het verschil tussen onder- en bovenkaak constant blijft of verandert.",
-      openTorquePanel: "Vergelijking openen", closeTorquePanel: "Vergelijking inklappen",
       torqueA: "Koppel A", torqueB: "Koppel B",
       evaluationNote: "De schuifregelaars evalueren de geschatte modellen; ze schatten deze niet opnieuw.",
-      predictionsTitle: "Voorspelde ISQ en kaakverschillen",
-      predictedIsq: "Voorspelde ISQ",
-      activePredictions: (model) => `Voorspellingen uit huidig model: ${model}`,
-      jawDifference: "Onderkaak − bovenkaak",
-      additiveDifference: "Additief model: onder − boven",
-      interactionDifference: "Interactiemodel: onder − boven",
       constantDifference: "Gelijk bij A en B: parallelle lijnen geven een constant kaakverschil",
       changingDifference: "Verschillend bij A en B: door interactie hangt het kaakverschil af van het koppel",
-      comparisonTitle: "Verbetert de productterm het model?",
-      comparisonSubtitle: "De partiële F-toets vergelijkt het additieve model met het model dat ook de interactieterm bevat.",
-      additiveModel: "Additief", interactionModel: "Interactie", rSquaredChange: "Verandering in R²", partialF: "Partiële F-toets", interactionTest: "Interactieterm",
       statusInitial: "Schat het additieve model om twee parallelle regressielijnen te tekenen.",
       statusAdditive: "De geschatte lijnen zijn parallel; vergelijk hun verticale afstand bij koppel A en B.",
       statusInteraction: "De hellingen verschillen nu; vergelijk hoe het kaakverschil verandert tussen koppel A en B.",

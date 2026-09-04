@@ -2,9 +2,8 @@ import { formatNumber, useLocale, type Locale } from "../../i18n/LocaleContext";
 import { implantData, JAW_GROUPS, type JawGroup } from "./data";
 import { interactionMessages } from "./messages";
 import {
-  compareInteractionModels,
+  jawDifference,
   predictJaw,
-  type InteractionCoefficient,
   type InteractionFit,
   type InteractionModelKind,
 } from "./model";
@@ -16,10 +15,8 @@ interface InteractionStageProps {
   interactionRevealed: boolean;
   lineRevealProgress: number;
   modelMix: number;
-  comparisonOpen: boolean;
   torqueA: number;
   torqueB: number;
-  onComparisonToggle: () => void;
   onTorqueAChange: (value: number) => void;
   onTorqueBChange: (value: number) => void;
   status: string;
@@ -37,16 +34,6 @@ function scale(value: number, domain: readonly [number, number], range: readonly
 
 function formatEstimate(value: number, locale: Locale) {
   return formatNumber(value, locale, 2, 2);
-}
-
-function formatPValue(value: number, locale: Locale) {
-  if (value < 0.001) return locale === "nl" ? "< 0,001" : "< .001";
-  const formatted = formatNumber(value, locale, 3, 3);
-  return locale === "en" && formatted.startsWith("0.") ? formatted.slice(1) : formatted;
-}
-
-function interval(entry: InteractionCoefficient, locale: Locale) {
-  return `[${formatEstimate(entry.confidenceLow, locale)}; ${formatEstimate(entry.confidenceHigh, locale)}]`;
 }
 
 function ModelFormula({ kind }: { kind: InteractionModelKind }) {
@@ -74,116 +61,72 @@ function ModelFormula({ kind }: { kind: InteractionModelKind }) {
   );
 }
 
-function CoefficientTable({ fit }: { fit: InteractionFit }) {
+function DifferenceResultCards(props: { fit: InteractionFit; torqueA: number; torqueB: number }) {
   const { locale } = useLocale();
   const messages = interactionMessages[locale].stage;
+  const torques = [
+    { key: "a", label: messages.torqueA, value: props.torqueA },
+    { key: "b", label: messages.torqueB, value: props.torqueB },
+  ] as const;
   return (
-    <div className="ancova-table-wrap">
-      <table className="ancova-coefficient-table interaction-coefficient-table">
-        <thead><tr><th>{messages.term}</th><th>{messages.estimate}</th><th>{messages.standardError}</th><th>{messages.confidenceInterval}</th><th>{messages.pValue}</th></tr></thead>
-        <tbody>{fit.coefficients.map((entry) => (
-          <tr key={entry.term} className={entry.term === "interaction" ? "interaction-row" : ""}>
-            <th scope="row">{messages.coefficientTerms[entry.term]}</th>
-            <td>{formatEstimate(entry.estimate, locale)}</td>
-            <td>{formatEstimate(entry.standardError, locale)}</td>
-            <td>{interval(entry, locale)}</td>
-            <td>{formatPValue(entry.pValue, locale)}</td>
-          </tr>
-        ))}</tbody>
-      </table>
+    <div className="ancova-key-results interaction-difference-results">
+      {torques.map((torque) => {
+        const estimatedDifference = jawDifference(props.fit, torque.value);
+        return <article className="ancova-key-result" key={torque.key}>
+          <span><i className={`interaction-result-key ${torque.key}`} />{torque.label} · {formatNumber(torque.value, locale, 0)} Ncm</span>
+          <div className="interaction-estimated-difference">
+            <small>{messages.estimatedDifference}</small>
+            <strong>{formatEstimate(estimatedDifference, locale)} ISQ</strong>
+          </div>
+        </article>;
+      })}
     </div>
   );
 }
 
-function differenceCalculation(fit: InteractionFit, torque: number, locale: Locale) {
-  const lower = predictJaw(fit, "lower", torque);
-  const upper = predictJaw(fit, "upper", torque);
-  return `${formatEstimate(lower, locale)} - ${formatEstimate(upper, locale)} = ${formatEstimate(lower - upper, locale)}`;
-}
-
-function TorqueComparisonPanel(props: {
-  additive: InteractionFit;
-  interaction: InteractionFit;
-  activeModel: InteractionModelKind;
-  interactionRevealed: boolean;
-  open: boolean;
+function ModelResultBlock(props: {
+  fit: InteractionFit;
+  kind: InteractionModelKind;
+  active: boolean;
+  step: number;
   torqueA: number;
   torqueB: number;
-  onToggle: () => void;
+}) {
+  const { locale } = useLocale();
+  const messages = interactionMessages[locale].stage;
+  return (
+    <section className={`ancova-model-result-block interaction-model-result-block${props.active ? " active" : ""}`}>
+      <h3><span>{props.step}</span>{messages.modelNames[props.kind]}</h3>
+      <ModelFormula kind={props.kind} />
+      <DifferenceResultCards fit={props.fit} torqueA={props.torqueA} torqueB={props.torqueB} />
+      <p className={`interaction-difference-note ${props.kind}`}>{props.kind === "interaction" ? messages.changingDifference : messages.constantDifference}</p>
+    </section>
+  );
+}
+
+function TorqueSliders(props: {
+  torqueA: number;
+  torqueB: number;
   onTorqueAChange: (value: number) => void;
   onTorqueBChange: (value: number) => void;
 }) {
   const { locale } = useLocale();
   const messages = interactionMessages[locale].stage;
-  const activeFit = props.activeModel === "interaction" ? props.interaction : props.additive;
-  const torques = [props.torqueA, props.torqueB] as const;
   return (
-    <section className={`ancova-baseline-panel interaction-torque-panel${props.open ? " open" : ""}`}>
-      <button className="ancova-baseline-panel-toggle" type="button" aria-expanded={props.open} onClick={props.onToggle}>
-        <span><strong>{messages.torquePanelTitle}</strong><small>{messages.torquePanelSubtitle}</small></span>
-        <span>{props.open ? messages.closeTorquePanel : messages.openTorquePanel} <b aria-hidden="true">{props.open ? "−" : "+"}</b></span>
-      </button>
-      {props.open && <div className="ancova-baseline-panel-body">
-        <aside className="ancova-baseline-controls">
-          {([
-            { key: "a", label: messages.torqueA, value: props.torqueA, change: props.onTorqueAChange },
-            { key: "b", label: messages.torqueB, value: props.torqueB, change: props.onTorqueBChange },
-          ] as const).map((item) => (
-            <label className={`ancova-baseline-slider ${item.key}`} key={item.key}>
-              <span><strong>{item.label}</strong><output>{formatNumber(item.value, locale, 0, 0)} Ncm</output></span>
-              <input type="range" aria-label={item.label} min="20" max="52" step="1" value={item.value} onChange={(event) => item.change(Number(event.target.value))} />
-            </label>
-          ))}
-          <p className="ancova-baseline-note">{messages.evaluationNote}</p>
-        </aside>
-        <div className="ancova-calculation-wrap">
-          <h3>{messages.predictionsTitle}</h3>
-          <p className="interaction-active-predictions">{messages.activePredictions(messages.modelNames[props.activeModel])}</p>
-          <table className="ancova-calculation-table interaction-calculation-table">
-            <thead><tr>
-              <th>{messages.predictedIsq}</th>
-              <th><i className="baseline-key a" />{messages.torqueA}: {formatNumber(props.torqueA, locale, 0)} Ncm</th>
-              <th><i className="baseline-key b" />{messages.torqueB}: {formatNumber(props.torqueB, locale, 0)} Ncm</th>
-            </tr></thead>
-            <tbody>
-              {JAW_GROUPS.map((jaw) => <tr key={jaw}>
-                <th scope="row"><i className="group-key" style={{ background: JAW_COLORS[jaw] }} />{messages.legend[jaw]}</th>
-                {torques.map((torque, index) => <td key={`${jaw}-${index}`}><strong>{formatEstimate(predictJaw(activeFit, jaw, torque), locale)}</strong></td>)}
-              </tr>)}
-              <tr className="ancova-calculation-contrast additive-difference-row">
-                <th scope="row">{messages.additiveDifference}</th>
-                {torques.map((torque, index) => <td key={`add-${index}`}><strong>{differenceCalculation(props.additive, torque, locale)}</strong></td>)}
-              </tr>
-              {props.interactionRevealed && <tr className="ancova-calculation-contrast interaction-difference-row">
-                <th scope="row">{messages.interactionDifference}</th>
-                {torques.map((torque, index) => <td key={`int-${index}`}><strong>{differenceCalculation(props.interaction, torque, locale)}</strong></td>)}
-              </tr>}
-            </tbody>
-          </table>
-          <p className={`ancova-identical-note ${props.interactionRevealed ? "changing" : ""}`}>
-            {props.interactionRevealed ? messages.changingDifference : messages.constantDifference}
-          </p>
-        </div>
-      </div>}
-    </section>
-  );
-}
-
-function ModelComparison({ additive, interaction }: { additive: InteractionFit; interaction: InteractionFit }) {
-  const { locale } = useLocale();
-  const messages = interactionMessages[locale].stage;
-  const comparison = compareInteractionModels(additive, interaction);
-  const interactionCoefficient = interaction.coefficients.find((entry) => entry.term === "interaction")!;
-  return (
-    <section className="interaction-model-comparison">
-      <div><h2>{messages.comparisonTitle}</h2><p>{messages.comparisonSubtitle}</p></div>
-      <div className="interaction-comparison-metrics">
-        <article><small>{messages.additiveModel} R²</small><strong>{formatNumber(additive.rSquared, locale, 3, 3)}</strong></article>
-        <article><small>{messages.interactionModel} R²</small><strong>{formatNumber(interaction.rSquared, locale, 3, 3)}</strong></article>
-        <article><small>{messages.rSquaredChange}</small><strong>+{formatNumber(comparison.rSquaredChange, locale, 3, 3)}</strong></article>
-        <article className="primary-result"><small>{messages.partialF}</small><strong>F({comparison.numeratorDf}, {comparison.denominatorDf}) = {formatEstimate(comparison.fStatistic, locale)}</strong></article>
-        <article className="primary-result"><small>{messages.interactionTest}</small><strong>p = {formatPValue(interactionCoefficient.pValue, locale)}</strong></article>
+    <section className="interaction-slider-panel" aria-label={messages.torquePanelTitle}>
+      <div className="interaction-slider-heading"><h2>{messages.torquePanelTitle}</h2><p>{messages.torquePanelSubtitle}</p></div>
+      <div className="interaction-slider-row">
+        {([
+          { key: "a", label: messages.torqueA, value: props.torqueA, change: props.onTorqueAChange },
+          { key: "b", label: messages.torqueB, value: props.torqueB, change: props.onTorqueBChange },
+        ] as const).map((item) => (
+          <label className={`interaction-slider ${item.key}`} key={item.key}>
+            <span><strong>{item.label}</strong><output>{formatNumber(item.value, locale, 0, 0)} Ncm</output></span>
+            <input type="range" aria-label={item.label} min="20" max="52" step="1" value={item.value} onChange={(event) => item.change(Number(event.target.value))} />
+          </label>
+        ))}
       </div>
+      <p className="interaction-slider-note">{messages.evaluationNote}</p>
     </section>
   );
 }
@@ -191,7 +134,6 @@ function ModelComparison({ additive, interaction }: { additive: InteractionFit; 
 export function InteractionStage(props: InteractionStageProps) {
   const { locale } = useLocale();
   const messages = interactionMessages[locale].stage;
-  const fit = props.activeModel === "interaction" ? props.interaction : props.additive;
   const x = (value: number) => scale(value, X_DOMAIN, [PLOT.x, PLOT.x + PLOT.width]);
   const y = (value: number) => scale(value, Y_DOMAIN, [PLOT.y + PLOT.height, PLOT.y]);
   const xTicks = [20, 30, 40, 50];
@@ -201,7 +143,7 @@ export function InteractionStage(props: InteractionStageProps) {
     { key: "b", label: messages.torqueB, value: props.torqueB, color: GUIDE_COLORS.b },
   ] as const;
   const labelsClose = Math.abs(x(props.torqueA) - x(props.torqueB)) < 105;
-  const showGuides = props.activeModel !== null && props.comparisonOpen;
+  const showGuides = props.activeModel !== null;
 
   function mixedPrediction(jaw: JawGroup, torque: number) {
     const before = predictJaw(props.additive, jaw, torque);
@@ -250,16 +192,14 @@ export function InteractionStage(props: InteractionStageProps) {
           </div>
         </section>
         <aside className="ancova-results-panel">
-          <div className="ancova-results-heading"><h2>{messages.coefficientTitle}</h2><p>{props.activeModel === null ? messages.coefficientSubtitleInitial : props.activeModel === "interaction" ? messages.coefficientSubtitleInteraction : messages.coefficientSubtitleAdditive}</p></div>
-          {props.activeModel === null ? <div className="ancova-empty-results">{messages.noModel}</div> : <>
-            <ModelFormula kind={props.activeModel} />
-            <CoefficientTable fit={fit} />
-            <div className="ancova-model-summary"><strong>{messages.modelSummary}</strong><span><small>{messages.residualSe}</small>{formatEstimate(fit.residualStandardError, locale)}</span><span><small>{messages.rSquared}</small>{formatNumber(fit.rSquared, locale, 3, 3)}</span><span><small>{messages.residualDf}</small>{fit.residualDegreesOfFreedom}</span></div>
-          </>}
+          <div className="ancova-results-heading"><h2>{messages.coefficientTitle}</h2><p>{props.activeModel === null ? messages.coefficientSubtitleInitial : props.interactionRevealed ? messages.coefficientSubtitleComparison : messages.coefficientSubtitleAdditive}</p></div>
+          {props.activeModel === null ? <div className="ancova-empty-results">{messages.noModel}</div> : <div className="ancova-model-result-stack">
+            <ModelResultBlock fit={props.additive} kind="additive" active={props.activeModel === "additive"} step={1} torqueA={props.torqueA} torqueB={props.torqueB} />
+            {props.interactionRevealed && <ModelResultBlock fit={props.interaction} kind="interaction" active={props.activeModel === "interaction"} step={2} torqueA={props.torqueA} torqueB={props.torqueB} />}
+          </div>}
         </aside>
       </div>
-      {props.activeModel !== null && <TorqueComparisonPanel additive={props.additive} interaction={props.interaction} activeModel={props.activeModel} interactionRevealed={props.interactionRevealed} open={props.comparisonOpen} torqueA={props.torqueA} torqueB={props.torqueB} onToggle={props.onComparisonToggle} onTorqueAChange={props.onTorqueAChange} onTorqueBChange={props.onTorqueBChange} />}
-      {props.interactionRevealed && <ModelComparison additive={props.additive} interaction={props.interaction} />}
+      {props.activeModel !== null && <TorqueSliders torqueA={props.torqueA} torqueB={props.torqueB} onTorqueAChange={props.onTorqueAChange} onTorqueBChange={props.onTorqueBChange} />}
     </section>
   );
 }

@@ -26,7 +26,6 @@ export default function InteractionModelPage() {
   const [interactionRevealed, setInteractionRevealed] = useState(false);
   const [lineRevealProgress, setLineRevealProgress] = useState(0);
   const [modelMix, setModelMix] = useState(0);
-  const [comparisonOpen, setComparisonOpen] = useState(false);
   const [torqueA, setTorqueA] = useState(25);
   const [torqueB, setTorqueB] = useState(45);
   const [busy, setBusy] = useState(false);
@@ -65,7 +64,6 @@ export default function InteractionModelPage() {
     if (!runtime.isCurrent(token)) return;
     setLineRevealProgress(1);
     setModelMix(0);
-    setComparisonOpen(true);
     setBusy(false);
     setStatusKey("statusAdditive");
   }
@@ -81,7 +79,6 @@ export default function InteractionModelPage() {
     if (!runtime.isCurrent(token)) return;
     setModelMix(1);
     setInteractionRevealed(true);
-    setComparisonOpen(true);
     setBusy(false);
     setStatusKey("statusInteraction");
   }
@@ -92,7 +89,6 @@ export default function InteractionModelPage() {
     setInteractionRevealed(false);
     setLineRevealProgress(0);
     setModelMix(0);
-    setComparisonOpen(false);
     setTorqueA(25);
     setTorqueB(45);
     setBusy(false);
@@ -145,10 +141,8 @@ export default function InteractionModelPage() {
           interactionRevealed={interactionRevealed}
           lineRevealProgress={lineRevealProgress}
           modelMix={modelMix}
-          comparisonOpen={comparisonOpen}
           torqueA={torqueA}
           torqueB={torqueB}
-          onComparisonToggle={() => setComparisonOpen((open) => !open)}
           onTorqueAChange={setTorqueA}
           onTorqueBChange={setTorqueB}
           status={messages.stage[statusKey]}

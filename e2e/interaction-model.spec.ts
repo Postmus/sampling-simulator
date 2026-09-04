@@ -15,9 +15,11 @@ test("compares an additive model with an interaction model at two torque values"
   await expect(page.locator(".interaction-guide-marker")).toHaveCount(4);
   await expect(page.getByRole("slider", { name: "Torque A" })).toHaveValue("25");
   await expect(page.getByRole("slider", { name: "Torque B" })).toHaveValue("45");
-  await expect(page.getByText("65.41 - 63.32 = 2.08", { exact: true })).toBeVisible();
-  await expect(page.getByText("73.48 - 71.39 = 2.08", { exact: true })).toBeVisible();
+  await expect(page.getByText("2.08 ISQ", { exact: true })).toHaveCount(2);
+  await expect(page.getByText("Estimated difference", { exact: true })).toHaveCount(2);
+  await expect(page.getByText(/95% CI/)).toHaveCount(0);
   await expect(page.getByText("Same at A and B: parallel lines imply a constant jaw difference", { exact: true })).toBeVisible();
+  await expect(page.locator(".ancova-model-result-block")).toHaveCount(1);
 
   const additiveLines = page.locator(".interaction-fit-line");
   const firstSlope = Number(await additiveLines.nth(0).getAttribute("y2")) - Number(await additiveLines.nth(0).getAttribute("y1"));
@@ -25,12 +27,14 @@ test("compares an additive model with an interaction model at two torque values"
   expect(firstSlope).toBeCloseTo(secondSlope, 6);
 
   await page.getByRole("button", { name: "Add interaction term" }).click();
-  await expect(page.getByText("Torque × d_lower", { exact: true })).toBeVisible();
-  await expect(page.getByText("64.01 - 64.68 = -0.67", { exact: true })).toBeVisible();
-  await expect(page.getByText("74.95 - 70.40 = 4.55", { exact: true })).toBeVisible();
-  await expect(page.getByText("Does the product term improve the model?", { exact: true })).toBeVisible();
-  await expect(page.getByText("F(1, 92) = 7.60", { exact: true })).toBeVisible();
-  await expect(page.getByText("p = .007", { exact: true })).toBeVisible();
+  await expect(page.getByText("-0.67 ISQ", { exact: true })).toBeVisible();
+  await expect(page.getByText("4.55 ISQ", { exact: true })).toBeVisible();
+  await expect(page.locator(".ancova-model-result-block")).toHaveCount(2);
+  await expect(page.getByText("Estimated difference", { exact: true })).toHaveCount(4);
+  await expect(page.getByText("0.26 ISQ / Ncm", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Does the product term improve the model?", { exact: true })).toHaveCount(0);
+  await expect(page.locator(".interaction-coefficient-table")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Collapse comparison|Open comparison/ })).toHaveCount(0);
 
   const interactionLines = page.locator(".interaction-fit-line");
   const upperSlope = Number(await interactionLines.nth(0).getAttribute("y2")) - Number(await interactionLines.nth(0).getAttribute("y1"));
@@ -38,10 +42,7 @@ test("compares an additive model with an interaction model at two torque values"
   expect(upperSlope).not.toBeCloseTo(lowerSlope, 3);
 
   await page.getByRole("slider", { name: "Torque A" }).fill("30");
-  await expect(page.getByText("66.74 - 66.11 = 0.64", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Collapse comparison/ }).click();
-  await expect(page.locator(".interaction-torque-guide")).toHaveCount(0);
-  await page.getByRole("button", { name: /Open comparison/ }).click();
+  await expect(page.getByText("0.64 ISQ", { exact: true })).toBeVisible();
   await expect(page.locator(".interaction-torque-guide")).toHaveCount(2);
 
   await page.getByRole("button", { name: "Show additive model" }).click();

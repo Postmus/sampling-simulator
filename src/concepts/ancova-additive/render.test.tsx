@@ -20,27 +20,20 @@ describe("additive ANCOVA visualization", () => {
           adjustedRevealed={false}
           lineRevealProgress={1}
           modelMix={0}
-          baselineComparisonOpen={false}
-          baselineA={4.5}
-          baselineB={7}
-          onBaselineComparisonToggle={() => undefined}
-          onBaselineAChange={() => undefined}
-          onBaselineBChange={() => undefined}
           status="Treatment-only model fitted"
         />
       </LocaleProvider>,
     );
     expect(markup.match(/class="ancova-observation-point"/g)).toHaveLength(90);
     expect(markup.match(/class="ancova-fit-line/g)).toHaveLength(3);
-    expect(markup).toContain(">d_mond</th>");
     expect(markup).toContain("β<sub>1</sub> × d<sub>mond,i</sub>");
     expect(markup).toContain("β<sub>2</sub> × d<sub>aanv,i</sub>");
     expect(markup).not.toContain("β<sub>3</sub>");
-    expect(markup).toContain("-0.36");
-    expect(markup).toContain(".034");
+    expect(markup).toContain("-0.36 mm");
+    expect(markup).not.toContain("ancova-coefficient-table");
   });
 
-  it("renders adjusted inference and the before-after comparison", () => {
+  it("renders adjusted key results and the two-baseline comparison", () => {
     const markup = renderToStaticMarkup(
       <LocaleProvider>
         <AncovaStage
@@ -50,32 +43,22 @@ describe("additive ANCOVA visualization", () => {
           adjustedRevealed
           lineRevealProgress={1}
           modelMix={1}
-          baselineComparisonOpen
-          baselineA={4.5}
-          baselineB={7}
-          onBaselineComparisonToggle={() => undefined}
-          onBaselineAChange={() => undefined}
-          onBaselineBChange={() => undefined}
           status="Adjusted model fitted"
         />
       </LocaleProvider>,
     );
-    expect(markup.match(/class="ancova-baseline-guide/g)).toHaveLength(2);
-    expect(markup.match(/class="ancova-baseline-intersection/g)).toHaveLength(6);
-    expect(markup.match(/class="ancova-contrast-card"/g)).toHaveLength(2);
-    expect(markup).toContain("Baseline pocket depth");
-    expect(markup).toContain("(Constant)");
-    expect(markup).toContain(">d_mond</th>");
-    expect(markup).toContain(">d_aanv</th>");
+    expect(markup).not.toContain("ancova-baseline-guide");
+    expect(markup).not.toContain("ancova-baseline-intersection");
+    expect(markup.match(/class="ancova-key-result"/g)).toHaveLength(4);
+    expect(markup.match(/class="ancova-model-result-block/g)).toHaveLength(2);
     expect(markup).toContain("β<sub>1</sub><span class=\"formula-variable\">PDstart</span><sub>i</sub>");
     expect(markup).toContain("β<sub>2</sub> × d<sub>mond,i</sub>");
     expect(markup).toContain("β<sub>3</sub> × d<sub>aanv,i</sub>");
     expect(markup).toContain("-0.47");
-    expect(markup).toContain("SE reduction: 38%");
-    expect(markup).toContain("What did adjustment change?");
-    expect(markup).toContain("Compare two baseline values");
-    expect(markup).toContain("0.41 + 0.70 × 4.50 - 0.47 = 3.09");
-    expect(markup).toContain("3.09 - 3.56 = -0.47");
+    expect(markup).toContain("-0.47 mm");
+    expect(markup).not.toContain("What did adjustment change?");
+    expect(markup).not.toContain("type=\"range\"");
+    expect(markup).not.toContain("Collapse comparison");
     expect(markup).not.toContain("overall baseline mean");
   });
 

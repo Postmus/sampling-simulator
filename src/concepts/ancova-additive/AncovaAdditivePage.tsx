@@ -25,9 +25,6 @@ export default function AncovaAdditivePage() {
   const [adjustedRevealed, setAdjustedRevealed] = useState(false);
   const [lineRevealProgress, setLineRevealProgress] = useState(0);
   const [modelMix, setModelMix] = useState(0);
-  const [baselineComparisonOpen, setBaselineComparisonOpen] = useState(false);
-  const [baselineA, setBaselineA] = useState(4.5);
-  const [baselineB, setBaselineB] = useState(7);
   const [busy, setBusy] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(initialReducedMotion);
   const reducedMotionRef = useRef(reducedMotion);
@@ -78,7 +75,6 @@ export default function AncovaAdditivePage() {
     await runtime.tween(950, token, (progress) => setModelMix(start + (1 - start) * progress));
     if (!runtime.isCurrent(token)) return;
     setModelMix(1);
-    if (!adjustedRevealed) setBaselineComparisonOpen(true);
     setAdjustedRevealed(true);
     setBusy(false);
     setStatusKey("statusAdjusted");
@@ -90,9 +86,6 @@ export default function AncovaAdditivePage() {
     setAdjustedRevealed(false);
     setLineRevealProgress(0);
     setModelMix(0);
-    setBaselineComparisonOpen(false);
-    setBaselineA(4.5);
-    setBaselineB(7);
     setBusy(false);
     setStatusKey("statusInitial");
   }
@@ -143,12 +136,6 @@ export default function AncovaAdditivePage() {
           adjustedRevealed={adjustedRevealed}
           lineRevealProgress={lineRevealProgress}
           modelMix={modelMix}
-          baselineComparisonOpen={baselineComparisonOpen}
-          baselineA={baselineA}
-          baselineB={baselineB}
-          onBaselineComparisonToggle={() => setBaselineComparisonOpen((open) => !open)}
-          onBaselineAChange={setBaselineA}
-          onBaselineBChange={setBaselineB}
           status={messages.stage[statusKey]}
         />
       </div>
