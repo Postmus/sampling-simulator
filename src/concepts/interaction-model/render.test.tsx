@@ -86,6 +86,6 @@ describe("interaction-model visualization", () => {
     );
     expect(markup).toContain("Bouw het model");
     expect(markup).toContain("Voeg interactie toe");
-    expect(markup).toContain("Let hierop");
+    expect(markup).not.toContain("Let hierop");
   });
 });

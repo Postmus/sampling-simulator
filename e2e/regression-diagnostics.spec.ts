@@ -8,7 +8,7 @@ test("builds both diagnostic plots and transforms the predictor", async ({ page 
   await expect(page.getByText("Data and fitted equation", { exact: true })).toBeVisible();
   await expect(page.getByText("Residuals versus fitted values", { exact: true })).toBeVisible();
   await expect(page.getByText("Residual distribution", { exact: true })).toBeVisible();
-  await expect(page.getByText("Independence and study design", { exact: true })).toBeVisible();
+  await expect(page.getByText("Independence and study design", { exact: true })).toHaveCount(0);
   await expect(page.getByLabel("Teaching example")).toHaveValue("well-behaved");
   await expect(page.getByLabel("Teaching example").locator("option")).toHaveCount(4);
   await expect(page.getByText("Analgesic dose (mg/day)", { exact: true })).toBeVisible();

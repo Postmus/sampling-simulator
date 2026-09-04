@@ -14,11 +14,6 @@ interface InteractionControlsProps {
 export function InteractionControls(props: InteractionControlsProps) {
   const { locale } = useLocale();
   const messages = interactionMessages[locale].controls;
-  const interpretation = props.activeModel === null
-    ? messages.interpretationInitial
-    : props.activeModel === "additive"
-      ? messages.interpretationAdditive
-      : messages.interpretationInteraction;
   return (
     <aside className="ancova-control-rail" aria-label={messages.aria}>
       <section className="ancova-case-card"><h2>{messages.caseTitle}</h2><p>{messages.caseText}</p></section>
@@ -41,7 +36,6 @@ export function InteractionControls(props: InteractionControlsProps) {
           </button>
         </article>
       </section>
-      <section className="ancova-notice" aria-live="polite"><strong>{messages.interpretationTitle}</strong><p>{interpretation}</p></section>
       <button className="secondary ancova-reset" type="button" disabled={props.busy || props.activeModel === null} onClick={props.onReset}>{messages.reset}</button>
     </aside>
   );

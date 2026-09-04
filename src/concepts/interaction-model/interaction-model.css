@@ -35,13 +35,13 @@
 .interaction-active-predictions {
   margin: -0.23rem 0 0.48rem;
   color: var(--blue-dark);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 800;
 }
 
 .interaction-calculation-table {
   min-width: 700px;
-  font-size: 0.76rem;
+  font-size: 0.82rem;
 }
 
 .interaction-torque-panel,
@@ -68,8 +68,8 @@
   background: #f8fafb;
 }
 
-.interaction-model-comparison h2 { margin: 0; font-size: 1.04rem; }
-.interaction-model-comparison p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.76rem; line-height: 1.45; }
+.interaction-model-comparison h2 { margin: 0; font-size: 1.15rem; }
+.interaction-model-comparison p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.84rem; line-height: 1.45; }
 .interaction-comparison-metrics { display: grid; grid-template-columns: repeat(5, minmax(105px, 1fr)); gap: 0.5rem; }
 .interaction-comparison-metrics article {
   display: grid;
@@ -82,8 +82,8 @@
   background: white;
 }
 .interaction-comparison-metrics article.primary-result { border-color: #e6c6aa; background: var(--orange-soft); }
-.interaction-comparison-metrics small { color: var(--muted); font-size: 0.67rem; font-weight: 750; line-height: 1.25; }
-.interaction-comparison-metrics strong { color: #29444f; font-size: 0.9rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.interaction-comparison-metrics small { color: var(--muted); font-size: 0.76rem; font-weight: 750; line-height: 1.25; }
+.interaction-comparison-metrics strong { color: #29444f; font-size: 1rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .interaction-comparison-metrics .primary-result strong { color: #77451c; }
 
 @media (min-width: 1600px) {
@@ -93,7 +93,7 @@
   .interaction-journey:fullscreen .interaction-comparison-metrics strong { font-size: 1rem; }
 }
 
-@media (max-width: 1250px) {
+@media (max-width: 1450px) {
   .interaction-model-comparison { grid-template-columns: 1fr; }
 }
 

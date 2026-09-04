@@ -45,7 +45,8 @@ test("compares an additive model with an interaction model at two torque values"
   await expect(page.locator(".interaction-torque-guide")).toHaveCount(2);
 
   await page.getByRole("button", { name: "Show additive model" }).click();
-  await expect(page.getByText("The jaw difference is the same at torque A and B because both fitted lines have the same slope.", { exact: true })).toBeVisible();
+  await expect(page.getByText("The fitted lines are parallel; compare their vertical gap at torque A and B.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Show interaction model" }).click();
-  await expect(page.getByText("The product term changes the lower-jaw slope. The jaw difference can therefore change with insertion torque.", { exact: true })).toBeVisible();
+  await expect(page.getByText("The slopes now differ; compare how the jaw difference changes between torque A and B.", { exact: true })).toBeVisible();
+  await expect(page.getByText("What to notice", { exact: true })).toHaveCount(0);
 });

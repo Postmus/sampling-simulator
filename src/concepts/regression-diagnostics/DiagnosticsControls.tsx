@@ -110,10 +110,6 @@ export function DiagnosticsControls(props: DiagnosticsControlsProps) {
         </div>
       </section>
 
-      <section className="independence-note">
-        <strong>{messages.controls.independenceTitle}</strong>
-        <p>{messages.controls.independenceNote}</p>
-      </section>
     </aside>
   );
 }

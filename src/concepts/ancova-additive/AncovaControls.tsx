@@ -14,12 +14,6 @@ interface AncovaControlsProps {
 export function AncovaControls(props: AncovaControlsProps) {
   const { locale } = useLocale();
   const messages = ancovaMessages[locale].controls;
-  const interpretation = props.activeModel === null
-    ? messages.interpretationInitial
-    : props.activeModel === "unadjusted"
-      ? messages.interpretationUnadjusted
-      : messages.interpretationAdjusted;
-
   return (
     <aside className="ancova-control-rail" aria-label={messages.aria}>
       <section className="ancova-case-card">
@@ -69,11 +63,6 @@ export function AncovaControls(props: AncovaControlsProps) {
                 : messages.addBaseline}
           </button>
         </article>
-      </section>
-
-      <section className="ancova-notice" aria-live="polite">
-        <strong>{messages.interpretationTitle}</strong>
-        <p>{interpretation}</p>
       </section>
 
       <button className="secondary ancova-reset" type="button" disabled={props.busy || props.activeModel === null} onClick={props.onReset}>

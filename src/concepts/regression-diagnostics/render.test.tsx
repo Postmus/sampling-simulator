@@ -89,8 +89,7 @@ describe("regression diagnostics visualization", () => {
     );
 
     expect(markup).toContain("log₂(x)");
-    expect(markup).toContain("Independence and study design");
-    expect(markup).toContain("A residual plot cannot establish that observations are independent.");
+    expect(markup).not.toContain("Independence and study design");
     expect(markup).toContain(">Reset</button>");
     expect(markup).not.toContain("assumption satisfied");
   });

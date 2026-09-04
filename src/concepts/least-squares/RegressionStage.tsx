@@ -15,7 +15,7 @@ interface RegressionStageProps {
   status: string;
 }
 
-const PLOT = { x: 100, y: 92, width: 658, height: 350 };
+const PLOT = { x: 100, y: 115, width: 658, height: 327 };
 const MAP = { x: 882, y: 150, width: 260, height: 240 };
 const ACCUMULATOR = { x: 62, y: 620, width: 1078, height: 23 };
 
@@ -167,7 +167,7 @@ export function RegressionStage(props: RegressionStageProps) {
 
           <rect className="regression-panel-background" x="34" y="30" width="760" height="495" rx="24" />
           <text className="regression-zone-title" x="62" y="65">{messages.stage.dataTitle}</text>
-          <text className="regression-zone-subtitle" x="62" y="84">
+          <text className="regression-zone-subtitle" x="62" y="90">
             {messages.stage.dataSubtitle}
           </text>
 
@@ -186,7 +186,7 @@ export function RegressionStage(props: RegressionStageProps) {
           <line className="regression-axis-line" x1={PLOT.x} x2={PLOT.x} y1={PLOT.y} y2={PLOT.y + PLOT.height} />
           <line className="regression-axis-line" x1={PLOT.x} x2={PLOT.x + PLOT.width} y1={PLOT.y + PLOT.height} y2={PLOT.y + PLOT.height} />
           <text className="regression-axis-title" x={PLOT.x + PLOT.width / 2} y="495" textAnchor="middle">{scenarioCopy.xLabel}</text>
-          <text className="regression-axis-title" transform={`translate(${PLOT.x - 50} ${PLOT.y + PLOT.height / 2}) rotate(-90)`} textAnchor="middle">{scenarioCopy.yLabel}</text>
+          <text className="regression-axis-title" transform={`translate(${PLOT.x - 45} ${PLOT.y + PLOT.height / 2}) rotate(-90)`} textAnchor="middle">{scenarioCopy.yLabel}</text>
 
           <g clipPath="url(#regression-plot-clip)">
             <line
@@ -257,8 +257,8 @@ export function RegressionStage(props: RegressionStageProps) {
           <g>
               <rect className="regression-panel-background" x="814" y="30" width="354" height="495" rx="24" />
               <text className="regression-zone-title" x="838" y="65">{messages.stage.landscapeTitle}</text>
-              <text className="regression-zone-subtitle" x="838" y="84">{messages.stage.landscapeLine}</text>
-              <text className="regression-zone-subtitle" x="838" y="103">{messages.stage.landscapeColor}</text>
+              <text className="regression-zone-subtitle" x="838" y="90">{messages.stage.landscapeLine}</text>
+              <text className="regression-zone-subtitle" x="838" y="112">{messages.stage.landscapeColor}</text>
 
               {errorCells.map((cell) => {
                 const hue = 166 - cell.intensity * 125;
@@ -303,7 +303,7 @@ export function RegressionStage(props: RegressionStageProps) {
           <rect className="regression-panel-background" x="34" y="545" width="1134" height="178" rx="24" />
 
           <text className="regression-zone-title lower-title" x="62" y="575">{messages.stage.sseTitle}</text>
-          <text className="regression-zone-subtitle" x="62" y="594">
+          <text className="regression-zone-subtitle" x="62" y="600">
             {messages.stage.sseSubtitle}
           </text>
           <rect className="sse-accumulator-track" x={ACCUMULATOR.x} y={ACCUMULATOR.y} width={ACCUMULATOR.width} height={ACCUMULATOR.height} rx="5" />

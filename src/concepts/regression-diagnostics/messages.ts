@@ -26,8 +26,6 @@ export interface DiagnosticsMessages {
     resume: string;
     replay: string;
     reset: string;
-    independenceTitle: string;
-    independenceNote: string;
   };
   stage: {
     aria: string;
@@ -89,8 +87,6 @@ export const diagnosticsMessages: Record<Locale, DiagnosticsMessages> = {
       resume: "Resume",
       replay: "Replay",
       reset: "Reset",
-      independenceTitle: "Independence and study design",
-      independenceNote: "A residual plot cannot establish that observations are independent. This must be judged primarily from the study design and data collection; repeated, clustered, or time-ordered observations may not be independent.",
     },
     stage: {
       aria: "Animated regression diagnostic visualization",
@@ -150,8 +146,6 @@ export const diagnosticsMessages: Record<Locale, DiagnosticsMessages> = {
       resume: "Hervatten",
       replay: "Opnieuw",
       reset: "Herstellen",
-      independenceTitle: "Onafhankelijkheid en onderzoeksopzet",
-      independenceNote: "Met een residuplot kan niet worden vastgesteld dat waarnemingen onafhankelijk zijn. Dit moet vooral worden beoordeeld aan de hand van de onderzoeksopzet en dataverzameling; herhaalde, geclusterde of tijdsgeordende waarnemingen zijn mogelijk niet onafhankelijk.",
     },
     stage: {
       aria: "Geanimeerde visualisatie van regressiediagnostiek",

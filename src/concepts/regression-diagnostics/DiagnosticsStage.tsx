@@ -16,7 +16,7 @@ interface DiagnosticsStageProps {
 }
 
 const TOP = { x: 30, y: 25, width: 1140, height: 405 };
-const TOP_PLOT = { x: 92, y: 82, width: 1015, height: 270 };
+const TOP_PLOT = { x: 92, y: 105, width: 1015, height: 247 };
 const DISTRIBUTION = { x: 30, y: 450, width: 555, height: 315 };
 const DISTRIBUTION_PLOT = { x: 92, y: 530, width: 438, height: 170 };
 const FITTED = { x: 615, y: 450, width: 555, height: 315 };
@@ -208,7 +208,7 @@ export function DiagnosticsStage(props: DiagnosticsStageProps) {
 
           <rect className="diagnostics-panel-background" {...TOP} rx="22" />
           <text className="diagnostics-zone-title" x="54" y="56">{messages.stage.dataTitle}</text>
-          <text className="diagnostics-zone-subtitle" x="54" y="74">{messages.stage.dataSubtitle}</text>
+          <text className="diagnostics-zone-subtitle" x="54" y="80">{messages.stage.dataSubtitle}</text>
 
           {ticks(props.scenario.yDomain).map((value) => (
             <g key={`top-y-${value}`}>
@@ -271,7 +271,7 @@ export function DiagnosticsStage(props: DiagnosticsStageProps) {
 
           <rect className="diagnostics-panel-background" {...FITTED} rx="22" />
           <text className="diagnostics-zone-title lower" x="639" y="482">{messages.stage.fittedTitle}</text>
-          <text className="diagnostics-zone-subtitle" x="639" y="503">{messages.stage.fittedSubtitle}</text>
+          <text className="diagnostics-zone-subtitle" x="639" y="508">{messages.stage.fittedSubtitle}</text>
           {ticks(props.scenario.residualDomain).map((value) => (
             <g key={`left-y-${value}`}>
               <line className={Math.abs(value) < 1e-8 ? "diagnostics-zero-line" : "diagnostics-grid-line"} x1={FITTED_PLOT.x} x2={FITTED_PLOT.x + FITTED_PLOT.width} y1={residualY(value)} y2={residualY(value)} />
@@ -304,7 +304,7 @@ export function DiagnosticsStage(props: DiagnosticsStageProps) {
 
           <rect className="diagnostics-panel-background" {...DISTRIBUTION} rx="22" />
           <text className="diagnostics-zone-title lower" x="54" y="482">{messages.stage.distributionTitle}</text>
-          <text className="diagnostics-zone-subtitle" x="54" y="503">{messages.stage.distributionSubtitle}</text>
+          <text className="diagnostics-zone-subtitle" x="54" y="508">{messages.stage.distributionSubtitle}</text>
           <line className="diagnostics-axis-line" x1={DISTRIBUTION_PLOT.x} x2={DISTRIBUTION_PLOT.x + DISTRIBUTION_PLOT.width} y1={DISTRIBUTION_PLOT.y + DISTRIBUTION_PLOT.height} y2={DISTRIBUTION_PLOT.y + DISTRIBUTION_PLOT.height} />
           <line className="diagnostics-axis-line" x1={DISTRIBUTION_PLOT.x} x2={DISTRIBUTION_PLOT.x} y1={DISTRIBUTION_PLOT.y} y2={DISTRIBUTION_PLOT.y + DISTRIBUTION_PLOT.height} />
           <line className="diagnostics-zero-line vertical" x1={distributionX(0)} x2={distributionX(0)} y1={DISTRIBUTION_PLOT.y} y2={DISTRIBUTION_PLOT.y + DISTRIBUTION_PLOT.height} />

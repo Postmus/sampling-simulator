@@ -28,10 +28,6 @@ export interface InteractionMessages {
     showInteraction: string;
     fitting: string;
     reset: string;
-    interpretationTitle: string;
-    interpretationInitial: string;
-    interpretationAdditive: string;
-    interpretationInteraction: string;
   };
   stage: {
     aria: string;
@@ -115,10 +111,6 @@ export const interactionMessages: Record<Locale, InteractionMessages> = {
       showInteraction: "Show interaction model",
       fitting: "Fitting model…",
       reset: "Reset exploration",
-      interpretationTitle: "What to notice",
-      interpretationInitial: "Start with the additive model. Parallel lines imply one constant lower-versus-upper jaw difference.",
-      interpretationAdditive: "The jaw difference is the same at torque A and B because both fitted lines have the same slope.",
-      interpretationInteraction: "The product term changes the lower-jaw slope. The jaw difference can therefore change with insertion torque.",
     },
     stage: {
       aria: "Additive and interaction model comparison",
@@ -193,10 +185,6 @@ export const interactionMessages: Record<Locale, InteractionMessages> = {
       showInteraction: "Toon interactiemodel",
       fitting: "Model schatten…",
       reset: "Verkenning herstellen",
-      interpretationTitle: "Let hierop",
-      interpretationInitial: "Begin met het additieve model. Parallelle lijnen betekenen één constant verschil tussen onder- en bovenkaak.",
-      interpretationAdditive: "Het kaakverschil is gelijk bij koppel A en B omdat beide lijnen dezelfde helling hebben.",
-      interpretationInteraction: "De productterm verandert de helling voor de onderkaak. Het kaakverschil kan daardoor veranderen met het insertiekoppel.",
     },
     stage: {
       aria: "Vergelijking van additief model en interactiemodel",

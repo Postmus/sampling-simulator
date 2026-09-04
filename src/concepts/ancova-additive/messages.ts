@@ -28,10 +28,6 @@ export interface AncovaMessages {
     showAdjusted: string;
     fitting: string;
     reset: string;
-    interpretationTitle: string;
-    interpretationInitial: string;
-    interpretationUnadjusted: string;
-    interpretationAdjusted: string;
   };
   stage: {
     aria: string;
@@ -112,10 +108,6 @@ export const ancovaMessages: Record<Locale, AncovaMessages> = {
       showAdjusted: "Show adjusted model",
       fitting: "Fitting model…",
       reset: "Reset exploration",
-      interpretationTitle: "What to notice",
-      interpretationInitial: "Begin with treatment alone. The three horizontal lines will be the observed group means.",
-      interpretationUnadjusted: "Baseline differences remain in the residual variation. The coefficients compare each observed group mean with standard treatment.",
-      interpretationAdjusted: "The lines now share a baseline slope. Their vertical gaps compare treatments at any common baseline, while less residual variation produces smaller SEs.",
     },
     stage: {
       aria: "Additive ANCOVA model comparison",
@@ -207,10 +199,6 @@ export const ancovaMessages: Record<Locale, AncovaMessages> = {
       showAdjusted: "Toon gecorrigeerd model",
       fitting: "Model schatten…",
       reset: "Verkenning herstellen",
-      interpretationTitle: "Let hierop",
-      interpretationInitial: "Begin met alleen behandeling. De drie horizontale lijnen worden de geobserveerde groepsgemiddelden.",
-      interpretationUnadjusted: "Verschillen in beginwaarde blijven onderdeel van de residuele variatie. De coëfficiënten vergelijken ieder geobserveerd groepsgemiddelde met de standaardbehandeling.",
-      interpretationAdjusted: "De lijnen hebben nu dezelfde helling voor de beginwaarde. Hun verticale afstanden vergelijken behandelingen bij iedere gelijke beginwaarde; minder residuele variatie geeft kleinere standaardfouten.",
     },
     stage: {
       aria: "Vergelijking van additieve ANCOVA-modellen",
