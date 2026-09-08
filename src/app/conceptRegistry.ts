@@ -87,6 +87,16 @@ export const conceptRegistry: ConceptDefinition[] = [
     component: lazy(() => import("../concepts/mean-difference-sampling/MeanDifferenceSamplingPage")),
   },
   {
+    id: "stratified-randomization",
+    themeId: "sampling-estimation",
+    order: 3,
+    copy: {
+      en: { title: "Stratification: analysis and allocation", description: "Compare overall and within-sex estimates, repeat experiments, and see what balanced randomization changes." },
+      nl: { title: "Stratificatie: analyse en toewijzing", description: "Vergelijk totale en gestratificeerde schattingen, herhaal experimenten en ontdek wat gebalanceerde randomisatie verandert." },
+    },
+    component: lazy(() => import("../concepts/stratified-randomization/StratifiedRandomizationPage")),
+  },
+  {
     id: "least-squares",
     themeId: "linear-regression",
     order: 1,

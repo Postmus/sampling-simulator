@@ -74,3 +74,28 @@ concept.
 
 The previous all-in-one sampling simulator is retained in Git history at the local tag
 `sampling-simulator-v0.1`.
+
+## Stratification exploration
+
+Open `#/concepts/stratified-randomization` for the LAS allocation/analysis demo.
+Compare analyses shows one experiment with a switch between simple and stratified
+randomization of the same animals (six per cell under stratification). Repeat
+experiments compares the two estimators under simple randomization; Balance within
+sex compares the within-sex estimator under the two allocation methods. Both
+repetition tabs show only their paired sampling distributions. Model/replay
+settings and the optional standard-error table open in dialogs. The main tabs
+fit 1280×720 and 1366×768 viewports in both languages; narrow screens stack content.
+The model fixes 12 animals of each sex, adds a common treatment effect of 10 pp,
+and uses a male vehicle mean of 50%, a configurable sex effect (default 12 pp),
+and Normal residual SD (default 12 pp). This is an illustrative unbounded model.
+
+The within-sex estimator uses equal target-population weights. Under these fixed
+allocation totals it equals the treatment coefficient in the common-effect
+treatment-plus-sex model; the optional SE view uses that model's residual variance
+and 21 degrees of freedom. Empty sex/treatment cells are explicitly reported,
+not silently redrawn. All experiments remain counted; undefined adjusted
+estimates are excluded only from their own distribution and valid counts are shown.
+
+Model changes reset accumulated experiments. Reset replays the displayed seed;
+New seed starts another reproducible sequence. Batches stop at 20,000 experiments.
+The demo includes English/Dutch copy, reduced motion and presentation mode.
