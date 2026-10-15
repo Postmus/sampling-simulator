@@ -1,0 +1,111 @@
+.plaque-exploration {
+  width: min(var(--exploration-page-max-width), 100%);
+  margin: 0 auto;
+  padding: 1rem;
+}
+.plaque-exploration:fullscreen { overflow-y: auto; background: #eef3f5; }
+.plaque-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem 1.5rem; margin-bottom: 1rem; }
+.plaque-header > a { grid-column: 1 / -1; width: fit-content; color: var(--blue-dark); font-weight: 750; text-decoration: none; }
+.plaque-header h1 { margin: 0; font-size: clamp(1.6rem, 2.7vw, 2.3rem); letter-spacing: -.025em; }
+.plaque-header p:last-child { margin: .35rem 0 0; color: var(--muted); line-height: 1.45; }
+.plaque-header-actions { display: flex; align-items: center; gap: .75rem; }
+.plaque-header-actions .language-selector span { display: none; }
+.plaque-workspace { display: grid; grid-template-columns: var(--exploration-control-width) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.plaque-controls, .plaque-panel { border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: var(--shadow); }
+.plaque-controls { display: grid; gap: 1rem; padding: 1rem; }
+.plaque-controls h2 { margin: 0; font-size: 1.1rem; }
+.plaque-controls label { display: grid; gap: .4rem; min-width: 0; }
+.plaque-controls label > span { font-size: max(.86rem, var(--exploration-control-label-size)); color: var(--muted); font-weight: 750; line-height: 1.4; }
+.plaque-controls input[type=number], .plaque-controls select { width: 100%; padding: .55rem; min-height: var(--exploration-control-min-height); font-size: 1rem; }
+.plaque-controls input:disabled { background: #edf1f3; color: var(--muted); }
+.plaque-input-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; align-items: end; }
+.plaque-hint { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+.plaque-validation { margin: 0; padding: .65rem; color: #8d3715; background: var(--orange-soft); border-radius: 8px; line-height: 1.4; }
+.plaque-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.plaque-actions > .primary { grid-column: 1 / -1; background: var(--blue); color: white; border-color: var(--blue); }
+.plaque-actions button { min-height: 44px; padding: .65rem .35rem; font-size: .95rem; }
+.plaque-controls details { border-top: 1px solid var(--line); padding-top: 1rem; }
+.plaque-controls summary { cursor: pointer; font-weight: 750; color: var(--blue-dark); }
+.plaque-options { display: grid; gap: .8rem; padding-top: 1rem; }
+.plaque-controls label.plaque-checkbox { display: flex; align-items: center; gap: .6rem; }
+.plaque-checkbox input { min-height: auto; accent-color: var(--blue); }
+.plaque-seed { margin: 0; color: var(--muted); }
+.plaque-seed output { color: var(--ink); font-variant-numeric: tabular-nums; }
+.plaque-run-summary { display: grid; gap: .35rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.plaque-run-summary > span { color: var(--muted); font-weight: 750; line-height: 1.4; }
+.plaque-run-summary > strong { font-size: 1.9rem; font-variant-numeric: tabular-nums; margin-bottom: .6rem; }
+.plaque-run-summary p { margin: 0; font-size: .9rem; color: var(--muted); line-height: 1.5; }
+.plaque-main { display: grid; min-width: 0; gap: 1rem; }
+.plaque-status { margin: 0; background: var(--orange-soft); color: #713f16; padding: .8rem 1rem; border-radius: 10px; line-height: 1.5; font-size: 1rem; font-weight: 650; }
+.plaque-panel { padding: 1.15rem; min-width: 0; }
+.plaque-panel h2 { margin: 0 0 .4rem; font-size: 1.3rem; line-height: 1.3; }
+.plaque-description { color: var(--muted); margin: 0 0 1rem; line-height: 1.5; font-size: 1rem; }
+.plaque-population-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 1rem; margin-top: 1rem; }
+.plaque-population-group { min-width: 0; }
+.plaque-population-group h3 { margin: 0 0 .6rem; font-size: 1.15rem; line-height: 1.4; }
+.plaque-population-group.control h3 { color: var(--blue-dark); }
+.plaque-population-group.treatment h3 { color: #9e4f1d; }
+.plaque-chart-wrap { width: 100%; min-width: 0; }
+.plaque-chart-wrap svg { display: block; width: 100%; }
+.plaque-population-chart { height: 390px; }
+.plaque-population-cell { fill: #f5fafc; stroke: #d7e4e9; }
+.plaque-sample-cell { fill: #fffbf5; stroke: #eadfcd; }
+.plaque-distribution-chart { height: 280px; }
+.plaque-axis line { stroke: #9bb0ba; stroke-width: 1; }
+.plaque-axis text { font-size: 16px; fill: var(--muted); }
+.plaque-axis text.plaque-axis-title { fill: var(--ink); font-weight: 650; }
+.plaque-population-curve { fill: none; stroke-width: 3.5; }
+.control .plaque-population-curve { stroke: var(--blue); }
+.treatment .plaque-population-curve { stroke: #c96a20; }
+.plaque-mean-reference { stroke-dasharray: 3 5; opacity: .65; }
+.control .plaque-mean-reference { stroke: var(--blue); }
+.treatment .plaque-mean-reference { stroke: #c96a20; }
+.plaque-group-label { fill: var(--ink); font-size: 16px; font-weight: 700; }
+.plaque-sample-label { fill: var(--muted); font-size: 16px; font-weight: 500; }
+.plaque-patient { opacity: .9; stroke: white; stroke-width: 1; }
+.control .plaque-patient, .control .plaque-sample-mean, .control .plaque-source-point { fill: var(--blue); }
+.treatment .plaque-patient, .treatment .plaque-sample-mean, .treatment .plaque-source-point { fill: #c96a20; }
+.plaque-distributions { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
+.plaque-distributions article { min-width: 0; }
+.plaque-distributions h3 { font-size: 1.2rem; line-height: 1.4; margin: 0 0 .6rem; }
+.plaque-chart-caption { font-size: .95rem; color: var(--muted); margin: .5rem 0 0; line-height: 1.5; }
+.plaque-reference-curve { fill: none; stroke: #425867; stroke-width: 2; stroke-dasharray: 6 5; }
+.plaque-rejection-regions rect { fill: #fff0df; }
+.plaque-histogram-bar { fill: #4596a9; opacity: .75; }
+.plaque-histogram-bar.t { fill: #5e9c86; }
+.plaque-critical-line { stroke: #b75a18; stroke-width: 1.5; stroke-dasharray: 5 4; }
+.plaque-critical-label { fill: #9e4f1d; font-size: 16px; font-weight: 700; }
+.plaque-density-label { fill: var(--muted); font-size: 16px; }
+.plaque-zero-line { stroke: #8399a2; stroke-width: 1; opacity: .55; }
+.plaque-latest-marker { fill: #e48a3a; stroke: white; stroke-width: 2; }
+.plaque-plot-summary { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin: 1rem 0 0; }
+.plaque-plot-summary > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: .35rem .6rem; }
+.plaque-plot-summary dt { color: var(--muted); font-size: .95rem; }
+.plaque-plot-summary dd { margin: 0; font-weight: 750; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.plaque-marker-link { stroke: #bd651e; stroke-width: 1.5; }
+.plaque-marker-label-background { fill: #fff7eb; stroke: #d28542; }
+.plaque-marker-label { fill: #713f16; font-size: 16px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.plaque-test-rule { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; padding: 1rem 0 .6rem; font-size: 1rem; }
+@media (max-width: 1150px) {
+  .plaque-distributions { grid-template-columns: 1fr; gap: 1.5rem; }
+  .plaque-distributions h3 { min-height: 0; }
+}
+@media (max-width: 850px) {
+  .plaque-header { grid-template-columns: 1fr; }
+  .plaque-workspace { grid-template-columns: 1fr; }
+  .plaque-header-actions { justify-content: space-between; flex-wrap: wrap; }
+  .plaque-controls { grid-template-columns: 1fr 1fr; }
+  .plaque-controls h2, .plaque-controls .plaque-validation, .plaque-run-summary { grid-column: 1 / -1; }
+  .plaque-distributions { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .plaque-exploration { padding: .65rem; }
+  .plaque-controls, .plaque-distributions { grid-template-columns: 1fr; }
+  .plaque-panel { padding: .85rem; }
+  .plaque-distributions h3 { min-height: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .plaque-latest-marker { animation: plaque-arrival .45s ease-out; }
+}
+.plaque-exploration[data-reduced-motion=true] .plaque-latest-marker { animation: none; }
+@keyframes plaque-arrival { from { opacity: .1; } to { opacity: 1; } }

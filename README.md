@@ -99,3 +99,24 @@ estimates are excluded only from their own distribution and valid counts are sho
 Model changes reset accumulated experiments. Reset replays the displayed seed;
 New seed starts another reproducible sequence. Batches stop at 20,000 experiments.
 The demo includes English/Dutch copy, reduced motion and presentation mode.
+
+## Plaque-index hypothesis testing and power
+
+Open `#/concepts/plaque-index-inference` (under **Sampling distributions**) for a separate
+THK teaching exploration. It samples independent Normal populations with a common adjustable
+SD, comparing control (mean 1.50) with extra oral-hygiene guidance. The displayed difference is
+control minus guidance. Defaults are SD 0.60, 24 patients per group, and H₀ (true difference 0).
+Switch to H₁ for a true difference of 0.30, adjustable from 0.05 to 0.80. Population SD accepts
+0.05–1.20; group size accepts integers 2–500. These are illustrative unbounded Normal draws,
+not truncated plaque scores, which preserves the exact pooled t-test assumptions.
+
+Each experiment contributes one mean difference and one t-statistic. The t-statistic uses the
+pooled SD estimated from that experiment, with 2n − 2 degrees of freedom; it is always tested
+against the central null t-distribution with two-sided α = 0.05. The observed rejection fraction
+is labelled type I error under H₀ and estimated power under H₁. The population SD, theoretical
+SE = SD × √(2/n), and empirical SD of repeated differences are displayed separately.
+
+Model edits clear accumulated results. Reset replays the seed; New seed starts another sequence.
+Runs support one animated experiment, ten animated experiments, or a batch of 1,000, up to
+20,000 completed experiments. English/Dutch, presentation mode, pause and reduced motion are
+supported. Language changes preserve the current model and results.

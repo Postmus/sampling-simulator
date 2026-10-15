@@ -97,6 +97,22 @@ export const conceptRegistry: ConceptDefinition[] = [
     component: lazy(() => import("../concepts/stratified-randomization/StratifiedRandomizationPage")),
   },
   {
+    id: "plaque-index-inference",
+    themeId: "sampling-estimation",
+    order: 4,
+    copy: {
+      en: {
+        title: "From plaque scores to power",
+        description: "Sample two treatment populations under H₀ or H₁, follow mean differences and t-statistics, and explore how SD and sample size affect power.",
+      },
+      nl: {
+        title: "Van plaquescores naar power",
+        description: "Trek steekproeven uit twee behandelpopulaties onder H₀ of H₁, volg gemiddelde verschillen en t-waarden en ontdek hoe SD en steekproefgrootte de power beïnvloeden.",
+      },
+    },
+    component: lazy(() => import("../concepts/plaque-index-inference/PlaqueIndexInferencePage")),
+  },
+  {
     id: "least-squares",
     themeId: "linear-regression",
     order: 1,
