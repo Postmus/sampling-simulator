@@ -1,8 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { normalDensity } from "../../domain/distributions/normal";
-import { studentTDensity } from "../../domain/distributions/studentT";
 import { formatNumber, type Locale } from "../../i18n/LocaleContext";
-import { CONTROL_MEAN, histogram, populationDomain, theoreticalSe, trueDifference, type Configuration, type Estimate, type Experiment } from "./model";
+import { histogram, populationDomain, samplingDomain, treatmentPopulationMean, type Configuration, type Estimate, type Experiment } from "./model";
 import { plaqueMessages } from "./messages";
 
 function useWidth() {
@@ -54,7 +53,7 @@ function PopulationGroup({ configuration, latest, locale, group, domain, progres
 }) {
   const { ref, width } = useWidth();
   const m = plaqueMessages[locale];
-  const populationMean = group === "control" ? CONTROL_MEAN : CONTROL_MEAN - trueDifference(configuration);
+  const populationMean = group === "control" ? configuration.controlMean : treatmentPopulationMean(configuration);
   const sample = latest?.[group];
   const sampleMean = group === "control" ? latest?.controlMean : latest?.treatmentMean;
   const name = group === "control" ? m.control : m.treatment;
@@ -68,6 +67,10 @@ function PopulationGroup({ configuration, latest, locale, group, domain, progres
       <rect className="plaque-sample-cell" data-group={group} x={1} y={220} width={width - 2} height={169} rx={12} />
       <g className="plaque-population-plot">
         <text x={18} y={25} className="plaque-group-label">{m.population}</text>
+        <text x={width - 18} y={25} textAnchor="end" className="plaque-population-mean-label"
+          data-role={`plaque-population-mean-${group}`} aria-label={`${m.populationMean}: ${formatNumber(populationMean, locale, 2, 2)}`}>
+          μ = {formatNumber(populationMean, locale, 2, 2)}
+        </text>
         <path className="plaque-population-curve" d={pathFor(domain, x, y, (value) => normalDensity(value, distribution))} />
         <line className="plaque-mean-reference" x1={x(populationMean)} x2={x(populationMean)} y1={36} y2={120} />
         <Axis domain={domain} width={width} y={120} label={m.outcome} locale={locale} />
@@ -108,42 +111,33 @@ export function PopulationChart({ configuration, latest, locale, progress }: {
   </div>;
 }
 
-export const DistributionChart = memo(function DistributionChart({ kind, configuration, estimates, critical, locale }: {
-  kind: "difference" | "t"; configuration: Configuration; estimates: readonly Estimate[]; critical: number; locale: Locale;
+export const DistributionChart = memo(function DistributionChart({ kind, estimates, critical, locale }: {
+  kind: "difference" | "t"; estimates: readonly Estimate[]; critical: number; locale: Locale;
 }) {
   const { ref, width } = useWidth();
   const m = plaqueMessages[locale];
   const values = estimates.map((result) => result[kind]);
-  const se = theoreticalSe(configuration);
-  const effect = trueDifference(configuration);
-  // The minimum range stays fixed when SD or n changes, making narrowing visible.
-  const defaultDomain: [number, number] = kind === "t" ? [-5, Math.max(5, effect / se + 5)] : [Math.min(-1.2, effect - 4 * se), Math.max(1.2, effect + 4 * se)];
-  let low = defaultDomain[0], high = defaultDomain[1];
-  for (const value of values) { low = Math.min(low, value); high = Math.max(high, value); }
-  const domain: [number, number] = [low, high];
+  const domain = samplingDomain(kind, values, critical);
+  const [low, high] = domain;
   const x = (value: number) => 46 + (width - 66) * (value - low) / (high - low);
-  const density = kind === "t"
-    ? (value: number) => studentTDensity(value, 2 * configuration.sampleSize - 2)
-    : (value: number) => normalDensity(value, { mean: effect, sd: se });
   const bars = histogram(values, domain);
-  const referencePeak = density(kind === "t" ? 0 : effect);
-  const ymax = Math.max(referencePeak * 1.15, ...bars.map((bar) => bar.density * 1.15));
+  const ymax = Math.max(1, ...bars.map((bar) => bar.count)) * 1.15;
   const y = (value: number) => 193 - 152 * value / ymax;
   const latest = values[values.length - 1];
   const latestText = latest === undefined ? "" : formatNumber(latest, locale, 3, 3);
   const labelWidth = Math.max(64, latestText.length * 10 + 16);
   const labelX = latest === undefined ? 0 : Math.max(46 + labelWidth / 2, Math.min(width - 20 - labelWidth / 2, x(latest)));
   return <div ref={ref} className="plaque-chart-wrap"><svg viewBox={`0 0 ${width} 280`} className="plaque-distribution-chart" role="img"
-    aria-label={kind === "t" ? m.tDistribution : m.differenceDistribution} data-chart={kind} data-count={values.length}>
+    aria-label={kind === "t" ? m.tDistribution : m.differenceDistribution} data-chart={kind} data-count={values.length}
+    data-axis-min={low} data-axis-max={high}>
     {kind === "t" && <g className="plaque-rejection-regions">
       <rect x={x(low)} y={32} width={x(-critical) - x(low)} height={161} />
       <rect x={x(critical)} y={32} width={x(high) - x(critical)} height={161} />
     </g>}
-    <text className="plaque-density-label" x={46} y={16}>{m.density}</text>
+    <text className="plaque-density-label" x={46} y={16}>{m.frequency}</text>
     {bars.filter((bar) => bar.count > 0).map((bar, index) => <rect className={`plaque-histogram-bar ${kind}`} key={index}
-      x={x(bar.low) + 0.5} width={Math.max(0, x(bar.high) - x(bar.low) - 1)} y={y(bar.density)} height={193 - y(bar.density)}
+      x={x(bar.low) + 0.5} width={Math.max(0, x(bar.high) - x(bar.low) - 1)} y={y(bar.count)} height={193 - y(bar.count)}
       data-bin-count={bar.count}><title>{formatNumber(bar.low, locale, 2)} – {formatNumber(bar.high, locale, 2)}: {bar.count}</title></rect>)}
-    <path className="plaque-reference-curve" d={pathFor(domain, x, y, density)} />
     {kind === "t" && [-critical, critical].map((value) => <g key={value}>
       <line className="plaque-critical-line" x1={x(value)} x2={x(value)} y1={32} y2={193} />
       {x(critical) - x(-critical) > 110 && <text className="plaque-critical-label" x={x(value)} y={36} textAnchor="middle">{formatNumber(value, locale, 2)}</text>}

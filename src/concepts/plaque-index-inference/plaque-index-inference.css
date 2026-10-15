@@ -69,7 +69,6 @@
 .plaque-distributions article { min-width: 0; }
 .plaque-distributions h3 { font-size: 1.2rem; line-height: 1.4; margin: 0 0 .6rem; }
 .plaque-chart-caption { font-size: .95rem; color: var(--muted); margin: .5rem 0 0; line-height: 1.5; }
-.plaque-reference-curve { fill: none; stroke: #425867; stroke-width: 2; stroke-dasharray: 6 5; }
 .plaque-rejection-regions rect { fill: #fff0df; }
 .plaque-histogram-bar { fill: #4596a9; opacity: .75; }
 .plaque-histogram-bar.t { fill: #5e9c86; }
@@ -109,3 +108,5 @@
 }
 .plaque-exploration[data-reduced-motion=true] .plaque-latest-marker { animation: none; }
 @keyframes plaque-arrival { from { opacity: .1; } to { opacity: 1; } }
+
+.plaque-population-mean-label { fill: var(--ink); font-size: 16px; font-weight: 700; }

@@ -104,9 +104,10 @@ The demo includes English/Dutch copy, reduced motion and presentation mode.
 
 Open `#/concepts/plaque-index-inference` (under **Sampling distributions**) for a separate
 THK teaching exploration. It samples independent Normal populations with a common adjustable
-SD, comparing control (mean 1.50) with extra oral-hygiene guidance. The displayed difference is
-control minus guidance. Defaults are SD 0.60, 24 patients per group, and H₀ (true difference 0).
-Switch to H₁ for a true difference of 0.30, adjustable from 0.05 to 0.80. Population SD accepts
+SD, comparing control (default mean 1.50, adjustable from 0 to 3) with extra oral-hygiene
+guidance. The displayed difference is experimental minus control. Defaults are SD 0.60, 24 patients per group, and H₀ (true difference 0).
+Switch to H₁ for a true difference of −0.30, adjustable from −0.80 to +0.80 with a minimum
+absolute magnitude of 0.05. Both population means are labelled in their density plots. Population SD accepts
 0.05–1.20; group size accepts integers 2–500. These are illustrative unbounded Normal draws,
 not truncated plaque scores, which preserves the exact pooled t-test assumptions.
 
@@ -120,3 +121,6 @@ Model edits clear accumulated results. Reset replays the seed; New seed starts a
 Runs support one animated experiment, ten animated experiments, or a batch of 1,000, up to
 20,000 completed experiments. English/Dutch, presentation mode, pause and reduced motion are
 supported. Language changes preserve the current model and results.
+
+Repeated-experiment plots show empirical counts without theoretical density overlays. Their
+axes fit all simulated results, including zero and (for t-statistics) both rejection boundaries.

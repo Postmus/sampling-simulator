@@ -14,16 +14,16 @@ import { plaqueMessages } from "./messages";
 import "./plaque-index-inference.css";
 
 type Status = "initialStatus" | "sampleStatus" | "accumulateStatus" | "completeStatus" | "resetStatus" | "changedStatus" | "limit" | "fullscreenUnavailable";
-type Settings = { hypothesis: "h0" | "h1"; sd: string; sampleSize: string; alternativeDifference: string };
-const INITIAL_SETTINGS: Settings = { hypothesis: "h0", sd: "0.60", sampleSize: "24", alternativeDifference: "0.30" };
+type Settings = { hypothesis: "h0" | "h1"; controlMean: string; sd: string; sampleSize: string; alternativeDifference: string };
+const INITIAL_SETTINGS: Settings = { hypothesis: "h0", controlMean: "1.50", sd: "0.60", sampleSize: "24", alternativeDifference: "-0.30" };
 
 export default function PlaqueIndexInferencePage() {
   const { locale } = useLocale();
   const m = plaqueMessages[locale];
   const f = (value: number | null | undefined, digits = 2) => value == null ? "—" : formatNumber(value, locale, digits, digits);
   const [settings, setSettings] = useState<Settings>(INITIAL_SETTINGS);
-  const proposed: Configuration = { hypothesis: settings.hypothesis, sd: Number(settings.sd), sampleSize: Number(settings.sampleSize), alternativeDifference: Number(settings.alternativeDifference) };
-  const valid = validateConfiguration(proposed);
+  const proposed: Configuration = { hypothesis: settings.hypothesis, controlMean: Number(settings.controlMean), sd: Number(settings.sd), sampleSize: Number(settings.sampleSize), alternativeDifference: Number(settings.alternativeDifference) };
+  const valid = settings.controlMean.trim() !== "" && validateConfiguration(proposed);
   const [configuration, setConfiguration] = useState<Configuration>(DEFAULT_CONFIGURATION);
   const [estimates, setEstimates] = useState<Estimate[]>([]);
   const [latest, setLatest] = useState<Experiment | null>(null);
@@ -66,12 +66,12 @@ export default function PlaqueIndexInferencePage() {
   function changeSetting<Key extends keyof Settings>(key: Key, value: Settings[Key]) {
     const next = { ...settings, [key]: value };
     if (key === "hypothesis" && value === "h0"
-      && (!Number.isFinite(Number(next.alternativeDifference)) || Number(next.alternativeDifference) < 0.05 || Number(next.alternativeDifference) > 0.8)) {
+      && (!Number.isFinite(Number(next.alternativeDifference)) || Math.abs(Number(next.alternativeDifference)) < 0.05 || Math.abs(Number(next.alternativeDifference)) > 0.8)) {
       next.alternativeDifference = INITIAL_SETTINGS.alternativeDifference;
     }
     setSettings(next);
-    const nextConfiguration: Configuration = { hypothesis: next.hypothesis, sd: Number(next.sd), sampleSize: Number(next.sampleSize), alternativeDifference: Number(next.alternativeDifference) };
-    if (validateConfiguration(nextConfiguration)) setConfiguration(nextConfiguration);
+    const nextConfiguration: Configuration = { hypothesis: next.hypothesis, controlMean: Number(next.controlMean), sd: Number(next.sd), sampleSize: Number(next.sampleSize), alternativeDifference: Number(next.alternativeDifference) };
+    if (next.controlMean.trim() !== "" && validateConfiguration(nextConfiguration)) setConfiguration(nextConfiguration);
     clear("changedStatus");
   }
 
@@ -141,11 +141,12 @@ export default function PlaqueIndexInferencePage() {
         <label><span>{m.hypothesis}</span><select value={settings.hypothesis} onChange={(event) => changeSetting("hypothesis", event.target.value as "h0" | "h1")}>
           <option value="h0">{m.h0}</option><option value="h1">{m.h1}</option>
         </select></label>
+        <label><span>{m.controlMean}</span><input type="number" min="0" max="3" step="0.1" value={settings.controlMean} onChange={(event) => changeSetting("controlMean", event.target.value)} /></label>
         <div className="plaque-input-pair">
           <label><span>{m.sd}</span><input type="number" min="0.05" max="1.2" step="0.05" value={settings.sd} onChange={(event) => changeSetting("sd", event.target.value)} /></label>
           <label><span>{m.n}</span><input type="number" min="2" max="500" step="1" value={settings.sampleSize} onChange={(event) => changeSetting("sampleSize", event.target.value)} /></label>
         </div>
-        <label><span>{m.effect}</span><input type="number" min="0.05" max="0.8" step="0.05" value={settings.alternativeDifference} disabled={settings.hypothesis === "h0"} onChange={(event) => changeSetting("alternativeDifference", event.target.value)} /></label>
+        <label><span>{m.effect}</span><input type="number" min="-0.8" max="0.8" step="0.05" value={settings.alternativeDifference} disabled={settings.hypothesis === "h0"} onChange={(event) => changeSetting("alternativeDifference", event.target.value)} /></label>
         {!valid && <p className="plaque-validation" role="alert">{m.validation}</p>}
         <div className="plaque-actions">
           <button className="primary" type="button" disabled={!valid || running || atLimit} onClick={() => void run(1, true)}>{m.draw}</button>
@@ -184,7 +185,7 @@ export default function PlaqueIndexInferencePage() {
           <div className="plaque-distributions">
             <article aria-labelledby="plaque-difference-heading">
               <h3 id="plaque-difference-heading">{m.differenceDistribution}</h3>
-              <DistributionChart kind="difference" configuration={configuration} estimates={estimates} critical={critical} locale={locale} />
+              <DistributionChart kind="difference" estimates={estimates} critical={critical} locale={locale} />
               <p className="plaque-chart-caption">{m.differenceReference}</p>
               <dl className="plaque-plot-summary">
                 <div><dt>{m.seTheory}</dt><dd data-role="plaque-theoretical-se">{f(theoreticalSe(configuration), 3)}</dd></div>
@@ -193,7 +194,7 @@ export default function PlaqueIndexInferencePage() {
             </article>
             <article aria-labelledby="plaque-t-heading">
               <h3 id="plaque-t-heading">{m.tDistribution}</h3>
-              <DistributionChart kind="t" configuration={configuration} estimates={estimates} critical={critical} locale={locale} />
+              <DistributionChart kind="t" estimates={estimates} critical={critical} locale={locale} />
               <p className="plaque-chart-caption">{m.tReference}</p>
               <div className="plaque-test-rule"><strong>{m.rule}</strong><span>{m.cutoff} {f(critical, 3)}</span></div>
               <p className="plaque-hint">{m.nullReference}</p>

@@ -43,9 +43,9 @@ test("resets when SD, n or H0/H1 changes and counts each paired histogram result
   await expect(page.locator('[data-role="plaque-theoretical-se"]')).toHaveText("0.173");
   await page.getByLabel("Generate experiments under").selectOption("h1");
   await expect(page.getByText("Estimated power", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("True difference under H₁")).toBeEnabled();
+  await expect(page.getByLabel("H₁ difference (experimental − control)")).toBeEnabled();
   await page.getByRole("button", { name: "Generate 1,000" }).click();
-  await page.getByLabel("True difference under H₁").fill("0.5");
+  await page.getByLabel("H₁ difference (experimental − control)").fill("0.5");
   await expect(page.locator('[data-role="plaque-count"]')).toHaveText("0");
   await page.getByLabel("Patients per group").fill("2.5");
   await expect(page.getByRole("alert")).toBeVisible();
@@ -165,4 +165,33 @@ test("moves each observation from its population curve into its own sample row, 
       Math.abs(Number(point.getAttribute("cy")) - Number(point.getAttribute("data-target-y"))) < 0.001));
     expect(arrived).toBe(true);
   }
+});
+
+
+test("labels both population means, shifts them together and shows empirical histograms only", async ({ page }) => {
+  await expect(page.getByLabel("Control population mean", { exact: true })).toHaveValue("1.50");
+  await expect(page.locator('[data-role="plaque-population-mean-control"]')).toHaveText("μ = 1.50");
+  await expect(page.locator('[data-role="plaque-population-mean-treatment"]')).toHaveText("μ = 1.50");
+  await expect(page.locator('.plaque-population-curve')).toHaveCount(2);
+  await expect(page.locator('.plaque-distribution-chart path.plaque-reference-curve')).toHaveCount(0);
+  await page.getByLabel("Generate experiments under").selectOption("h1");
+  await expect(page.getByLabel("H₁ difference (experimental − control)")).toHaveValue("-0.30");
+  await expect(page.locator('[data-role="plaque-population-mean-treatment"]')).toHaveText("μ = 1.20");
+  await page.getByRole("button", { name: "Generate 1,000" }).click();
+  await expect(page.locator('[data-role="plaque-count"]')).toHaveText("1,000");
+  for (const kind of ["difference", "t"]) {
+    const chart = page.locator(`[data-chart="${kind}"]`);
+    const results = await chart.locator('[data-bin-count]').evaluateAll((bins) => bins.reduce((sum, bin) => sum + Number(bin.getAttribute("data-bin-count")), 0));
+    expect(results).toBe(1000);
+    expect(Number(await chart.locator('.plaque-latest-marker').getAttribute('data-value'))).toBeLessThan(0);
+  }
+  const differenceChart = page.locator('[data-chart="difference"]');
+  expect(Number(await differenceChart.getAttribute("data-axis-max")) - Number(await differenceChart.getAttribute("data-axis-min"))).toBeLessThan(1.5);
+  await page.getByLabel("Control population mean", { exact: true }).fill("2");
+  await expect(page.locator('[data-role="plaque-count"]')).toHaveText("0");
+  await expect(page.locator('[data-role="plaque-population-mean-control"]')).toHaveText("μ = 2.00");
+  await expect(page.locator('[data-role="plaque-population-mean-treatment"]')).toHaveText("μ = 1.70");
+  await page.getByLabel("Language").selectOption("nl");
+  await expect(page.locator('[data-role="plaque-population-mean-control"]')).toHaveText("μ = 2,00");
+  await expect(page.locator('[data-role="plaque-population-mean-treatment"]')).toHaveText("μ = 1,70");
 });

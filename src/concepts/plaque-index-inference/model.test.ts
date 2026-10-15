@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { studentTCritical95, studentTDensity, twoSidedStudentTPValue } from "../../domain/distributions/studentT";
 import { createRng } from "../../domain/rng";
 import { mean, standardDeviation } from "../../domain/statistics";
-import { DEFAULT_CONFIGURATION, empiricalSe, experimentEstimate, histogram, populationDomain, simulateExperiment, summarizeExperiment, theoreticalSe, trueDifference, validateConfiguration, type Configuration } from "./model";
+import { DEFAULT_CONFIGURATION, empiricalSe, experimentEstimate, histogram, populationDomain, samplingDomain, simulateExperiment, summarizeExperiment, theoreticalSe, treatmentPopulationMean, trueDifference, validateConfiguration, type Configuration } from "./model";
 import { plaqueMessages } from "./messages";
 
 function repeat(configuration: Configuration, count = 10_000) {
@@ -15,18 +15,20 @@ describe("plaque-index inference", () => {
   it("uses the lecture defaults and generates H0/H1 as specified", () => {
     expect(theoreticalSe(DEFAULT_CONFIGURATION)).toBeCloseTo(0.1732050808);
     expect(trueDifference(DEFAULT_CONFIGURATION)).toBe(0);
-    expect(trueDifference({ ...DEFAULT_CONFIGURATION, hypothesis: "h1" })).toBe(0.3);
+    expect(DEFAULT_CONFIGURATION.controlMean).toBe(1.5);
+    expect(trueDifference({ ...DEFAULT_CONFIGURATION, hypothesis: "h1" })).toBe(-0.3);
+    expect(treatmentPopulationMean({ ...DEFAULT_CONFIGURATION, hypothesis: "h1" })).toBe(1.2);
     const result = simulateExperiment(DEFAULT_CONFIGURATION, createRng(42));
     expect(result.control).toHaveLength(24);
     expect(result.treatment).toHaveLength(24);
   });
 
-  it("calculates t from sample variability, using control minus treatment", () => {
+  it("calculates t from sample variability, using experimental minus control", () => {
     const result = summarizeExperiment([1, 2, 3], [0, 1, 2], studentTCritical95(4));
-    expect(result.difference).toBe(1);
+    expect(result.difference).toBe(-1);
     expect(result.pooledSd).toBeCloseTo(1);
     expect(result.estimatedSe).toBeCloseTo(Math.sqrt(2 / 3));
-    expect(result.t).toBeCloseTo(Math.sqrt(1.5));
+    expect(result.t).toBeCloseTo(-Math.sqrt(1.5));
     expect(result.pValue).toBeCloseTo(0.2878641347266908, 8);
     expect(result.rejected).toBe(false);
   });
@@ -65,7 +67,7 @@ describe("plaque-index inference", () => {
     const base = { ...DEFAULT_CONFIGURATION, hypothesis: "h1" as const };
     const power = (configuration: Configuration) => {
       const results = repeat(configuration);
-      expect(mean(results.map((result) => result.difference))).toBeCloseTo(0.3, 2);
+      expect(mean(results.map((result) => result.difference))).toBeCloseTo(-0.3, 2);
       return results.filter((result) => result.rejected).length / results.length;
     };
     expect(power(base)).toBeGreaterThan(0.37);
@@ -81,6 +83,8 @@ describe("plaque-index inference", () => {
     for (const configuration of [
       { ...DEFAULT_CONFIGURATION, sd: 0 }, { ...DEFAULT_CONFIGURATION, sd: NaN },
       { ...DEFAULT_CONFIGURATION, sampleSize: 2.5 }, { ...DEFAULT_CONFIGURATION, sampleSize: 501 },
+      { ...DEFAULT_CONFIGURATION, controlMean: NaN }, { ...DEFAULT_CONFIGURATION, controlMean: -0.1 },
+      { ...DEFAULT_CONFIGURATION, controlMean: 3.1 }, { ...DEFAULT_CONFIGURATION, alternativeDifference: 0 },
     ]) expect(validateConfiguration(configuration)).toBe(false);
     expect(histogram([-100, 0, 100], [-100, 100]).reduce((sum, bin) => sum + bin.count, 0)).toBe(3);
     expect(empiricalSe([])).toBeNull();
@@ -97,6 +101,31 @@ describe("plaque-index inference", () => {
     for (const value of [...experiment.control, ...experiment.treatment]) {
       expect(value).toBeGreaterThan(sampledDomain[0]);
       expect(value).toBeLessThan(sampledDomain[1]);
+    }
+  });
+
+  it("shifts both populations with the control mean while preserving their difference and t", () => {
+    const configuration: Configuration = { ...DEFAULT_CONFIGURATION, hypothesis: "h1" };
+    const original = simulateExperiment(configuration, createRng(17));
+    const shifted = simulateExperiment({ ...configuration, controlMean: 2 }, createRng(17));
+    expect(shifted.controlMean - original.controlMean).toBeCloseTo(0.5, 12);
+    expect(shifted.treatmentMean - original.treatmentMean).toBeCloseTo(0.5, 12);
+    expect(shifted.difference).toBeCloseTo(original.difference, 12);
+    expect(shifted.t).toBeCloseTo(original.t, 12);
+  });
+
+  it("fits empirical results and rejection boundaries without using theoretical sampling curves", () => {
+    const values = [-0.45, -0.3, -0.2];
+    const domain = samplingDomain("difference", values, 2);
+    expect(domain[0]).toBeLessThan(-0.45);
+    expect(domain[1]).toBeGreaterThan(0);
+    expect(domain[1] - domain[0]).toBeLessThan(1);
+    const tDomain = samplingDomain("t", [-7, -2.1, 0.5], 2);
+    expect(tDomain[0]).toBeLessThan(-7);
+    expect(tDomain[1]).toBeGreaterThan(2);
+    for (const kind of ["difference", "t"] as const) {
+      const [low, high] = samplingDomain(kind, [], 2);
+      expect(Number.isFinite(low) && Number.isFinite(high) && high > low).toBe(true);
     }
   });
 });
