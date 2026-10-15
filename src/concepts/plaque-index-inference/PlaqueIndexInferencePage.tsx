@@ -14,6 +14,7 @@ import "./plaque-index-inference.css";
 
 type Status = "initialStatus" | "sampleStatus" | "accumulateStatus" | "completeStatus" | "resetStatus" | "changedStatus" | "limit" | "fullscreenUnavailable";
 type Settings = { hypothesis: "h0" | "h1"; controlMean: string; sd: string; sampleSize: string; alternativeDifference: string };
+const INITIAL_SEED = 271828;
 const INITIAL_SETTINGS: Settings = { hypothesis: "h0", controlMean: "1.50", sd: "0.60", sampleSize: "24", alternativeDifference: "-0.30" };
 
 export default function PlaqueIndexInferencePage() {
@@ -30,7 +31,7 @@ export default function PlaqueIndexInferencePage() {
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [status, setStatus] = useState<Status>("initialStatus");
-  const [seed, setSeed] = useState(271828);
+  const [seed, setSeed] = useState(INITIAL_SEED);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [speed, setSpeed] = useState(1);
   const [showRejectionRegions, setShowRejectionRegions] = useState(false);
@@ -60,6 +61,15 @@ export default function PlaqueIndexInferencePage() {
     rng.current = createRng(nextSeed);
     setEstimates([]); setLatest(null); setSampleProgress(1);
     setRunning(false); setPaused(false); setStatus(nextStatus);
+  }
+
+  function resetDefaults() {
+    setSettings(INITIAL_SETTINGS);
+    setConfiguration(DEFAULT_CONFIGURATION);
+    setShowRejectionRegions(false);
+    setSpeed(1);
+    setSeed(INITIAL_SEED);
+    clear("initialStatus", INITIAL_SEED);
   }
 
   function changeSetting<Key extends keyof Settings>(key: Key, value: Settings[Key]) {
@@ -146,6 +156,7 @@ export default function PlaqueIndexInferencePage() {
           <label><span>{m.n}</span><input type="number" min="2" max="500" step="1" value={settings.sampleSize} onChange={(event) => changeSetting("sampleSize", event.target.value)} /></label>
         </div>
         <label><span>{m.effect}</span><input type="number" min="-0.8" max="0.8" step="0.05" value={settings.alternativeDifference} disabled={settings.hypothesis === "h0"} onChange={(event) => changeSetting("alternativeDifference", event.target.value)} /></label>
+        <button className="plaque-defaults" type="button" onClick={resetDefaults}>{m.resetDefaults}</button>
         {!valid && <p className="plaque-validation" role="alert">{m.validation}</p>}
         <div className="plaque-actions">
           <button className="primary" type="button" disabled={!valid || running || atLimit} onClick={() => void run(1, true)}>{m.draw}</button>
