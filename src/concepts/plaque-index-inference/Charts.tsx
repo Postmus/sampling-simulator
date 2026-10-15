@@ -111,13 +111,13 @@ export function PopulationChart({ configuration, latest, locale, progress }: {
   </div>;
 }
 
-export const DistributionChart = memo(function DistributionChart({ kind, estimates, critical, locale }: {
-  kind: "difference" | "t"; estimates: readonly Estimate[]; critical: number; locale: Locale;
+export const DistributionChart = memo(function DistributionChart({ estimates, critical, locale, showRejectionRegions }: {
+  estimates: readonly Estimate[]; critical: number; locale: Locale; showRejectionRegions: boolean;
 }) {
   const { ref, width } = useWidth();
   const m = plaqueMessages[locale];
-  const values = estimates.map((result) => result[kind]);
-  const domain = samplingDomain(kind, values, critical);
+  const values = estimates.map((result) => result.difference);
+  const domain = samplingDomain(values, critical);
   const [low, high] = domain;
   const x = (value: number) => 46 + (width - 66) * (value - low) / (high - low);
   const bars = histogram(values, domain);
@@ -128,17 +128,17 @@ export const DistributionChart = memo(function DistributionChart({ kind, estimat
   const labelWidth = Math.max(64, latestText.length * 10 + 16);
   const labelX = latest === undefined ? 0 : Math.max(46 + labelWidth / 2, Math.min(width - 20 - labelWidth / 2, x(latest)));
   return <div ref={ref} className="plaque-chart-wrap"><svg viewBox={`0 0 ${width} 280`} className="plaque-distribution-chart" role="img"
-    aria-label={kind === "t" ? m.tDistribution : m.differenceDistribution} data-chart={kind} data-count={values.length}
+    aria-label={m.differenceDistribution} data-chart="difference" data-critical-value={critical} data-count={values.length}
     data-axis-min={low} data-axis-max={high}>
-    {kind === "t" && <g className="plaque-rejection-regions">
+    {showRejectionRegions && <g className="plaque-rejection-regions">
       <rect x={x(low)} y={32} width={x(-critical) - x(low)} height={161} />
       <rect x={x(critical)} y={32} width={x(high) - x(critical)} height={161} />
     </g>}
     <text className="plaque-density-label" x={46} y={16}>{m.frequency}</text>
-    {bars.filter((bar) => bar.count > 0).map((bar, index) => <rect className={`plaque-histogram-bar ${kind}`} key={index}
+    {bars.filter((bar) => bar.count > 0).map((bar, index) => <rect className="plaque-histogram-bar" key={index}
       x={x(bar.low) + 0.5} width={Math.max(0, x(bar.high) - x(bar.low) - 1)} y={y(bar.count)} height={193 - y(bar.count)}
       data-bin-count={bar.count}><title>{formatNumber(bar.low, locale, 2)} – {formatNumber(bar.high, locale, 2)}: {bar.count}</title></rect>)}
-    {kind === "t" && [-critical, critical].map((value) => <g key={value}>
+    {showRejectionRegions && [-critical, critical].map((value) => <g key={value}>
       <line className="plaque-critical-line" x1={x(value)} x2={x(value)} y1={32} y2={193} />
       {x(critical) - x(-critical) > 110 && <text className="plaque-critical-label" x={x(value)} y={36} textAnchor="middle">{formatNumber(value, locale, 2)}</text>}
     </g>)}
@@ -147,9 +147,9 @@ export const DistributionChart = memo(function DistributionChart({ kind, estimat
       <title>{m.latestResult}: {latestText}</title>
       <line className="plaque-marker-link" x1={labelX} x2={x(latest)} y1={174} y2={179} />
       <rect className="plaque-marker-label-background" x={labelX - labelWidth / 2} y={146} width={labelWidth} height={28} rx={7} />
-      <text className="plaque-marker-label" x={labelX} y={165} textAnchor="middle" data-role={`plaque-latest-${kind}`}>{latestText}</text>
+      <text className="plaque-marker-label" x={labelX} y={165} textAnchor="middle" data-role="plaque-latest-difference">{latestText}</text>
       <circle className="plaque-latest-marker" data-value={latest} cx={x(latest)} cy={185} r={6} />
     </g>}
-    <Axis domain={domain} width={width} y={193} label={kind === "t" ? m.tAxis : m.differenceAxis} locale={locale} />
+    <Axis domain={domain} width={width} y={193} label={m.differenceAxis} locale={locale} />
   </svg></div>;
 });

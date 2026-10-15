@@ -1,7 +1,6 @@
 import { drawNormalSample } from "../../domain/distributions/normal";
-import { studentTCritical95, twoSidedStudentTPValue } from "../../domain/distributions/studentT";
 import type { RNG } from "../../domain/rng";
-import { mean, standardDeviation } from "../../domain/statistics";
+import { mean } from "../../domain/statistics";
 
 export interface Configuration {
   hypothesis: "h0" | "h1";
@@ -19,7 +18,6 @@ export const MAX_EXPERIMENTS = 20_000;
 
 export interface Estimate {
   difference: number;
-  t: number;
   rejected: boolean;
 }
 
@@ -28,9 +26,6 @@ export interface Experiment extends Estimate {
   treatment: number[];
   controlMean: number;
   treatmentMean: number;
-  pooledSd: number;
-  estimatedSe: number;
-  pValue: number;
 }
 
 export function trueDifference(configuration: Configuration) {
@@ -77,39 +72,32 @@ export function summarizeExperiment(
   const controlMean = mean(control);
   const treatmentMean = mean(treatment);
   const difference = treatmentMean - controlMean;
-  const pooledSd = Math.sqrt((standardDeviation(control) ** 2 + standardDeviation(treatment) ** 2) / 2);
-  const estimatedSe = pooledSd * Math.sqrt(2 / control.length);
-  // A continuous Normal model has probability zero of a zero sample variance.
-  // Explicitly handle degenerate samples without inventing a finite t-statistic.
-  const t = estimatedSe > 0 ? difference / estimatedSe : difference === 0 ? 0 : Math.sign(difference) * Infinity;
-  const pValue = twoSidedStudentTPValue(t, 2 * control.length - 2);
-  return { control, treatment, controlMean, treatmentMean, difference, pooledSd,
-    estimatedSe, t, pValue, rejected: Math.abs(t) > criticalValue };
+  return { control, treatment, controlMean, treatmentMean, difference,
+    rejected: Math.abs(difference) > criticalValue };
 }
 
 export function simulateExperiment(configuration: Configuration, rng: RNG, criticalValue?: number) {
   if (!validateConfiguration(configuration)) throw new Error("Invalid plaque-index configuration.");
   const control = drawNormalSample({ mean: configuration.controlMean, sd: configuration.sd }, configuration.sampleSize, rng);
   const treatment = drawNormalSample({ mean: treatmentPopulationMean(configuration), sd: configuration.sd }, configuration.sampleSize, rng);
-  return summarizeExperiment(control, treatment, criticalValue ?? studentTCritical95(2 * configuration.sampleSize - 2));
+  return summarizeExperiment(control, treatment, criticalValue ?? rejectionBoundary(configuration));
 }
 
 export function experimentEstimate(experiment: Experiment): Estimate {
-  return { difference: experiment.difference, t: experiment.t, rejected: experiment.rejected };
+  return { difference: experiment.difference, rejected: experiment.rejected };
 }
 
-export function empiricalSe(estimates: readonly Estimate[]) {
-  return estimates.length < 2 ? null : standardDeviation(estimates.map((result) => result.difference));
+/** Known population SD: two-sided 5% test on the mean-difference scale. */
+export function rejectionBoundary(configuration: Configuration) {
+  return 1.959963984540054 * theoreticalSe(configuration);
 }
 
-/** Empirical plot ranges include every result, zero, and the two-sided rejection boundaries. */
-export function samplingDomain(kind: "difference" | "t", values: readonly number[], critical: number): [number, number] {
-  if (values.length === 0) return kind === "difference" ? [-0.5, 0.5] : [-critical * 1.25, critical * 1.25];
-  let low = kind === "t" ? -critical : 0;
-  let high = kind === "t" ? critical : 0;
+/** Include all empirical results and both fixed null rejection boundaries. */
+export function samplingDomain(values: readonly number[], critical: number): [number, number] {
+  let low = -critical;
+  let high = critical;
   for (const value of values) { low = Math.min(low, value); high = Math.max(high, value); }
-  const minimumSpan = kind === "t" ? 2 * critical : 0.2;
-  const span = Math.max(minimumSpan, high - low);
+  const span = high - low;
   const centre = (low + high) / 2;
   return [centre - span * 0.58, centre + span * 0.58];
 }

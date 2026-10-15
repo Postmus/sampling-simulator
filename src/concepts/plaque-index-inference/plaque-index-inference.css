@@ -36,7 +36,7 @@
 .plaque-run-summary > strong { font-size: 1.9rem; font-variant-numeric: tabular-nums; margin-bottom: .6rem; }
 .plaque-run-summary p { margin: 0; font-size: .9rem; color: var(--muted); line-height: 1.5; }
 .plaque-main { display: grid; min-width: 0; gap: 1rem; }
-.plaque-status { margin: 0; background: var(--orange-soft); color: #713f16; padding: .8rem 1rem; border-radius: 10px; line-height: 1.5; font-size: 1rem; font-weight: 650; }
+.plaque-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .plaque-panel { padding: 1.15rem; min-width: 0; }
 .plaque-panel h2 { margin: 0 0 .4rem; font-size: 1.3rem; line-height: 1.3; }
 .plaque-description { color: var(--muted); margin: 0 0 1rem; line-height: 1.5; font-size: 1rem; }
@@ -65,43 +65,28 @@
 .plaque-patient { opacity: .9; stroke: white; stroke-width: 1; }
 .control .plaque-patient, .control .plaque-sample-mean, .control .plaque-source-point { fill: var(--blue); }
 .treatment .plaque-patient, .treatment .plaque-sample-mean, .treatment .plaque-source-point { fill: #c96a20; }
-.plaque-distributions { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.25rem; }
-.plaque-distributions article { min-width: 0; }
-.plaque-distributions h3 { font-size: 1.2rem; line-height: 1.4; margin: 0 0 .6rem; }
 .plaque-chart-caption { font-size: .95rem; color: var(--muted); margin: .5rem 0 0; line-height: 1.5; }
 .plaque-rejection-regions rect { fill: #fff0df; }
 .plaque-histogram-bar { fill: #4596a9; opacity: .75; }
-.plaque-histogram-bar.t { fill: #5e9c86; }
 .plaque-critical-line { stroke: #b75a18; stroke-width: 1.5; stroke-dasharray: 5 4; }
 .plaque-critical-label { fill: #9e4f1d; font-size: 16px; font-weight: 700; }
 .plaque-density-label { fill: var(--muted); font-size: 16px; }
 .plaque-zero-line { stroke: #8399a2; stroke-width: 1; opacity: .55; }
 .plaque-latest-marker { fill: #e48a3a; stroke: white; stroke-width: 2; }
-.plaque-plot-summary { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin: 1rem 0 0; }
-.plaque-plot-summary > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: .35rem .6rem; }
-.plaque-plot-summary dt { color: var(--muted); font-size: .95rem; }
-.plaque-plot-summary dd { margin: 0; font-weight: 750; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 .plaque-marker-link { stroke: #bd651e; stroke-width: 1.5; }
 .plaque-marker-label-background { fill: #fff7eb; stroke: #d28542; }
 .plaque-marker-label { fill: #713f16; font-size: 16px; font-weight: 750; font-variant-numeric: tabular-nums; }
-.plaque-test-rule { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; padding: 1rem 0 .6rem; font-size: 1rem; }
-@media (max-width: 1150px) {
-  .plaque-distributions { grid-template-columns: 1fr; gap: 1.5rem; }
-  .plaque-distributions h3 { min-height: 0; }
-}
 @media (max-width: 850px) {
   .plaque-header { grid-template-columns: 1fr; }
   .plaque-workspace { grid-template-columns: 1fr; }
   .plaque-header-actions { justify-content: space-between; flex-wrap: wrap; }
   .plaque-controls { grid-template-columns: 1fr 1fr; }
   .plaque-controls h2, .plaque-controls .plaque-validation, .plaque-run-summary { grid-column: 1 / -1; }
-  .plaque-distributions { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
   .plaque-exploration { padding: .65rem; }
-  .plaque-controls, .plaque-distributions { grid-template-columns: 1fr; }
+  .plaque-controls { grid-template-columns: 1fr; }
   .plaque-panel { padding: .85rem; }
-  .plaque-distributions h3 { min-height: 0; }
 }
 @media (prefers-reduced-motion: no-preference) {
   .plaque-latest-marker { animation: plaque-arrival .45s ease-out; }
@@ -110,3 +95,4 @@
 @keyframes plaque-arrival { from { opacity: .1; } to { opacity: 1; } }
 
 .plaque-population-mean-label { fill: var(--ink); font-size: 16px; font-weight: 700; }
+.plaque-region-toggle { display: flex; align-items: center; gap: .6rem; margin: 0 0 1rem; width: fit-content; cursor: pointer; }

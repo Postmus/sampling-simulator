@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { LanguageSelector } from "../../app/LanguageSelector";
-import { studentTCritical95 } from "../../domain/distributions/studentT";
 import { createRng, randomSeed } from "../../domain/rng";
 import { formatNumber, useLocale } from "../../i18n/LocaleContext";
 import { AnimationRuntime } from "../../runtime/AnimationRuntime";
 import { DistributionChart, PopulationChart } from "./Charts";
 import {
-  DEFAULT_CONFIGURATION, MAX_EXPERIMENTS, empiricalSe, experimentEstimate,
-  simulateExperiment, theoreticalSe, validateConfiguration,
+  DEFAULT_CONFIGURATION, MAX_EXPERIMENTS, rejectionBoundary, experimentEstimate,
+  simulateExperiment, validateConfiguration,
   type Configuration, type Estimate, type Experiment,
 } from "./model";
 import { plaqueMessages } from "./messages";
@@ -34,6 +33,7 @@ export default function PlaqueIndexInferencePage() {
   const [seed, setSeed] = useState(271828);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [speed, setSpeed] = useState(1);
+  const [showRejectionRegions, setShowRejectionRegions] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
   const rng = useRef(createRng(seed));
@@ -50,8 +50,7 @@ export default function PlaqueIndexInferencePage() {
     return () => document.removeEventListener("fullscreenchange", onFullscreen);
   }, []);
 
-  const critical = useMemo(() => studentTCritical95(2 * configuration.sampleSize - 2), [configuration.sampleSize]);
-  const observedSe = useMemo(() => empiricalSe(estimates), [estimates]);
+  const critical = rejectionBoundary(configuration);
   const rejectionCount = useMemo(() => estimates.filter((result) => result.rejected).length, [estimates]);
 
   function clear(nextStatus: Status, nextSeed = seed) {
@@ -181,25 +180,14 @@ export default function PlaqueIndexInferencePage() {
         </section>
 
         <section className="plaque-panel" aria-labelledby="plaque-distributions-heading">
-          <h2 id="plaque-distributions-heading">{m.distributions}</h2><p className="plaque-description">{m.distributionDescription}</p>
-          <div className="plaque-distributions">
-            <article aria-labelledby="plaque-difference-heading">
-              <h3 id="plaque-difference-heading">{m.differenceDistribution}</h3>
-              <DistributionChart kind="difference" estimates={estimates} critical={critical} locale={locale} />
-              <p className="plaque-chart-caption">{m.differenceReference}</p>
-              <dl className="plaque-plot-summary">
-                <div><dt>{m.seTheory}</dt><dd data-role="plaque-theoretical-se">{f(theoreticalSe(configuration), 3)}</dd></div>
-                <div><dt>{m.seEmpirical}</dt><dd data-role="plaque-empirical-se">{f(observedSe, 3)}</dd></div>
-              </dl>
-            </article>
-            <article aria-labelledby="plaque-t-heading">
-              <h3 id="plaque-t-heading">{m.tDistribution}</h3>
-              <DistributionChart kind="t" estimates={estimates} critical={critical} locale={locale} />
-              <p className="plaque-chart-caption">{m.tReference}</p>
-              <div className="plaque-test-rule"><strong>{m.rule}</strong><span>{m.cutoff} {f(critical, 3)}</span></div>
-              <p className="plaque-hint">{m.nullReference}</p>
-            </article>
-          </div>
+          <h2 id="plaque-distributions-heading">{m.distributions}</h2>
+          <p className="plaque-description">{m.distributionDescription}</p>
+          <label className="plaque-checkbox plaque-region-toggle">
+            <input type="checkbox" checked={showRejectionRegions} onChange={(event) => setShowRejectionRegions(event.target.checked)} />
+            {m.showRejectionRegions}
+          </label>
+          <DistributionChart estimates={estimates} critical={critical} locale={locale} showRejectionRegions={showRejectionRegions} />
+          <p className="plaque-chart-caption">{showRejectionRegions ? m.differenceReference : m.latestReference}</p>
         </section>
       </div>
     </div>
