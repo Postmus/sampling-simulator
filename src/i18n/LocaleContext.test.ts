@@ -8,6 +8,8 @@ import { diagnosticsMessages } from "../concepts/regression-diagnostics/messages
 import { diagnosticScenarios } from "../concepts/regression-diagnostics/scenarios";
 import { ancovaMessages } from "../concepts/ancova-additive/messages";
 import { interactionMessages } from "../concepts/interaction-model/messages";
+import { clusterMessages } from "../concepts/cluster-randomization/messages";
+import { blockMessages } from "../concepts/randomized-block-design/messages";
 import { formatNumber } from "./LocaleContext";
 
 function messageShape(value: unknown): unknown {
@@ -29,6 +31,8 @@ describe("localization", () => {
     expect(messageShape(diagnosticsMessages.nl)).toEqual(messageShape(diagnosticsMessages.en));
     expect(messageShape(ancovaMessages.nl)).toEqual(messageShape(ancovaMessages.en));
     expect(messageShape(interactionMessages.nl)).toEqual(messageShape(interactionMessages.en));
+    expect(messageShape(clusterMessages.nl)).toEqual(messageShape(clusterMessages.en));
+    expect(messageShape(blockMessages.nl)).toEqual(messageShape(blockMessages.en));
   });
 
   it("provides localized metadata for every theme, concept, and regression scenario", () => {

@@ -1,0 +1,7 @@
+.block-display-options { display: grid; gap: .55rem; margin: .75rem 0 1rem; }
+.block-center-toggle { display: flex; align-items: center; gap: .65rem; width: fit-content; font-weight: 700; cursor: pointer; line-height: 1.5; }
+.block-center-toggle input { min-height: auto; accent-color: var(--blue); width: 18px; height: 18px; }
+.block-mean-connector { stroke: #647785; stroke-width: 1.5; }
+.block-within-mean { stroke: white; stroke-width: 1.5; }
+.block-within-mean.control { fill: var(--blue); }
+.block-within-mean.intervention { fill: #ba651c; }

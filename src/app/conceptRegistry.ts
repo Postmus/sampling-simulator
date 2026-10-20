@@ -51,9 +51,54 @@ export const themeRegistry: ThemeDefinition[] = [
       },
     },
   },
+  {
+    id: "clustered-data",
+    copy: {
+      en: {
+        title: "Clustered data",
+        description: "Go beyond linear regression: explore how shared hospital effects and the level of treatment assignment change uncertainty, type I error, and power.",
+      },
+      nl: {
+        title: "Geclusterde gegevens",
+        description: "Ga verder dan lineaire regressie: ontdek hoe gedeelde ziekenhuiseffecten en het niveau van behandelingstoewijzing onzekerheid, type I-fouten en power beïnvloeden.",
+      },
+    },
+  },
 ];
 
 export const conceptRegistry: ConceptDefinition[] = [
+  {
+    id: "randomized-block-design",
+    themeId: "clustered-data",
+    order: 2,
+    copy: {
+      en: {
+        title: "Randomised blocks: treatment within hospitals",
+        description: "Randomise ten control and ten intervention patients within each hospital. Centre hospital outcomes and compare ordinary regression with a random-intercept model.",
+      },
+      nl: {
+        title: "Gerandomiseerde blokken: behandeling binnen ziekenhuizen",
+        description: "Randomiseer tien controle- en tien interventiepatiënten binnen elk ziekenhuis. Centreer ziekenhuisuitkomsten en vergelijk gewone regressie met een random-interceptmodel.",
+      },
+    },
+    component: lazy(() => import("../concepts/randomized-block-design/RandomizedBlockDesignPage")),
+  },
+  {
+    id: "cluster-randomization",
+    themeId: "clustered-data",
+    order: 1,
+    copy: {
+      en: {
+        title: "Cluster randomisation: patients within hospitals",
+        description: "Randomise six hospitals, each with twenty patients. Compare ordinary regression with a random-intercept model and repeat trials to explore type I error and power.",
+      },
+      nl: {
+        title: "Clusterrandomisatie: patiënten binnen ziekenhuizen",
+        description: "Randomiseer zes ziekenhuizen met elk twintig patiënten. Vergelijk gewone regressie met een random-interceptmodel en herhaal onderzoeken om type I-fouten en power te verkennen.",
+      },
+    },
+    component: lazy(() => import("../concepts/cluster-randomization/ClusterRandomizationPage")),
+  },
   {
     id: "sampling-distribution",
     themeId: "sampling-estimation",

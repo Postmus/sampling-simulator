@@ -9,10 +9,10 @@ test("switches the complete lab to Dutch and persists the choice", async ({ page
   await expect(page.locator("html")).toHaveAttribute("lang", "nl");
   await expect(page.getByText("Statistieklab", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Kies een thema" })).toBeVisible();
-  await expect(page.locator(".theme-card")).toHaveCount(2);
+  await expect(page.locator(".theme-card")).toHaveCount(3);
   await expect(page.getByRole("link").filter({ hasText: "Hoe kleinste kwadraten een lijn kiest" })).toHaveCount(0);
 
-  await page.getByRole("link").filter({ hasText: "Lineaire regressie" }).click();
+  await page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Lineaire regressie", exact: true }) }).click();
   await expect(page.getByRole("heading", { name: "Lineaire regressie" })).toBeVisible();
   await expect(page.locator(".concept-card")).toHaveCount(4);
   await expect(page.locator(".concept-category")).toHaveCount(0);
