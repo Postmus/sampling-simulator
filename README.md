@@ -190,3 +190,40 @@ Simulation checks verify calibrated mixed-model type I error, conservative ordin
 tests, and increased power from accounting for hospitals in this balanced common-effect model.
 The exploration supports English, Dutch, presentation mode, reduced motion, and responsive
 chart stacking.
+
+## Randomised blocks: bias and SE calibration
+
+Open `#/concepts/block-se-calibration` as a separate **Clustered data** exploration for
+Beyond MLR Week 1. The existing randomised-block and cluster-randomisation modules are unchanged.
+This module uses the rehabilitation example: six fixed centers, 20 patients per center,
+ten per treatment, a baseline of 360 m, a default treatment effect of 10 m, and independent
+Normal individual errors with SD 24 m. Center effects A–F are −17, +16, +8, −29, +27, and −5 m
+and remain fixed across simulations. Treatment assignments are shuffled within each center,
+always retaining ten patients per treatment. Effect and individual-error SD are adjustable;
+changes clear results. No random center effects or ICC parameter are used.
+
+Every dataset is fitted by treatment-only OLS (118 residual df) and treatment plus fixed
+center effects (113 residual df). Both estimates and estimated SEs are retained. Selecting
+an analysis changes only the display, reusing the same datasets. The main view shows the
+empirical sampling distribution, true effect, mean estimate, estimated bias, empirical SD,
+and a plain boxplot of estimated SEs with the empirical SD as a horizontal reference line.
+The box uses Tukey hinges and 1.5-IQR whiskers; only outliers are drawn as points. Switching
+models preserves the vertical scale. The empirical SE, its reference line and the ratio are
+revealed only after 1,000 completed datasets, matching the batch size. Before then, the
+estimated-SE boxplot and its mean are shown with a message explaining the threshold. The empirical SD and mean estimated SE are also shown
+numerically below the plot, with the box median identified separately. The mean estimated SE
+is the arithmetic average of the SEs estimated by the selected model across simulated datasets. Their ratio summarizes agreement between the
+mean estimated SE and empirical sampling SD;
+Monte Carlo fluctuations are explicitly noted. The always-open latest-dataset card sits above the sampling distribution. It reveals patient
+observations, then the two overall treatment means and their difference, before adding that
+estimate to the histogram. The difference label includes the SE from the selected analysis.
+Center-by-treatment means remain visible; fitted model details
+are expandable. A batch animates its first dataset, processes the remainder quickly, and
+leaves the final dataset visible. Stopping discards the incomplete preview from the display;
+completed results remain, and the next run can resume that dataset without skipping it.
+
+Generate one dataset or batches of 1,000, up to 20,000. Stop preserves completed datasets;
+Reset replays the seed, and New seed starts a different reproducible sequence. English/Dutch,
+presentation mode, reduced motion and narrow-screen chart scrolling are supported.
+The fixed-effects calculations are checked against independent R `lm` fixtures. Seeded
+simulation tests compare empirical moments and estimated variances with their analytic targets.

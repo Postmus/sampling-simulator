@@ -68,6 +68,22 @@ export const themeRegistry: ThemeDefinition[] = [
 
 export const conceptRegistry: ConceptDefinition[] = [
   {
+    id: "block-se-calibration",
+    themeId: "clustered-data",
+    order: 3,
+    copy: {
+      en: {
+        title: "Randomised blocks: bias and SE calibration",
+        description: "Hold center effects fixed and compare the sampling variability of treatment estimates with model-estimated uncertainty, using the same datasets for both analyses.",
+      },
+      nl: {
+        title: "Gerandomiseerde blokken: bias en SE-kalibratie",
+        description: "Houd centrumeffecten vast en vergelijk de steekproefvariatie van behandelschattingen met de geschatte onzekerheid, met dezelfde datasets voor beide analyses.",
+      },
+    },
+    component: lazy(() => import("../concepts/block-se-calibration/BlockSECalibrationPage")),
+  },
+  {
     id: "randomized-block-design",
     themeId: "clustered-data",
     order: 2,

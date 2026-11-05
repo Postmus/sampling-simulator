@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 test("is the second exploration in the clustered-data theme", async ({ page }) => {
   await page.goto("/#/themes/clustered-data");
   const cards = page.locator(".concept-card");
-  await expect(cards).toHaveCount(2);
+  await expect(cards).toHaveCount(3);
   await expect(cards.first()).toContainText("Cluster randomisation");
   await expect(cards.nth(1)).toContainText("Randomised blocks");
   await cards.nth(1).click();

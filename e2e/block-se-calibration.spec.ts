@@ -1,0 +1,174 @@
+import { test, expect } from "@playwright/test";
+
+test.beforeEach(async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/#/concepts/block-se-calibration");
+});
+
+test("is separate, preserves paired simulations, and replays the same seed", async ({ page }) => {
+  const errors: string[] = []; page.on("pageerror", e => errors.push(e.message));
+  await expect(page.getByRole("heading", { name: "Bias and SE calibration", exact: true })).toBeVisible();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await expect(page.locator('[data-role="empirical"]')).toHaveCount(0);
+  await expect(page.getByText("The empirical SE comparison appears after 1,000 simulated datasets.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mean estimated SE", exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-results/se-initial-desktop.png", fullPage: true });
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1");
+  await expect(page.locator("[data-patient]")).toHaveCount(120);
+  for (let j = 0; j < 6; j++) for (const t of ["true", "false"]) await expect(page.locator(`[data-center="${j}"] [data-treated="${t}"]`)).toHaveCount(10);
+  await page.screenshot({ path: "test-results/se-latest-desktop.png", fullPage: true });
+  const outcomes = await page.locator("[data-patient]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-outcome")));
+  const estimate = await page.locator('[data-role="mean"]').innerText();
+  await expect(page.locator(".se-difference text")).toHaveText("Estimated treatment effect (SE): 7.24 m (5.53 m)");
+  const plotSE = Number(await page.locator("[data-treatment-se]").getAttribute("data-treatment-se"));
+  await expect(page.locator("[data-empirical-se]")).toHaveCount(0);
+  await expect(page.locator('[data-role="empirical"]')).toHaveCount(0);
+  await expect(page.locator('[data-role="ratio"]')).toHaveCount(0);
+  const ordinarySE = parseFloat(await page.locator('[data-role="reported"]').innerText());
+  await page.getByLabel("Analysis model", { exact: true }).selectOption("center");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1");
+  await expect(page.locator('[data-role="mean"]')).toHaveText(estimate);
+  expect(parseFloat(await page.locator('[data-role="reported"]').innerText())).toBeLessThan(ordinarySE);
+  const adjustedPlotSE = Number(await page.locator("[data-treatment-se]").getAttribute("data-treatment-se"));
+  expect(adjustedPlotSE).toBeLessThan(plotSE);
+  expect(Number(adjustedPlotSE.toFixed(2))).toBe(parseFloat(await page.locator('[data-role="reported"]').innerText()));
+  await expect(page.locator(".se-difference text")).toHaveText(`Estimated treatment effect (SE): 7.24 m (${adjustedPlotSE.toFixed(2)} m)`);
+  expect(await page.locator("[data-patient]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-outcome")))).toEqual(outcomes);
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1");
+  expect(await page.locator("[data-patient]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-outcome")))).toEqual(outcomes);
+  await page.getByRole("button", { name: "Generate 1,000", exact: true }).click();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1,001");
+  expect(parseFloat(await page.locator('[data-role="ratio"]').innerText())).toBeGreaterThan(.9);
+  expect(parseFloat(await page.locator('[data-role="ratio"]').innerText())).toBeLessThan(1.1);
+  await expect(page.locator("[data-box-count]")).toHaveAttribute("data-box-count", "1001");
+  const median = Number(await page.locator("[data-box-median]").getAttribute("data-box-median"));
+  const axis = await page.locator('[data-chart="reported-se"]').evaluate(n => [n.getAttribute("data-axis-min"), n.getAttribute("data-axis-max")]);
+  const empirical = await page.locator("[data-empirical-se]").getAttribute("data-empirical-se");
+  expect(Number(Number(empirical).toFixed(2))).toBe(parseFloat(await page.locator('[data-role="empirical"]').innerText()));
+  const bins = await page.locator(".se-bin").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-count")));
+  await page.locator(".se-uncertainty").screenshot({ path: "test-results/se-boxplot-adjusted.png" });
+  await page.screenshot({ path: "test-results/se-adjusted-desktop.png", fullPage: true });
+  await page.getByLabel("Analysis model", { exact: true }).selectOption("treatment");
+  expect(await page.locator(".se-bin").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-count")))).toEqual(bins);
+  expect(parseFloat(await page.locator('[data-role="ratio"]').innerText())).toBeGreaterThan(1.2);
+  expect(Number(await page.locator("[data-box-median]").getAttribute("data-box-median"))).toBeGreaterThan(median);
+  expect(await page.locator('[data-chart="reported-se"]').evaluate(n => [n.getAttribute("data-axis-min"), n.getAttribute("data-axis-max")])).toEqual(axis);
+  await expect(page.locator("[data-empirical-se]")).toHaveAttribute("data-empirical-se", empirical!);
+  await page.locator(".se-uncertainty").screenshot({ path: "test-results/se-boxplot-treatment.png" });
+  await page.screenshot({ path: "test-results/se-treatment-desktop.png", fullPage: true });
+  await page.getByLabel("True treatment effect (m)", { exact: true }).fill("0");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await expect(page.locator("[data-empirical-se]")).toHaveCount(0);
+  await expect(page.locator('[data-role="empirical"]')).toHaveCount(0);
+  await expect(page.locator('[data-role="ratio"]')).toHaveCount(0);
+  await page.getByLabel("Individual-error SD (m)", { exact: true }).fill("");
+  await expect(page.getByRole("button", { name: "Generate 1,000", exact: true })).toBeDisabled();
+  await expect(page.getByRole("alert")).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("supports Dutch, presentation, mobile, and discovers both block modules", async ({ page }) => {
+  await page.getByRole("button", { name: "Generate 1,000", exact: true }).click();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1,000");
+  await expect(page.locator("[data-empirical-se]")).toHaveCount(1);
+  await expect(page.locator('[data-role="empirical"]')).toBeVisible();
+  await expect(page.locator('[data-role="ratio"]')).toBeVisible();
+  await page.getByLabel("Language", { exact: true }).selectOption("nl");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1.000");
+  await expect(page.getByRole("heading", { name: "Bias en SE-kalibratie", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Gemiddelde geschatte SE", exact: true })).toBeVisible();
+  await page.getByLabel("Analysemodel", { exact: true }).selectOption("center");
+  await page.screenshot({ path: "test-results/se-dutch-desktop.png", fullPage: true });
+  await page.getByRole("button", { name: "Presentatiemodus", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Presentatiemodus sluiten", exact: true })).toBeVisible();
+  const datasetBox = await page.locator(".se-latest").boundingBox();
+  const distributionBox = await page.locator(".se-distribution").boundingBox();
+  expect(datasetBox!.y + datasetBox!.height).toBeLessThan(distributionBox!.y);
+  await page.screenshot({ path: "test-results/se-presentation.png", fullPage: true });
+  await page.getByRole("button", { name: "Presentatiemodus sluiten", exact: true }).click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(391);
+  await page.screenshot({ path: "test-results/se-mobile.png", fullPage: true });
+  await page.getByRole("link", { name: "← Geclusterde gegevens", exact: true }).click();
+  await expect(page.locator(".concept-card")).toHaveCount(3);
+});
+
+test("cancels an animated dataset on reset and on navigation", async ({ page }) => {
+  await page.locator(".se-controls summary").click();
+  await page.getByLabel("Reduce motion", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await page.getByRole("link", { name: "← Clustered data", exact: true }).click();
+  await page.goto("/#/concepts/block-se-calibration");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+});
+
+
+test("reveals observations, group means and their difference before counting the estimate", async ({ page }) => {
+  await page.locator(".se-controls summary").click();
+  await page.getByLabel("Reduce motion", { exact: true }).uncheck();
+  const card = page.locator(".se-latest");
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await expect(card).toHaveAttribute("data-stage", "points");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await expect(page.locator("[data-overall-mean]")).toHaveCount(0);
+  await expect(page.locator("[data-treatment-difference]")).toHaveCount(0);
+  await expect(card).toHaveAttribute("data-stage", "means");
+  await expect(page.locator("[data-overall-mean]")).toHaveCount(2);
+  await expect(page.locator("[data-treatment-difference]")).toHaveCount(0);
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  const means = await page.locator("[data-patient]").evaluateAll(nodes => ["false", "true"].map(t => {
+    const outcomes = nodes.filter(n => n.getAttribute("data-treated") === t).map(n => Number(n.getAttribute("data-outcome")));
+    return outcomes.reduce((a, b) => a + b, 0) / outcomes.length;
+  }));
+  const displayedMeans = await page.locator("[data-overall-mean]").evaluateAll(nodes => nodes.map(n => Number(n.getAttribute("data-overall-mean"))));
+  expect(displayedMeans).toEqual(means);
+  await expect(card).toHaveAttribute("data-stage", "difference");
+  const difference = means[1] - means[0];
+  await expect(page.locator("[data-treatment-difference]")).toHaveAttribute("data-treatment-difference", String(difference));
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await expect(page.locator("[data-latest-estimate]")).toHaveCount(0);
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1");
+  await expect(page.locator("[data-latest-estimate]")).toHaveAttribute("data-latest-estimate", String(difference));
+  const outcomes = await page.locator("[data-patient]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-outcome")));
+  // Interrupt the following dataset: restore the last completed plot and leave its count alone.
+  await expect(page.getByRole("button", { name: "Generate 1 dataset", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await expect(card).toHaveAttribute("data-stage", "means");
+  await page.getByRole("button", { name: "Stop", exact: true }).click();
+  await expect(card).toHaveAttribute("data-stage", "complete");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1");
+  expect(await page.locator("[data-patient]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-outcome")))).toEqual(outcomes);
+  // Reset during a reveal must prevent stale results from appearing afterwards.
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await expect(card).toHaveAttribute("data-stage", "means");
+  await page.getByRole("button", { name: "Restore defaults", exact: true }).click();
+  await expect(card).toHaveAttribute("data-stage", "empty");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await page.getByLabel("Reduce motion", { exact: true }).check();
+  await page.getByRole("button", { name: "Generate 1 dataset", exact: true }).click();
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1");
+  expect(await page.locator("[data-patient]").evaluateAll(nodes => nodes.map(n => n.getAttribute("data-outcome")))).toEqual(outcomes);
+});
+
+test("animates the first batch dataset and retains the final one, including negative effects", async ({ page }) => {
+  await page.getByLabel("True treatment effect (m)", { exact: true }).fill("-30");
+  await page.locator(".se-controls summary").click();
+  await page.getByLabel("Reduce motion", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "Generate 1,000", exact: true }).click();
+  await expect(page.locator(".se-latest")).toHaveAttribute("data-stage", "difference");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("0");
+  await expect(page.locator('[data-role="completed"]')).toHaveText("1,000");
+  const difference = Number(await page.locator("[data-treatment-difference]").getAttribute("data-treatment-difference"));
+  expect(difference).toBeLessThan(0);
+  await expect(page.locator("[data-latest-estimate]")).toHaveAttribute("data-latest-estimate", String(difference));
+  const total = await page.locator(".se-bin").evaluateAll(nodes => nodes.reduce((sum, n) => sum + Number(n.getAttribute("data-count")), 0));
+  expect(total).toBe(1000);
+  await page.screenshot({ path: "test-results/se-negative-desktop.png", fullPage: true });
+});
